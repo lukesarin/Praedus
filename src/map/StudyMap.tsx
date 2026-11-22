@@ -1,7 +1,8 @@
-import type { KeyboardEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
 import type { Course } from '../db/db'
-import { courseCode, type Donut, type DonutWeek } from './donut'
-import { weekHeading } from './panelText'
+import { dueInstant } from '../study/plan'
+import { cardSpot, courseCode, type Donut, type DonutWeek, type WeekItem } from './donut'
+import { plainDescription, weekHeading } from './panelText'
 
 type Props = {
   /** Classes that have something to map, sorted by name. */
@@ -50,10 +51,81 @@ function weekLine(weeks: DonutWeek[]): string {
   return current.week.number !== undefined ? `Week ${current.week.number} of ${weeks.length}` : weekHeading(current.week)
 }
 
+/** "Oct 26 to Nov 1" from a week's Monday. */
+function weekSpan(start: string): string {
+  const fmt = (key: string, add: number) => {
+    const [y, m, d] = key.split('-').map(Number)
+    return new Date(Date.UTC(y, m - 1, d + add)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+  }
+  return `${fmt(start, 0)} to ${fmt(start, 6)}`
+}
+
+function itemNote(x: WeekItem): string {
+  if (x.test) return 'Test'
+  if (x.reviewed) return 'Reviewed'
+  if (x.status === 'late') return 'Not turned in'
+  if (x.status === 'done') return 'Done'
+  return ''
+}
+
 export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, onOpenItem, hasTermStart, onSetTermStart }: Props) {
   const course = courses.find((c) => c.id === courseId)
   const pickedId = donut?.tests.find((t) => t.picked)?.item.id
   const line = donut ? weekLine(donut.weeks) : ''
+
+  // The open week card. Keyed by class and test too, so changing either closes it.
+  const [openKey, setOpenKey] = useState<string>()
+  const keyFor = (start: string) => `${courseId}|${pickedId ?? ''}|${start}`
+  const openWeek = donut?.weeks.find((w) => keyFor(w.week.start) === openKey)
+  const toggleWeek = (start: string) => setOpenKey((k) => (k === keyFor(start) ? undefined : keyFor(start)))
+  const close = () => setOpenKey(undefined)
+
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const svgRef = useRef<SVGSVGElement>(null)
+  const cardRef = useRef<HTMLElement>(null)
+  const leadRef = useRef<SVGSVGElement>(null)
+  const [size, setSize] = useState(0)
+
+  useEffect(() => {
+    const el = canvasRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setSize((n) => n + 1))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!openWeek) return
+    const onKey = (e: globalThis.KeyboardEvent) => e.key === 'Escape' && setOpenKey(undefined)
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [openWeek])
+
+  // Place the card in the nearest free corner and draw the line from the week to it.
+  useLayoutEffect(() => {
+    const svg = svgRef.current, canvas = canvasRef.current, card = cardRef.current, lead = leadRef.current
+    const ctm = svg?.getScreenCTM()
+    if (!openWeek || !svg || !canvas || !card || !lead || !ctm) return
+    const box = canvas.getBoundingClientRect()
+    const am = (openWeek.a0 + openWeek.a1) / 2
+    const at = (r: number) => {
+      const [x, y] = pt(am, r)
+      const p = new DOMPoint(x, y).matrixTransform(ctm)
+      return { x: p.x - box.left, y: p.y - box.top }
+    }
+    const edge = at(R1 + 3)
+    const spot = cardSpot(edge, [at((R0 + R1) / 2), at(R0 + 12)], { w: card.offsetWidth, h: card.offsetHeight }, { w: box.width, h: box.height })
+    card.style.left = `${spot.left}px`
+    card.style.top = `${spot.top}px`
+    const ex = Math.max(spot.left, Math.min(spot.left + card.offsetWidth, edge.x))
+    const ey = Math.max(spot.top, Math.min(spot.top + card.offsetHeight, edge.y))
+    lead.innerHTML = `<line x1="${edge.x}" y1="${edge.y}" x2="${ex}" y2="${ey}"/><circle cx="${edge.x}" cy="${edge.y}" r="3"/>`
+  }, [openWeek, size])
+
+  // A click on the chart that isn't on a week or a test closes the card.
+  const onChartClick = (e: MouseEvent) => {
+    if (!(e.target as Element).closest('.map-slice, .map-dot, .map-flag')) close()
+  }
 
   return (
     <div className="map-page">
@@ -82,11 +154,11 @@ export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, o
         )}
       </div>
 
-      <div className="map-canvas">
+      <div className="map-canvas" ref={canvasRef}>
         {!donut || !course ? (
           <div className="map-empty muted">Your classes show up here once Canvas is connected.</div>
         ) : (
-          <svg viewBox="-350 -312 700 624" role="group" aria-label={`Semester of ${course.name}`}>
+          <svg ref={svgRef} viewBox="-350 -312 700 624" role="group" aria-label={`Semester of ${course.name}`} onClick={onChartClick}>
             {donut.weeks.map((w) => {
               const am = (w.a0 + w.a1) / 2
               const [nx, ny] = pt(am, R1 - 16)
@@ -100,27 +172,27 @@ export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, o
                     className={`map-slice${odd ? ' alt' : ''}${w.inUnit ? ' in fadein' : ''}`}
                     d={slicePath(w.a0, w.a1, R0, R1)}
                     style={w.inUnit ? { fill: muted(course.color, 62) } : undefined}
-                  >
-                    <title>{weekHeading(w.week)}{w.now ? ' (this week)' : ''}</title>
-                  </path>
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${weekHeading(w.week)}: ${w.items.length === 1 ? '1 item' : `${w.items.length} items`}`}
+                    aria-expanded={openWeek === w}
+                    onClick={() => toggleWeek(w.week.start)}
+                    onKeyDown={activate(() => toggleWeek(w.week.start))}
+                  />
                   <text className={`map-wnum${w.inUnit ? ' in' : ''}${w.now ? ' now' : ''}`} x={nx} y={ny}
                     textAnchor="middle" dominantBaseline="central">{w.label}</text>
                   {w.dots.map((d, j) => {
                     const [x, y] = pt(am, R0 + 26 + j * step)
                     const cls = `map-dot${d.status ? ` ${d.status}` : ''}${d.reviewed ? ' rev' : ''}`
                     return (
-                      <circle key={d.item.id} className={cls} cx={x} cy={y} r={DOT_R} role="button" tabIndex={0}
-                        aria-label={d.item.title}
+                      <circle key={d.item.id} className={cls} cx={x} cy={y} r={DOT_R} aria-hidden="true"
                         style={{ fill: d.reviewed ? undefined : w.inUnit ? 'var(--bg)' : muted(course.color) }}
-                        onClick={() => onOpenItem(d.item.id)} onKeyDown={activate(() => onOpenItem(d.item.id))}>
-                        <title>{d.item.title}{d.status === 'late' ? ' (not turned in)' : d.status === 'done' ? ' (done)' : ''}</title>
-                      </circle>
+                        onClick={() => toggleWeek(w.week.start)} />
                     )
                   })}
                   {w.more > 0 && (
                     <text className={`map-more${w.inUnit ? ' in' : ''}`} x={mx} y={my} textAnchor="middle" dominantBaseline="central">
                       +{w.more}
-                      <title>{w.more} more in {weekHeading(w.week)}</title>
                     </text>
                   )}
                 </g>
@@ -130,6 +202,7 @@ export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, o
             {donut.weeks.filter((w) => w.now).map((w) => (
               <path key="now" className="map-now" d={slicePath(w.a0, w.a1, R0, R1)} />
             ))}
+            {openWeek && <path className="map-sel" d={slicePath(openWeek.a0, openWeek.a1, R0, R1)} />}
 
             {donut.tests.map((t) => {
               const out = R1 + 18 + t.lane * 16
@@ -160,6 +233,52 @@ export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, o
             <text className="map-center-name" textAnchor="middle" y={14}>{clip(course.name, 30)}</text>
             <text className="map-center-wk" textAnchor="middle" y={34}>{line}</text>
           </svg>
+        )}
+        {openWeek && course && (
+          <>
+            <svg ref={leadRef} className="map-lead" aria-hidden="true" />
+            <section key={openKey} ref={cardRef} className="map-card" aria-label={weekHeading(openWeek.week)}>
+              <header className="map-card-head">
+                <div>
+                  <h3>{weekHeading(openWeek.week)}</h3>
+                  <p>{weekSpan(openWeek.week.start)}</p>
+                </div>
+                <div className="map-card-tags">
+                  {openWeek.now && <span className="map-tag now">This week</span>}
+                  {openWeek.inUnit && donut?.unit && (
+                    <span className="map-tag" style={{ background: `color-mix(in srgb, ${course.color} 24%, transparent)` }}>
+                      On {donut.unit.test.title}
+                    </span>
+                  )}
+                </div>
+                <button className="map-card-x" aria-label="Close week" onClick={close}>×</button>
+              </header>
+              {openWeek.items.length === 0 ? (
+                <p className="map-card-empty">Nothing was due this week.</p>
+              ) : (
+                <ul>
+                  {openWeek.items.map((x) => {
+                    const kind = x.test ? 'test' : x.reviewed ? 'rev' : x.status ?? 'todo'
+                    const note = itemNote(x)
+                    const desc = plainDescription(x.item.description, 90)
+                    return (
+                      <li key={x.item.id} className={`map-card-row ${kind}`}>
+                        <i style={{ background: kind === 'todo' || kind === 'done' ? muted(course.color) : undefined }} />
+                        <button onClick={() => onOpenItem(x.item.id)}>
+                          <b>{x.item.title}</b>
+                          {desc && <span>{desc}</span>}
+                        </button>
+                        <span className="map-card-when">
+                          {new Date(dueInstant(x.item)).toLocaleDateString(undefined, { weekday: 'short' })}
+                          {note && <em>{note}</em>}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </section>
+          </>
         )}
       </div>
     </div>

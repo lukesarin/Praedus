@@ -9,6 +9,8 @@ import { classWeeks, mapItems, mondayOf, testsOf, unitFor, type Unit, type Week 
 export const MAX_DOTS = 5
 
 export type DonutDot = { item: CalendarItem; status?: 'done' | 'late'; reviewed: boolean }
+/** Everything due in a week, for the week card: work and tests, in due order. */
+export type WeekItem = DonutDot & { test: boolean }
 export type DonutWeek = {
   week: Week
   /** "9" or "Oct 19". */
@@ -22,6 +24,8 @@ export type DonutWeek = {
   dots: DonutDot[]
   /** Items beyond MAX_DOTS. */
   more: number
+  /** Every item due this week, tests included, in due order. */
+  items: WeekItem[]
 }
 export type DonutTest = { item: CalendarItem; angle: number; picked: boolean; past: boolean; lane: 0 | 1 }
 export type Donut = { weeks: DonutWeek[]; tests: DonutTest[]; unit?: Unit }
@@ -80,13 +84,16 @@ export function buildDonut({ course, items, termStart, testId, now }: Input): Do
 
   const donutWeeks: DonutWeek[] = weeks.map((w, i) => {
     const [a0, a1] = sliceAngles(i, weeks.length)
-    const work = classItems
-      .filter((it) => !isTest(it) && mondayOf(itemDateKey(it)) === w.start)
+    const due = classItems
+      .filter((it) => mondayOf(itemDateKey(it)) === w.start)
       .sort((a, b) => dueInstant(a) - dueInstant(b))
-    const dots: DonutDot[] = work.slice(0, MAX_DOTS).map((it) => {
-      const status = it.done ? 'done' : isLate(it, now) ? 'late' : undefined
-      return { item: it, ...(status ? { status } : {}), reviewed: !!it.reviewed }
+    const items: WeekItem[] = due.map((it) => {
+      const test = isTest(it)
+      const status = test ? undefined : it.done ? 'done' : isLate(it, now) ? 'late' : undefined
+      return { item: it, ...(status ? { status } : {}), reviewed: !!it.reviewed, test }
     })
+    const work = items.filter((x) => !x.test)
+    const dots: DonutDot[] = work.slice(0, MAX_DOTS).map(({ test: _test, ...dot }) => dot)
     return {
       week: w,
       label: w.number !== undefined ? String(w.number) : dateLabel(w.start),
@@ -96,6 +103,7 @@ export function buildDonut({ course, items, termStart, testId, now }: Input): Do
       now: w.start === currentWeek,
       dots,
       more: Math.max(0, work.length - MAX_DOTS),
+      items,
     }
   })
 
@@ -121,4 +129,29 @@ export function buildDonut({ course, items, termStart, testId, now }: Input): Do
   }
 
   return { weeks: donutWeeks, tests: donutTests, ...(unit ? { unit } : {}) }
+}
+
+type Pt = { x: number; y: number }
+export type CardCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+const CARD_MARGIN = 12
+
+/**
+ * Where the week card goes: the chart corner nearest the week's outer edge whose card covers
+ * neither that edge nor any of the `avoid` points (the rest of the week). Pixels, chart-relative.
+ */
+export function cardSpot(edge: Pt, avoid: Pt[], card: { w: number; h: number }, box: { w: number; h: number }) {
+  const w = Math.min(card.w, box.w - CARD_MARGIN * 2)
+  const right = Math.max(CARD_MARGIN, box.w - w - CARD_MARGIN)
+  const bottom = Math.max(CARD_MARGIN, box.h - card.h - CARD_MARGIN)
+  const spots: { left: number; top: number; corner: CardCorner }[] = [
+    { left: CARD_MARGIN, top: CARD_MARGIN, corner: 'top-left' },
+    { left: right, top: CARD_MARGIN, corner: 'top-right' },
+    { left: CARD_MARGIN, top: bottom, corner: 'bottom-left' },
+    { left: right, top: bottom, corner: 'bottom-right' },
+  ]
+  const covers = (s: (typeof spots)[number], p: Pt) =>
+    p.x > s.left - 8 && p.x < s.left + w + 8 && p.y > s.top - 8 && p.y < s.top + card.h + 8
+  const clear = spots.filter((s) => ![edge, ...avoid].some((p) => covers(s, p)))
+  const dist = (s: (typeof spots)[number]) => Math.hypot(s.left + w / 2 - edge.x, s.top + card.h / 2 - edge.y)
+  return (clear.length ? clear : spots).sort((a, b) => dist(a) - dist(b))[0]
 }

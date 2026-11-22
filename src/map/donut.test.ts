@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { addDays } from '../calendar/dates'
 import { localInstant } from '../commitments/expand'
 import type { CalendarItem, Course } from '../db/db'
-import { buildDonut, courseCode, isLate, MAX_DOTS, sliceAngles } from './donut'
+import { buildDonut, cardSpot, courseCode, isLate, MAX_DOTS, sliceAngles } from './donut'
 
 const TERM = '2026-08-24'
 const TAU = Math.PI * 2
@@ -217,5 +217,35 @@ describe('isLate', () => {
   it('is late for timed work after its time', () => {
     expect(isLate(item(localInstant('2026-11-20', '11:00').toISOString(), false), noon)).toBe(true)
     expect(isLate(item(localInstant('2026-11-20', '13:00').toISOString(), false), noon)).toBe(false)
+  })
+})
+
+describe('week items (for the week card)', () => {
+  it('lists every item due in the week, tests included, in due order, past the dot cap', () => {
+    const crowd = Array.from({ length: 7 }, (_, i) => mk('assignment', `PS ${i}`, day(5, i % 5)))
+    const d = build(undefined, { items: [...all, ...crowd] })
+    expect(week(d, 5).items.map((x) => x.item.title)).toHaveLength(7)
+    expect(week(d, 4).items.map((x) => x.item.title)).toEqual(['Test 1'])
+    expect(week(d, 4).items[0].test).toBe(true)
+    expect(week(d, 9).items.map((x) => [x.item.title, x.status])).toEqual([['HW 9', 'done']])
+    expect(week(d, 12).items[0].reviewed).toBe(true)
+    expect(week(d, 11).items).toEqual([])
+  })
+})
+
+describe('cardSpot', () => {
+  const box = { w: 800, h: 700 }
+  const card = { w: 300, h: 200 }
+  it('picks the corner nearest the week', () => {
+    expect(cardSpot({ x: 700, y: 260 }, [], card, box)).toEqual({ left: 488, top: 12, corner: "top-right" })
+  })
+  it('skips a corner that would cover the week', () => {
+    const edge = { x: 150, y: 640 }
+    const spot = cardSpot(edge, [{ x: 200, y: 540 }], card, box)
+    expect(spot.corner).not.toBe('bottom-left')
+    expect(spot.corner).toBe('bottom-right')
+  })
+  it('shrinks to fit a narrow chart', () => {
+    expect(cardSpot({ x: 10, y: 10 }, [], { w: 300, h: 200 }, { w: 250, h: 700 }).left).toBe(12)
   })
 })
