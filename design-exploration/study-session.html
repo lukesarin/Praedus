@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Session: Week by Week</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root { --ink: #171717; --ink-2: #737373; --line: #ececec; --mint: #0b7f58; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; color: var(--ink); font: 15px/1.55 "Figtree", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1340px; margin: 0 auto; padding: 0 32px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+.hero { background: #0e0e0e; color: #f2f2f2; }
+.hero .wrap { padding-top: 56px; padding-bottom: 44px; }
+.hero h1 { margin: 0 0 14px; font-size: clamp(32px, 5vw, 52px); line-height: 1; letter-spacing: -0.045em; max-width: 18ch; }
+.hero p { margin: 0 0 10px; color: #a3a3a3; max-width: 74ch; }
+.hero p strong { color: #f2f2f2; font-weight: 600; }
+.hero nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 18px; font-size: 14px; }
+.hero nav a { color: #d4d4d4; text-decoration: none; }
+.hero nav a:hover { color: #5ed3a8; }
+.opt { padding: 56px 0; border-bottom: 1px solid var(--line); }
+.opt-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; margin-bottom: 22px; }
+@media (max-width: 900px) { .opt-head { grid-template-columns: 1fr; gap: 12px; } }
+.opt h2 { margin: 0 0 6px; font-size: 30px; letter-spacing: -0.03em; line-height: 1.1; }
+.opt .lede { margin: 0 0 10px; color: var(--ink-2); }
+.opt ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+.opt li { margin: 4px 0; }
+.opt li b { color: var(--ink); }
+.pick { margin-left: 10px; font-size: 13px; font-weight: 700; color: var(--mint); vertical-align: middle; }
+.frame { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.frame-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fafafa; font-size: 12.5px; color: var(--ink-2); }
+.frame-bar .dots { display: flex; gap: 6px; }
+.frame-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: #e2e2e2; display: block; }
+.frame-bar button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+.frame-bar button:first-of-type { margin-left: auto; }
+.foot { padding: 36px 0 72px; color: var(--ink-2); font-size: 14px; max-width: 74ch; }
+
+/* ---------- the session, in Praedus tokens ---------- */
+.app {
+  --bg: #0e0e0e; --surface: #181818; --hover: #1c1c1c; --border: #222; --text: #f2f2f2; --muted: #a3a3a3; --faint: #6e6e6e;
+  --accent: #5ed3a8; --on-accent: #06140f; --accent-soft: rgba(94,211,168,.15); --danger: #f26666; --danger-soft: rgba(242,102,102,.14); --warn: #e0a84f;
+  background: var(--bg); color: var(--text); font: 15px/1.55 "Figtree", sans-serif; height: 760px; display: grid; grid-template-columns: 240px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr);
+}
+.app.light { --bg: #fff; --surface: #f7f7f5; --hover: #f4f4f2; --border: #ececec; --text: #171717; --muted: #737373; --faint: #a3a3a3; --accent: #0b7f58; --on-accent: #fff; --accent-soft: rgba(11,127,88,.1); --danger: #c9302c; --danger-soft: rgba(201,48,44,.08); --warn: #b7791f; }
+.app button { font: inherit; color: inherit; }
+.app :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.top { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid var(--border); }
+.top h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
+.top p { margin: 1px 0 0; color: var(--muted); font-size: 13px; }
+.top .leave { margin-left: auto; border: 1px solid var(--border); background: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+/* week rail */
+.rail { border-right: 1px solid var(--border); padding: 16px 12px; overflow-y: auto; }
+.wk { margin-bottom: 14px; }
+.wk h4 { margin: 0 0 4px; padding: 0 8px; font-size: 12.5px; color: var(--faint); font-weight: 600; display: flex; justify-content: space-between; }
+.wk h4 em { font-style: normal; color: var(--accent); }
+.wk.cur h4 { color: var(--text); }
+.tp { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px; font-size: 13.5px; color: var(--muted); }
+.tp i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--faint); flex: none; }
+.tp.learned i { background: var(--accent); border-color: var(--accent); }
+.tp.learned { color: var(--text); }
+.tp.on { background: var(--hover); color: var(--text); font-weight: 600; }
+.tp.on i { border-color: var(--text); }
+.tp.making { color: var(--faint); font-style: italic; }
+.tp.making i { border-style: dashed; }
+/* main */
+.main { overflow-y: auto; padding: 28px 32px 40px; }
+.col { max-width: 640px; margin: 0 auto; }
+.step { display: flex; justify-content: space-between; align-items: center; margin: 0 0 12px; color: var(--faint); font-size: 13px; }
+.streak { display: inline-flex; gap: 5px; }
+.streak i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--faint); }
+.streak i.on { background: var(--accent); border-color: var(--accent); }
+.lesson h2 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.03em; }
+.lesson .kicker { margin: 0 0 18px; color: var(--muted); }
+.lesson p { margin: 0 0 12px; }
+.ex { margin: 18px 0; padding: 16px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.ex b.t { display: block; margin-bottom: 8px; font-size: 13px; color: var(--faint); font-weight: 600; }
+.ex ol { margin: 0; padding-left: 20px; }
+.ex li { margin: 6px 0; }
+.ex li span { color: var(--muted); font-size: 13.5px; }
+.cta { border: 0; border-radius: 8px; padding: 10px 18px; background: var(--accent); color: var(--on-accent) !important; font-weight: 700; cursor: pointer; }
+.ghost { border: 1px solid var(--border); background: none; border-radius: 8px; padding: 9px 16px; cursor: pointer; color: var(--muted) !important; }
+.ghost:hover { color: var(--text) !important; border-color: var(--faint); }
+.row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+/* question */
+.prompt { margin: 0 0 16px; font-size: 17px; line-height: 1.6; }
+.choices { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ch { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); text-align: left; cursor: pointer; }
+.ch:hover:not(:disabled) { border-color: var(--faint); }
+.ch:disabled { cursor: default; }
+.ch b { color: var(--faint); }
+.ch.correct { border-color: var(--accent); background: var(--accent-soft); }
+.ch.wrong { border-color: var(--danger); background: var(--danger-soft); }
+.ch.dim { opacity: .5; }
+.fb { margin-top: 14px; padding: 12px 14px; border-left: 3px solid var(--danger); background: var(--surface); display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+.fb.right { border-left-color: var(--accent); }
+.fb p { margin: 0; }
+.stuck { border: 0; background: none; color: var(--muted) !important; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--faint); font-size: 14px; }
+.stuck:hover { color: var(--text) !important; }
+.qfoot { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; gap: 12px; }
+.sol h5 { margin: 0 0 8px; font-size: 13px; color: var(--faint); font-weight: 600; }
+.sol ol { margin: 0; padding-left: 20px; }
+.sol li { margin: 6px 0; }
+.sol li span { color: var(--muted); font-size: 13.5px; }
+.sol .ans { margin: 10px 0 0; font-weight: 600; }
+.skipnote { color: var(--faint); font-size: 12.5px; margin: 0; }
+.banner { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; background: var(--surface); color: var(--muted); font-size: 13.5px; }
+/* A: real flip */
+.flip { perspective: 1400px; }
+.flip-inner { position: relative; transition: transform .5s ease; transform-style: preserve-3d; }
+.flip.on .flip-inner { transform: rotateY(180deg); }
+.face { backface-visibility: hidden; -webkit-backface-visibility: hidden; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); padding: 22px; }
+.face.back { position: absolute; inset: 0; transform: rotateY(180deg); overflow-y: auto; background: var(--bg); border-color: var(--faint); }
+/* B: opens underneath */
+.under { margin-top: 16px; padding: 16px 18px; border: 1px solid var(--faint); border-radius: 12px; animation: open .25s ease-out; }
+@keyframes open { from { opacity: 0; transform: translateY(-6px); } }
+/* C: side by side */
+.side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
+.side.on { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.side .panel { padding: 16px 18px; border-left: 1px solid var(--border); animation: open .25s ease-out; }
+.col.wide { max-width: 980px; }
+@media (prefers-reduced-motion: reduce) { .flip-inner { transition: none; } .under, .side .panel { animation: none; } }
+.done h2 { margin: 30px 0 6px; font-size: 26px; letter-spacing: -0.03em; text-align: center; }
+.done p { text-align: center; color: var(--muted); }
+.toast { position: absolute; }
+@media (max-width: 760px) { .app { grid-template-columns: 1fr; height: auto; min-height: 760px; } .rail { display: none; } .side.on { grid-template-columns: 1fr; } .side .panel { border-left: 0; border-top: 1px solid var(--border); } .main { padding: 20px 16px; } }
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <h1>Week by week, with a lesson first</h1>
+  <p>A study set for <strong>MATH 120, Test 3</strong> now goes week by week. Each week is split into its real topics. Every topic starts with a <strong>short lesson</strong> (the idea, then one example solved step by step), then problems with choices A–D. Math is shown properly: <span id="m1">$x^2$, $\frac{dy}{dt}$, $\sqrt{100-36}$, $\pi r^2$</span>.</p>
+  <p><strong>Stuck?</strong> Instead of guessing, flip the problem: it shows the full solution, you tap <strong>Got it</strong>, and it counts as skipped (resets the streak, not a wrong answer). <strong>3 right in a row</strong> learns the topic; 2 wrong or skipped brings the lesson back. The three options differ only in how the flipped solution appears. Everything is clickable; each preview has light/dark.</p>
+  <nav><a href="#a">A. Real flip</a><a href="#b">B. Solution opens underneath</a><a href="#c">C. Solution side by side</a></nav>
+</div></header>
+
+<main class="wrap">
+  <section class="opt" id="a"><div class="opt-head"><div><h2>A. Real flip</h2><p class="lede">The problem is a card. “I’m stuck” turns it over to the worked solution.</p></div>
+    <ul><li><b>Good:</b> feels most like a flashcard, which is what you described.</li><li><b>Trade-off:</b> the problem disappears while you read the solution, so you flip back and forth.</li></ul></div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus, Study set<button data-restart="a">Start over</button><button data-theme-for="a">Light / dark</button></div><div class="app" id="app-a"></div></div></section>
+
+  <section class="opt" id="b"><div class="opt-head"><div><h2>B. Solution opens underneath <span class="pick">Recommended</span></h2><p class="lede">“I’m stuck” opens the solution right below the problem.</p></div>
+    <ul><li><b>Good:</b> the problem and its numbers stay on screen while you follow each step, which matters most for math.</li><li><b>Good:</b> long solutions just scroll.</li><li><b>Trade-off:</b> less of a “card” feel than A.</li></ul></div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus, Study set<button data-restart="b">Start over</button><button data-theme-for="b">Light / dark</button></div><div class="app" id="app-b"></div></div></section>
+
+  <section class="opt" id="c"><div class="opt-head"><div><h2>C. Solution side by side</h2><p class="lede">“I’m stuck” opens the solution in a column next to the problem.</p></div>
+    <ul><li><b>Good:</b> problem and solution both fully visible on a laptop.</li><li><b>Trade-off:</b> narrow columns for long steps; on phones it stacks like B anyway.</li></ul></div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus, Study set<button data-restart="c">Start over</button><button data-theme-for="c">Light / dark</button></div><div class="app" id="app-c"></div></div></section>
+
+  <p class="foot">In all three: the left rail shows the weeks and their topics (weeks still being made are faded), the session moves week by week, and you can still click to jump. The cards come from Claude in the real app; these are written by hand for the preview.</p>
+</main>
+
+<script>
+const WEEKS = [
+  { n: 9, topics: [{ id: 'imp1', title: 'Implicit differentiation' }] },
+  { n: 10, topics: [{ id: 'imp2', title: 'Derivatives of inverse functions' }, { id: 'rr', title: 'Related rates' }] },
+  { n: 11, topics: [{ id: 'mm', title: 'Max and min values' }] },
+  { n: 12, topics: [{ id: 'mvt', title: 'Mean value theorem' }] },
+  { n: 13, topics: [{ id: 'cs', title: 'Curve sketching' }] },
+]
+const LESSON = {
+  title: 'Related rates',
+  kicker: 'Week 10, from Problem Set 8 and Quiz 3',
+  body: [
+    'Two quantities change over time and are tied together by an equation. Knowing how fast one changes tells you how fast the other does.',
+    'The recipe: write the equation that links them, differentiate both sides with respect to $t$, then plug in the numbers <em>at the moment asked about</em>.',
+  ],
+  ex: {
+    q: 'A 10 ft ladder leans on a wall. The bottom slides away at $2$ ft/s. How fast is the top sliding down when the bottom is $6$ ft out?',
+    steps: [
+      ['Link the quantities', '$x^2 + y^2 = 100$'],
+      ['Differentiate with respect to $t$', '$2x\\,\\frac{dx}{dt} + 2y\\,\\frac{dy}{dt} = 0$'],
+      ['Find $y$ at that moment', '$y = \\sqrt{100 - 36} = 8$'],
+      ['Plug in', '$2(6)(2) + 2(8)\\,\\frac{dy}{dt} = 0 \\;\\Rightarrow\\; \\frac{dy}{dt} = -\\frac{3}{2}$'],
+    ],
+    ans: 'The top slides down at $\\frac{3}{2}$ ft/s.',
+  },
+}
+const QS = [
+  { q: 'A 25 ft ladder leans on a wall. The bottom is pulled away at $3$ ft/s. How fast is the top sliding down when the bottom is $7$ ft from the wall?',
+    ch: ['$\\frac{7}{8}$ ft/s', '$\\frac{24}{7}$ ft/s', '$3$ ft/s', '$\\frac{21}{25}$ ft/s'], c: 0,
+    why: ['', 'That’s $\\frac{y}{x}$, not the rate: you skipped differentiating.', 'The rates aren’t equal; they depend on $x$ and $y$ at that moment.', 'Divided by the ladder’s length instead of by $2y$.'],
+    steps: [['Link', '$x^2 + y^2 = 625$'], ['Differentiate', '$2x\\,x\' + 2y\\,y\' = 0$'], ['At $x = 7$', '$y = \\sqrt{625 - 49} = 24$'], ['Plug in', '$2(7)(3) + 2(24)\\,y\' = 0 \\Rightarrow y\' = -\\frac{42}{48} = -\\frac{7}{8}$']], ans: '$\\frac{7}{8}$ ft/s' },
+  { q: 'Air is pumped into a spherical balloon at $50\\ \\text{cm}^3$/s. How fast is the radius growing when $r = 5$ cm? ($V = \\frac{4}{3}\\pi r^3$)',
+    ch: ['$2\\pi$ cm/s', '$\\frac{1}{2\\pi}$ cm/s', '$\\frac{3}{50\\pi}$ cm/s', '$\\frac{1}{10\\pi}$ cm/s'], c: 1,
+    why: ['That’s the fraction flipped.', '', 'Forgot to multiply $r^2$ by the 4 from $\\frac{dV}{dr} = 4\\pi r^2$.', 'Used $r$ instead of $r^2$.'],
+    steps: [['Differentiate', '$\\frac{dV}{dt} = 4\\pi r^2\\,\\frac{dr}{dt}$'], ['Plug in', '$50 = 4\\pi(25)\\,\\frac{dr}{dt}$'], ['Solve', '$\\frac{dr}{dt} = \\frac{50}{100\\pi} = \\frac{1}{2\\pi}$']], ans: '$\\frac{1}{2\\pi}$ cm/s' },
+  { q: 'A cone-shaped tank (point down) is 12 ft tall with a 6 ft top radius. Water flows in at $9\\ \\text{ft}^3$/min. How fast is the level rising when the water is 6 ft deep?',
+    ch: ['$\\frac{1}{4\\pi}$ ft/min', '$\\frac{1}{4}$ ft/min', '$\\frac{1}{\\pi}$ ft/min', '$\\frac{3}{\\pi}$ ft/min'], c: 2,
+    why: ['Kept the radius fixed at 6; it shrinks with the depth ($r = \\frac{h}{2}$).', 'Dropped the $\\pi$.', '', 'Used $h$ instead of $h^2$ when differentiating.'],
+    steps: [['Similar triangles', '$r = \\frac{h}{2}$, so $V = \\frac{1}{3}\\pi\\left(\\frac{h}{2}\\right)^2 h = \\frac{\\pi h^3}{12}$'], ['Differentiate', '$\\frac{dV}{dt} = \\frac{\\pi h^2}{4}\\,\\frac{dh}{dt}$'], ['Plug in $h = 6$', '$9 = 9\\pi\\,\\frac{dh}{dt} \\Rightarrow \\frac{dh}{dt} = \\frac{1}{\\pi}$']], ans: '$\\frac{1}{\\pi}$ ft/min' },
+  { q: 'A circle’s radius grows at $2$ cm/s. How fast is its area growing when $r = 4$ cm?',
+    ch: ['$8\\pi\\ \\text{cm}^2$/s', '$16\\pi\\ \\text{cm}^2$/s', '$4\\pi\\ \\text{cm}^2$/s', '$32\\pi\\ \\text{cm}^2$/s'], c: 1,
+    why: ['Forgot the 2 from $\\frac{d}{dt}r^2 = 2r\\,\\frac{dr}{dt}$.', '', 'Used $\\pi r$ instead of $2\\pi r$, and dropped the rate.', 'Squared the rate as well.'],
+    steps: [['Link', '$A = \\pi r^2$'], ['Differentiate', '$\\frac{dA}{dt} = 2\\pi r\\,\\frac{dr}{dt}$'], ['Plug in', '$2\\pi(4)(2) = 16\\pi$']], ans: '$16\\pi\\ \\text{cm}^2$/s' },
+]
+const L = ['A', 'B', 'C', 'D']
+const fresh = () => ({ mode: 'lesson', qi: 0, streak: 0, slips: 0, picked: null, stuck: false, learned: new Set(['imp1', 'imp2']), back: false })
+const states = {}
+
+function render(key) {
+  const st = states[key]
+  const el = document.getElementById('app-' + key)
+  const rail = WEEKS.map((w) => {
+    const making = w.n > 11
+    const learnedAll = w.topics.every((t) => st.learned.has(t.id))
+    return `<div class="wk${w.n === 10 ? ' cur' : ''}"><h4>Week ${w.n}${learnedAll ? '<em>Done</em>' : ''}</h4>${w.topics.map((t) => {
+      const cls = st.learned.has(t.id) ? 'learned' : t.id === 'rr' ? 'on' : making ? 'making' : ''
+      return `<div class="tp ${cls}"><i></i>${making ? 'Making cards…' : t.title}</div>`
+    }).join('')}</div>`
+  }).join('')
+  let main = ''
+  if (st.mode === 'lesson') {
+    main = `<div class="col lesson">${st.back ? '<p class="banner">Two misses in a row, so here’s the idea again before more problems.</p>' : ''}
+      <p class="step"><span>Week 10, topic 2 of 2: lesson</span></p>
+      <h2>${LESSON.title}</h2><p class="kicker">${LESSON.kicker}</p>${LESSON.body.map((p) => `<p>${p}</p>`).join('')}
+      <div class="ex"><b class="t">Worked example</b><p>${LESSON.ex.q}</p><ol>${LESSON.ex.steps.map(([a, b]) => `<li><span>${a}:</span> ${b}</li>`).join('')}</ol><p class="ans" style="margin:10px 0 0;font-weight:600">${LESSON.ex.ans}</p></div>
+      <div class="row"><button class="cta" data-act="start">Try problems</button></div></div>`
+  } else if (st.mode === 'done') {
+    main = `<div class="col done"><h2>Week 10 done</h2><p>Both topics learned. Next up: Week 11, Max and min values.</p><div class="row" style="justify-content:center"><button class="cta" data-restart="${key}">Start over</button></div></div>`
+  } else {
+    const q = QS[st.qi % QS.length]
+    const dots = [0, 1, 2].map((i) => `<i class="${i < st.streak ? 'on' : ''}"></i>`).join('')
+    const choices = `<ul class="choices">${q.ch.map((c, i) => {
+      const s = st.picked === null ? (st.stuck ? (i === q.c ? ' correct' : ' dim') : '') : i === q.c ? ' correct' : i === st.picked ? ' wrong' : ' dim'
+      return `<li><button class="ch${s}" data-pick="${i}" ${st.picked !== null || st.stuck ? 'disabled' : ''}><b>${L[i]}</b><span>${c}</span></button></li>`
+    }).join('')}</ul>`
+    const solution = `<div class="sol"><h5>How to solve it</h5><ol>${q.steps.map(([a, b]) => `<li><span>${a}:</span> ${b}</li>`).join('')}</ol><p class="ans">Answer: ${q.ans}</p></div>`
+    const right = st.picked === q.c
+    const fb = st.picked !== null ? `<div class="fb${right ? ' right' : ''}"><p>${right ? (st.streak >= 3 ? 'Right. 3 in a row: topic learned.' : 'Right.') : q.why[st.picked]}</p><button class="cta" data-act="next">Next</button></div>` : ''
+    const stuckFoot = st.stuck
+      ? `<div class="qfoot"><p class="skipnote">Counts as skipped: the streak starts over.</p><button class="cta" data-act="gotit">Got it</button></div>`
+      : st.picked === null ? `<div class="qfoot"><button class="stuck" data-act="stuck">I’m stuck: show me how</button><span></span></div>` : ''
+    const head = `<p class="step"><span>Week 10, Related rates: problem ${st.qi + 1}</span><span class="streak" title="${st.streak} of 3 in a row">${dots}</span></p>`
+    const prompt = `<p class="prompt">${q.q}</p>`
+    if (key === 'a') {
+      main = `<div class="col">${head}<div class="flip${st.stuck ? ' on' : ''}"><div class="flip-inner"><div class="face front">${prompt}${choices}</div><div class="face back">${solution}</div></div></div>${fb}${stuckFoot}</div>`
+    } else if (key === 'b') {
+      main = `<div class="col">${head}${prompt}${choices}${st.stuck ? `<div class="under">${solution}</div>` : ''}${fb}${stuckFoot}</div>`
+    } else {
+      main = `<div class="col wide">${head}<div class="side${st.stuck ? ' on' : ''}"><div>${prompt}${choices}${fb}${stuckFoot}</div>${st.stuck ? `<div class="panel">${solution}</div>` : ''}</div></div>`
+    }
+  }
+  el.innerHTML = `<header class="top"><div><h3>Study set for Test 3</h3><p>MATH 120 Calculus I</p></div><button class="leave">Leave</button></header>
+    <nav class="rail" aria-label="Weeks">${rail}</nav><section class="main">${main}</section>`
+  renderMathInElement(el, { delimiters: [{ left: '$', right: '$', display: false }], throwOnError: false })
+  if (key === 'a' && st.stuck) {
+    const inner = el.querySelector('.flip-inner'), front = el.querySelector('.face.front'), back = el.querySelector('.face.back')
+    inner.style.minHeight = Math.max(front.offsetHeight, back.scrollHeight + 2) + 'px'
+  }
+}
+
+function act(key, a, pick) {
+  const st = states[key]
+  if (a === 'start') { st.mode = 'q'; st.back = false; st.slips = 0 }
+  else if (pick !== undefined) { st.picked = pick; if (pick === QS[st.qi % QS.length].c) st.streak++; else { st.streak = 0; st.slips++ } }
+  else if (a === 'stuck') { st.stuck = true }
+  else if (a === 'gotit' || a === 'next') {
+    if (a === 'gotit') { st.streak = 0; st.slips++ }
+    st.picked = null; st.stuck = false; st.qi++
+    if (st.streak >= 3) { st.learned.add('rr'); st.mode = 'done' }
+    else if (st.slips >= 2) { st.mode = 'lesson'; st.back = true }
+  }
+  render(key)
+}
+
+for (const k of ['a', 'b', 'c']) { states[k] = fresh(); render(k) }
+document.addEventListener('click', (e) => {
+  const app = e.target.closest('.app')
+  const r = e.target.closest('[data-restart]')
+  if (r) { states[r.dataset.restart] = fresh(); render(r.dataset.restart); return }
+  const t = e.target.closest('[data-theme-for]')
+  if (t) { document.getElementById('app-' + t.dataset.themeFor).classList.toggle('light'); return }
+  if (!app) return
+  const key = app.id.slice(4)
+  const b = e.target.closest('[data-act],[data-pick]')
+  if (!b) return
+  act(key, b.dataset.act, b.dataset.pick !== undefined ? +b.dataset.pick : undefined)
+})
+renderMathInElement(document.getElementById('m1'), { delimiters: [{ left: '$', right: '$', display: false }] })
+</script>
+</body>
+</html>
