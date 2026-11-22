@@ -1,61 +1,32 @@
-import { addDays, formatDue, localDateKey } from '../calendar/dates'
-import { DEFAULT_EVENT_COLOR } from '../calendar/toEvents'
-import { localInstant } from '../commitments/expand'
-import { describeCommitment } from '../commitments/format'
-import { nextOccurrence } from '../commitments/order'
-import type { Commitment } from '../commitments/types'
+import { itemDateKey, localDateKey } from '../calendar/dates'
 import type { CalendarItem, Course } from '../db/db'
-import { coverage } from '../study/coverage'
-import { dueInstant, estimateFor } from '../study/plan'
-import type { StudyBlock } from '../study/types'
+import { dueInstant } from '../study/plan'
+import { isTest } from '../study/testItems'
+import { classWeeks, mondayOf, testsOf, unitFor, type Unit, type Week } from './units'
 
-export type MapFilters = { hiddenCourses: string[]; hideFinished: boolean; showClasses: boolean }
-export const DEFAULT_MAP_FILTERS: MapFilters = { hiddenCourses: [], hideFinished: true, showClasses: false }
-
-export type NodeKind = 'course' | 'assignment' | 'block' | 'class'
-export type NodeStatus = 'overdue' | 'short' | 'done' | 'past'
+export type NodeKind = 'course' | 'week' | 'assignment' | 'test'
 
 export type MapNode = {
-  /** `course:<id>`, `item:<id>`, `block:<id>`, `class:<id>` */
+  /** `course:<id>`, `week:<monday>`, `item:<id>` */
   id: string
   kind: NodeKind
-  /** The id of the underlying course, item, block, or commitment. */
+  /** The course id, the week's Monday key, or the item id. */
   refId: string
+  /** Course code, week label ("9" or "Oct 19"), or title. */
   label: string
-  color: string
-  radius: number
-  status?: NodeStatus
-  /** For short assignments: study time still missing (minutes). */
-  needMinutes?: number
-  /** Shown on hover, e.g. "Due Wed, Nov 25 · 11:59 PM". */
-  detail?: string
-  /** Assignments only: days from now until due (negative when overdue). Sets distance from the course. */
-  dueInDays?: number
+  /** Monday key, for week, assignment and test nodes. */
+  week?: string
+  /** Inside the picked test's unit. */
+  inUnit: boolean
+  /** The picked test. */
+  picked?: boolean
+  /** The current week. */
+  now?: boolean
+  status?: 'done' | 'late'
+  reviewed?: boolean
 }
 
-export type MapLink = { source: string; target: string }
-
-/** Upcoming window, matching conflicts and planning. */
-export const MAP_WINDOW_DAYS = 56
-/** Unfinished work this overdue still shows (in red). */
-export const OVERDUE_DAYS = 14
-
-const RADIUS = { course: 8, class: 4, block: 2.5 }
-
-/** Distance of the "This week" and "Next week" guide rings from a course's center. */
-export const RING_THIS_WEEK = 128
-export const RING_NEXT_WEEK = 184
-
-/**
- * How far an assignment sits from its course's center: sooner is closer. Starts just outside
- * the course pill; the first two weeks are spread evenly (one ring each); later work, up to
- * 8 weeks out, is squeezed into a narrow band.
- */
-export function ringDistance(days: number): number {
-  if (days < 0) return 60
-  if (days <= 14) return 72 + 8 * days
-  return RING_NEXT_WEEK + 1.6 * (Math.min(days, MAP_WINDOW_DAYS) - 14)
-}
+export type MapLink = { source: string; target: string; kind: 'spine' | 'spoke' | 'item' }
 
 /** "CS 210 Intro to Programming" → "CS 210". Names without a code are kept, shortened to 16 characters. */
 export function courseCode(name: string): string {
@@ -64,133 +35,77 @@ export function courseCode(name: string): string {
   return name.length > 16 ? `${name.slice(0, 15).trimEnd()}…` : name
 }
 
-export function assignmentRadius(estimateMinutes: number): number {
-  return Math.min(6, Math.max(4, 4 + 0.9 * Math.sqrt(estimateMinutes / 60)))
+/** "2026-10-19" → "Oct 19", independent of locale and time zone. */
+function dateLabel(key: string): string {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 }
 
-const time = (iso: string) => new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+type Input = { course: Course; items: CalendarItem[]; termStart?: string; testId?: string; now: Date }
 
-type Input = {
-  items: CalendarItem[]
-  courses: Course[]
-  blocks: StudyBlock[]
-  commitments: Commitment[]
-  now: Date
-  filters: MapFilters
-}
-
-/** Decides which dots and lines the study map shows, and how each one looks. */
-export function buildGraph({ items, courses, blocks, commitments, now, filters }: Input): {
+/** One class as a graph: the course at the center, its weeks, and each week's assignments and tests. */
+export function buildClassGraph({ course, items, termStart, testId, now }: Input): {
   nodes: MapNode[]
   links: MapLink[]
-  availableCourses: Course[]
+  weeks: Week[]
+  tests: CalendarItem[]
+  unit?: Unit
 } {
-  const today = localDateKey(now)
-  const startOfToday = localInstant(today, '00:00').getTime()
-  const windowEnd = localInstant(addDays(today, MAP_WINDOW_DAYS + 1), '00:00').getTime()
-  const overdueFrom = localInstant(addDays(today, -OVERDUE_DAYS), '00:00').getTime()
+  const classItems = items.filter(
+    (i) => i.courseId === course.id && (i.kind === 'assignment' || (i.kind === 'event' && isTest(i))),
+  )
+  const weeks = classWeeks(classItems, termStart)
+  const tests = testsOf(classItems)
+  const testIds = new Set(tests.map((t) => t.id))
+  // A collapsed-away duplicate resolves to the test that was kept.
+  const given = testId ? classItems.find((i) => i.id === testId && isTest(i)) : undefined
+  const unit = given ? unitFor(given, classItems, weeks, termStart) : undefined
+  const picked = unit?.test
+  const unitWeeks = new Set(unit?.weeks.map((w) => w.start))
+  const unitItems = new Set(unit?.items.map((i) => i.id))
+  const currentWeek = mondayOf(localDateKey(now))
   const nowMs = now.getTime()
-  const hidden = new Set(filters.hiddenCourses)
-  const courseById = new Map(courses.map((c) => [c.id, c]))
-  const colorOf = (courseId?: string) => (courseId && courseById.get(courseId)?.color) || DEFAULT_EVENT_COLOR
+  const weekStarts = new Set(weeks.map((w) => w.start))
 
-  // Everything in the window, before filters (used for the course chips too).
-  const inWindow = items.filter((i) => {
-    if (i.kind !== 'assignment') return false
-    const due = dueInstant(i)
-    if (due >= windowEnd) return false
-    if (due >= startOfToday) return true
-    return !i.done && due >= overdueFrom
-  })
-  const upcomingClasses = commitments.filter((c) => {
-    if (c.type !== 'class') return false
-    const next = nextOccurrence(c, now)
-    return next !== undefined && Date.parse(next.start) < windowEnd
-  })
-
-  const availableIds = new Set<string>()
-  for (const i of inWindow) if (i.courseId) availableIds.add(i.courseId)
-  if (filters.showClasses) for (const c of upcomingClasses) if (c.courseId) availableIds.add(c.courseId)
-  const availableCourses = courses
-    .filter((c) => availableIds.has(c.id))
-    .sort((a, b) => a.name.localeCompare(b.name))
-
-  const visible = (courseId?: string) => !courseId || !hidden.has(courseId)
-  const shown = inWindow.filter((i) => visible(i.courseId) && !(filters.hideFinished && i.done))
-  const short = new Map(coverage(shown, blocks, now).map((c) => [c.item.id, c.short]))
-
-  const nodes: MapNode[] = []
+  const courseId = `course:${course.id}`
+  const nodes: MapNode[] = [{ id: courseId, kind: 'course', refId: course.id, label: courseCode(course.name), inUnit: false }]
   const links: MapLink[] = []
-  const usedCourses = new Set<string>()
 
-  for (const i of shown) {
-    const overdue = !i.done && dueInstant(i) <= nowMs
-    const status: NodeStatus | undefined = i.done
-      ? 'done'
-      : overdue
-        ? 'overdue'
-        : (short.get(i.id) ?? 0) > 0
-          ? 'short'
-          : undefined
+  weeks.forEach((w, idx) => {
+    const id = `week:${w.start}`
     nodes.push({
-      id: `item:${i.id}`,
-      kind: 'assignment',
+      id,
+      kind: 'week',
+      refId: w.start,
+      label: w.number !== undefined ? String(w.number) : dateLabel(w.start),
+      week: w.start,
+      inUnit: unitWeeks.has(w.start),
+      ...(w.start === currentWeek ? { now: true } : {}),
+    })
+    links.push({ source: courseId, target: id, kind: 'spoke' })
+    if (idx > 0) links.push({ source: `week:${weeks[idx - 1].start}`, target: id, kind: 'spine' })
+  })
+
+  for (const i of classItems) {
+    const week = mondayOf(itemDateKey(i))
+    if (!weekStarts.has(week)) continue
+    const test = isTest(i)
+    if (test && !testIds.has(i.id)) continue
+    const status = i.done ? 'done' : !test && dueInstant(i) < nowMs ? 'late' : undefined
+    const id = `item:${i.id}`
+    nodes.push({
+      id,
+      kind: test ? 'test' : 'assignment',
       refId: i.id,
       label: i.title,
-      color: colorOf(i.courseId),
-      radius: assignmentRadius(estimateFor(i)),
+      week,
+      inUnit: unitItems.has(i.id),
+      ...(picked && i.id === picked.id ? { picked: true } : {}),
       ...(status ? { status } : {}),
-      ...(status === 'short' ? { needMinutes: short.get(i.id) } : {}),
-      detail: `Due ${formatDue(i)}`,
-      dueInDays: (dueInstant(i) - nowMs) / 86_400_000,
+      ...(i.reviewed ? { reviewed: true } : {}),
     })
-    if (i.courseId && courseById.has(i.courseId)) {
-      links.push({ source: `item:${i.id}`, target: `course:${i.courseId}` })
-      usedCourses.add(i.courseId)
-    }
+    links.push({ source: `week:${week}`, target: id, kind: 'item' })
   }
 
-  const shownIds = new Map(shown.map((i) => [i.id, i]))
-  for (const b of blocks) {
-    const i = shownIds.get(b.itemId)
-    if (!i) continue
-    const day = new Date(b.start).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
-    nodes.push({
-      id: `block:${b.id}`,
-      kind: 'block',
-      refId: b.id,
-      label: i.title,
-      color: colorOf(i.courseId),
-      radius: RADIUS.block,
-      ...(Date.parse(b.end) <= nowMs || i.done ? { status: 'past' as const } : {}),
-      detail: `${day} · ${time(b.start)} – ${time(b.end)}`,
-    })
-    links.push({ source: `block:${b.id}`, target: `item:${i.id}` })
-  }
-
-  if (filters.showClasses) {
-    for (const c of upcomingClasses) {
-      if (!visible(c.courseId)) continue
-      nodes.push({
-        id: `class:${c.id}`,
-        kind: 'class',
-        refId: c.id,
-        label: c.title,
-        color: colorOf(c.courseId),
-        radius: RADIUS.class,
-        detail: describeCommitment(c),
-      })
-      if (c.courseId && courseById.has(c.courseId)) {
-        links.push({ source: `class:${c.id}`, target: `course:${c.courseId}` })
-        usedCourses.add(c.courseId)
-      }
-    }
-  }
-
-  for (const id of usedCourses) {
-    const c = courseById.get(id)!
-    nodes.unshift({ id: `course:${id}`, kind: 'course', refId: id, label: c.name, color: c.color, radius: RADIUS.course })
-  }
-
-  return { nodes, links, availableCourses }
+  return { nodes, links, weeks, tests, ...(unit ? { unit } : {}) }
 }
