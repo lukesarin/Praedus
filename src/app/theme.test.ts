@@ -44,6 +44,13 @@ describe('Praedus theme tokens', () => {
     expect(tokens.light['--accent']).toBe('#0b7f58')
   })
 
+  it('the study map never selects page text while dragging', () => {
+    const css = readFileSync(new URL('./theme.css', import.meta.url), 'utf8')
+    const rule = /\.map-canvas svg\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
+    expect(rule).toMatch(/(^|;|\s)user-select:\s*none/)
+    expect(rule).toMatch(/-webkit-user-select:\s*none/)
+  })
+
   for (const theme of ['dark', 'light'] as const) {
     describe(theme, () => {
       const t = tokens[theme]

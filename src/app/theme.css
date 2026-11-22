@@ -1580,6 +1580,9 @@ a {
   display: block;
   cursor: grab;
   touch-action: none;
+  /* Node drags use their own pointer handlers, which (unlike d3-zoom's background drag) don't stop the browser's text selection. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .map-canvas svg:active {
