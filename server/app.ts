@@ -1,6 +1,7 @@
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
 import { Hono } from 'hono'
+import { mountStudySet, type StudySetDeps } from './studySet'
 import { hostOf, isAllowedFeedUrl, isPrivateAddress } from './validate'
 
 /**
@@ -15,6 +16,8 @@ export type AppDeps = {
   log?: (message: string) => void
   timeoutMs?: number
   maxBytes?: number
+  /** The study set endpoint; left out, it isn't mounted. */
+  studySet?: StudySetDeps
 }
 
 const MAX_REDIRECTS = 3
@@ -106,6 +109,7 @@ export function createApp(deps: AppDeps = {}) {
   const app = new Hono()
 
   app.get('/api/health', (c) => c.json({ ok: true }))
+  if (deps.studySet) mountStudySet(app, deps.studySet, log)
 
   app.get('/api/feed', async (c) => {
     const raw = c.req.query('url') ?? ''
