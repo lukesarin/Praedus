@@ -8,16 +8,29 @@ and shows coursework on a study map. React 19 + TypeScript + Vite, FullCalendar 
 README.md covers running, setup and how features behave. `docs/superpowers/specs/` (the why) and
 `plans/` (the how) exist for every change. Read the relevant spec before changing a feature.
 
-## Where things stand (2026-11-21)
+## Where things stand (2026-11-22)
 
 - **`main`** (pushed to GitHub): the Praedus rebrand, Connect Canvas (feed link plus auto-sync)
-  and the study map (mint course pills plus due-date rings).
-- **Branch `auth/accounts`** (not merged): accounts, project 1 of 3. It has the Statement welcome
-  screen, email/password sign-in, a login gate, a once-per-account "dot opens the app" intro,
-  per-account local databases and a sidebar account row. Sign-up was tested and works.
-  - Not yet done: **Google sign-in setup** (Google Cloud OAuth client plus the Supabase provider;
-    steps in the README) and a full test of log out/in, password reset and two accounts. Merge
-    after that, with the user's OK.
+  and the **study map as a donut**. It shows one class at a time (dropdown), with weeks as equal slices
+  and assignments as dots (5 max, then "+N"). Tests sit on the rim, picking one fills the weeks it
+  covers, and the current week has a mint outline. Clicking a week opens a **week card** in the
+  nearest free chart corner, joined to the week by a thin line, listing what was due and its topic.
+  The panel has "Upcoming tests", review detail, Plan review time, and a **study set step**: topics
+  as removable chips, with a disabled "Create study set" and "AI study sets are coming with Premium."
+  Topics aren't saved yet; saving comes with the AI. Pure logic lives in `src/map/donut.ts`
+  (`buildDonut`, `cardSpot`) and `panelText.ts` (`studySetTopics`). d3 is gone. Specs:
+  `2026-11-22-study-map-donut-design.md`, `…-week-card-design.md`.
+- **Branch `auth/accounts`** (pushed, not merged into `main`): accounts, project 1 of 3. It has the
+  Statement welcome screen, email/password sign-in, a login gate, a once-per-account "dot opens the
+  app" intro, per-account local databases and a sidebar account row. `main` was merged into it
+  (2026-11-22), so it also has the donut. Sign-up and log out were tested and work.
+  - Not yet done: **Google sign-in setup** (the user postponed it; steps were given in chat and
+    are in the README: a Google Cloud OAuth client with origin `http://localhost:5173` and the
+    Supabase callback `https://<project>.supabase.co/auth/v1/callback`, then the Supabase Google
+    provider plus URL Configuration) and a test of password reset and two accounts. Merge into
+    `main` after that, with the user's OK.
+  - A copy of the app started from `main` has no accounts, so there's no Log out. To try accounts,
+    run the app from `auth/accounts`.
   - **Intro fix (on `auth/accounts`):** the app's main area had no background, so the intro showed
     through it. The logo lingered over the revealed app and the circle reveal was invisible until
     a hard cut. Now `.app-root` has `background: var(--bg)`, guarded by a test in
