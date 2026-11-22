@@ -18,6 +18,22 @@ README.md covers running, setup and how features behave. `docs/superpowers/specs
   - Not yet done: **Google sign-in setup** (Google Cloud OAuth client plus the Supabase provider;
     steps in the README) and a full test of log out/in, password reset and two accounts. Merge
     after that, with the user's OK.
+  - **Intro fix (commit `39c67e5`):** the app's main area had no background, so the intro showed
+    through it. The logo lingered over the revealed app and the circle reveal was invisible until
+    a hard cut. Now `.app-root` has `background: var(--bg)`, guarded by a test in
+    `src/app/theme.test.ts`. **Keep `.app-root` opaque.**
+  - **Open choice for the user (offered, not decided):** optional intro polish:
+    1. a thin mint ring on the reveal circle's edge (in dark mode the app and intro share
+       `#0E0E0E`, so the edge only shows where it crosses content);
+    2. tighter timing (about 3s from sign-in to app now; about 2.2s possible);
+    3. a dev-only replay link (e.g. `?intro`), since the intro plays once per account.
+  - **Testing the intro without real accounts:** a temporary page (an `intro-harness.html` at the
+    root that renders `AuthGate` with a stand-in client) replays Supabase's real event order:
+    `INITIAL_SESSION`, `SIGNED_IN`, then `USER_UPDATED` after `updateUser`. Record a timeline (wave
+    `strokeDashoffset`, dot scale, `.app-root` clip-path) every 100ms through a pre-load script.
+    Check WebKit as well as Chrome: a small Swift `WKWebView` script works, but its window must be
+    on screen, since hidden windows get throttled. Delete the harness afterwards. In dev, React
+    StrictMode runs the intro effect twice (doubled animations); this doesn't happen in production.
 - **Next, project 2: cloud save.** Everything (feeds, items, courses, commitments, settings,
   study blocks) gets saved to the account in Supabase and restored on any device. Keep Dexie as
   the fast local copy and sync on top (last write wins per record). Supabase tables need
