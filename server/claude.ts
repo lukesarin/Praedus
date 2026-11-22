@@ -17,7 +17,8 @@ Split the week into 1 to 3 topics, named by the idea (like "Related rates"), not
 For each topic return:
 - "lesson": an "overview" of 2 to 4 sentences explaining the idea and how to approach it, and one
   worked "example" ("problem", "steps" with a short "label" and the "work" for each step, and "answer").
-- "problems": 6 to 8 multiple-choice problems like the ones on the test. Each has a "prompt", exactly 4
+- "problems": 6 to 8 multiple-choice problems like the ones on the test. Every topic needs them, in
+  every kind of class; in a class about ideas, a problem is a multiple-choice question. Each has a "prompt", exactly 4
   "choices", "correct" as the index (0-3) of the one right choice, "whyWrong": 4 strings, one per choice,
   explaining the mistake behind that choice ("" for the correct one), and a "solution" worked step by
   step ("steps" with "label" and "work", then "answer"). Make wrong choices mistakes a real student would
@@ -27,8 +28,9 @@ const KIND = {
   problems: `This is a problem-solving class: lessons and problems are computations like the ones on the test.
 Before writing any answer, work the problem with the code execution tool and make sure it's right.
 Only include problems whose answer you checked that way.`,
-  ideas: `This is a class about ideas, readings and facts: lessons explain the idea with one example, and
-problems check understanding (applying the idea to a new case), not word-for-word recall. A "solution"
+  ideas: `This is a class about ideas, readings and facts: lessons explain the idea with one example.
+The 6 to 8 problems per topic are multiple-choice questions that check understanding (applying the idea
+to a new case, like spotting the claim in a short passage), not word-for-word recall. A "solution"
 explains the reasoning in 2 to 4 short steps.`,
 } as const
 

@@ -119,3 +119,10 @@ export function jump(s: SessionState, week: number, topic: number): SessionState
   if (!t || !active(t)) return s
   return { ...s, current: { week, topic }, done: false }
 }
+
+/** Try again: these failed weeks wait for their cards once more. */
+export function retryWeeks(s: SessionState, weekIds: string[]): SessionState {
+  const ids = new Set(weekIds)
+  const weeks = s.weeks.map((w) => (ids.has(w.weekId) && w.status === 'error' ? { ...w, status: 'waiting' as const } : w))
+  return pick({ ...s, weeks, current: currentTopic(s) ? s.current : null })
+}

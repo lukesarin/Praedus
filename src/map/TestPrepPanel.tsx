@@ -7,7 +7,7 @@ import { formatMinutes } from '../study/applyPlan'
 import { dueInstant } from '../study/plan'
 import type { StudyBlock } from '../study/types'
 import { courseCode, isLate } from './donut'
-import { countdown, plainDescription, studySetTopics, weekHeading, type StudySetTopic } from './panelText'
+import { countdown, plainDescription, studyWeeks, weekHeading, type StudyWeek } from './panelText'
 import { mondayOf, type Unit, type Week } from './units'
 
 export type PanelTest = { item: CalendarItem; cover: string }
@@ -34,7 +34,7 @@ type Props = {
   /** Tests of this class that already have a study set. */
   studySetIds: string[]
   /** Makes a new set from these topics (replacing any old one) and opens it. */
-  onCreateSet: (topics: StudySetTopic[]) => void
+  onCreateSet: (weeks: StudyWeek[]) => void
   onOpenSet: (testId: string) => void
 }
 
@@ -84,12 +84,14 @@ type StepProps = {
   weeks: Week[]
   notes: Note[]
   onFiles: (inputs: NoteInput[]) => void
-  onCreate: (topics: StudySetTopic[]) => void
+  onCreate: (weeks: StudyWeek[]) => void
   onBack: () => void
 }
 
+/** Confirm what the study set covers: the test's weeks (remove any), plus topics of your own. */
 function StudySetStep({ test, unit, weeks, notes, onFiles, onCreate, onBack }: StepProps) {
-  const [topics, setTopics] = useState<StudySetTopic[]>(() => studySetTopics(unit))
+  const [picked, setPicked] = useState<StudyWeek[]>(() => studyWeeks(unit))
+  const [own, setOwn] = useState<string[]>([])
   const [draft, setDraft] = useState('')
   const picker = useFilePicker(onFiles)
   const covered = new Set(unit.weeks.map((w) => w.start))
@@ -97,27 +99,40 @@ function StudySetStep({ test, unit, weeks, notes, onFiles, onCreate, onBack }: S
   const span = unit.weeks.length
     ? `${weekLabel(unit.weeks[0].start, weeks)}–${weekLabel(unit.weeks[unit.weeks.length - 1].start, weeks)}`
     : ''
-  const n = unit.items.length
   const add = (e: FormEvent) => {
     e.preventDefault()
     const title = draft.trim()
     if (!title) return
-    setTopics((t) => [...t, { id: `own-${Date.now()}-${t.length}`, title, hint: '' }])
+    setOwn((t) => [...t, title])
     setDraft('')
   }
+  const plan: StudyWeek[] = [
+    ...picked,
+    ...(own.length ? [{ weekId: 'own', label: 'Your topics', items: own.map((title) => ({ title, hint: '' })) }] : []),
+  ]
   return (
     <section className="prep-sheet" aria-label="Study set">
       <h3>Study set for {test.title}</h3>
-      <p>
-        These topics come from the {n === 1 ? 'assignment' : `${n} assignments`} in the weeks this test covers. Remove anything
-        that won't be on the test, or add your own.
-      </p>
-      {topics.length > 0 && (
-        <ul className="prep-topics">
-          {topics.map((t) => (
-            <li key={t.id} className="prep-topic" title={t.hint || undefined}>
-              <span>{t.title}</span>
-              <button aria-label={`Remove ${t.title}`} onClick={() => setTopics((all) => all.filter((x) => x.id !== t.id))}>×</button>
+      <p>It goes week by week, with a short lesson for each topic. Remove any week that won't be on the test, or add your own topics.</p>
+      {picked.length > 0 && (
+        <ul className="prep-weeks-pick">
+          {picked.map((w) => (
+            <li key={w.weekId}>
+              <div>
+                <b>{w.label}</b>
+                <span>{w.items.map((i) => i.title).join(', ')}</span>
+              </div>
+              <button aria-label={`Remove ${w.label}`} onClick={() => setPicked((all) => all.filter((x) => x.weekId !== w.weekId))}>×</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {own.length > 0 && (
+        <ul className="prep-topics" aria-label="Your topics">
+          {own.map((t, i) => (
+            <li key={`${t}-${i}`} className="prep-topic">
+              <span>{t}</span>
+              <button aria-label={`Remove ${t}`} onClick={() => setOwn((all) => all.filter((_, j) => j !== i))}>×</button>
             </li>
           ))}
         </ul>
@@ -126,7 +141,7 @@ function StudySetStep({ test, unit, weeks, notes, onFiles, onCreate, onBack }: S
         <p>
           {used.length
             ? `Also uses your ${used.length === 1 ? 'note' : `${used.length} notes`} from weeks ${span}:`
-            : 'No notes for these weeks yet. Cards will come from the topics alone.'}
+            : 'No notes for these weeks yet. Cards will come from the assignments alone.'}
         </p>
         {used.length > 0 && (
           <ul className="note-chips">
@@ -140,7 +155,7 @@ function StudySetStep({ test, unit, weeks, notes, onFiles, onCreate, onBack }: S
         <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Add a topic" aria-label="Add a topic" />
         <button type="submit">Add</button>
       </form>
-      <button className="primary-btn prep-cta prep-spark" disabled={topics.length === 0} onClick={() => onCreate(topics)}>
+      <button className="primary-btn prep-cta prep-spark" disabled={plan.length === 0} onClick={() => onCreate(plan)}>
         <SparkIcon />Create study set
       </button>
       <button className="prep-ghost" onClick={onBack}>Back</button>
@@ -196,7 +211,7 @@ export function TestPrepPanel(props: Props) {
 
       {unit && (sheetFor === unit.test.id ? (
         <StudySetStep key={unit.test.id} test={unit.test} unit={unit} weeks={weeks} notes={notes} onFiles={onFiles}
-          onCreate={(topics) => { setSheetFor(undefined); props.onCreateSet(topics) }} onBack={() => setSheetFor(undefined)} />
+          onCreate={(plan) => { setSheetFor(undefined); props.onCreateSet(plan) }} onBack={() => setSheetFor(undefined)} />
       ) : (
         detail()
       ))}

@@ -2420,7 +2420,47 @@ a {
   filter: none;
 }
 
-/* Study set step: pick the topics the AI will take in. */
+/* Study set step: pick the weeks (and your own topics) the AI will take in. */
+.prep-weeks-pick {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prep-weeks-pick li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.prep-weeks-pick b {
+  display: block;
+  font-size: 13px;
+}
+
+.prep-weeks-pick span {
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.prep-weeks-pick button {
+  padding: 0 5px;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.prep-weeks-pick button:hover {
+  color: var(--text);
+}
+
 .prep-sheet {
   display: flex;
   flex-direction: column;
@@ -2776,65 +2816,267 @@ a {
   border-color: var(--text-faint);
 }
 
-.study-topics {
+
+
+
+
+
+
+
+.study-layout {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 250px minmax(0, 1fr);
+  min-height: 0;
+}
+
+.study-rail {
+  padding: 16px 12px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+}
+
+.study-week {
+  margin-bottom: 14px;
+}
+
+.study-week h3 {
   display: flex;
-  gap: 6px;
-  margin: 0;
-  padding: 12px 24px;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--border);
-  list-style: none;
-}
-
-.study-topics li {
-  flex: none;
-  max-width: 180px;
-  padding: 4px 10px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--text-muted);
+  justify-content: space-between;
+  margin: 0 0 4px;
+  padding: 0 8px;
+  color: var(--text-faint);
   font-size: 12.5px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 600;
 }
 
-.study-topics li.on {
-  border-color: var(--text);
+.study-week.cur h3 {
+  color: var(--text);
+}
+
+.study-week h3 em {
+  margin-left: 8px;
+  color: var(--accent);
+  font-style: normal;
+}
+
+.study-topic {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.study-topic:disabled {
+  cursor: default;
+}
+
+.study-topic:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.study-topic i {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--text-faint);
+  border-radius: 50%;
+}
+
+.study-topic.learned {
+  color: var(--text);
+}
+
+.study-topic.learned i {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.study-topic.review i {
+  border-color: var(--warn);
+}
+
+.study-topic.on {
+  background: var(--bg-hover);
   color: var(--text);
   font-weight: 600;
 }
 
-.study-topics li.learned {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
+.study-topic.on i {
+  border-color: var(--text);
 }
 
-.study-topics li.review {
-  border-color: var(--warn);
-  color: var(--warn);
-}
-
-.study-topics li.waiting {
-  border-style: dashed;
+.study-topic.making {
   color: var(--text-faint);
+  font-style: italic;
+  cursor: default;
 }
 
-.study-topics li.error {
-  border-color: var(--danger);
+.study-topic.making i {
+  border-style: dashed;
+}
+
+.study-topic.failed {
   color: var(--danger);
+  cursor: default;
+}
+
+.study-topic.failed i {
+  border-color: var(--danger);
 }
 
 .study-body {
+  min-width: 0;
+  padding: 28px 32px 48px;
+  overflow-y: auto;
+}
+
+.study-body > section,
+.study-body > p,
+.study-body > .study-actions {
+  max-width: 660px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.study-lesson h3 {
+  margin: 0 0 10px;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+
+.study-overview {
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+.study-example,
+.study-solution {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.study-solution {
+  margin-top: 16px;
+  border-color: var(--text-faint);
+  background: var(--bg);
+  animation: study-open 0.25s ease-out;
+}
+
+@keyframes study-open {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study-solution {
+    animation: none;
+  }
+}
+
+.study-example > b,
+.study-solution h4 {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--text-faint);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.study-example > p {
+  margin: 0 0 8px;
+  line-height: 1.6;
+}
+
+.study-steps {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.study-steps li {
+  margin: 6px 0;
+  line-height: 1.6;
+}
+
+.study-step-label {
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+.study-answer {
+  margin: 10px 0 0;
+  font-weight: 600;
+}
+
+.study-banner {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+.study-qfoot {
   display: flex;
-  flex: 1;
-  flex-direction: column;
   align-items: center;
-  width: 100%;
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 32px 24px 48px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.study-qfoot p {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 12.5px;
+}
+
+.study-qfoot .primary-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.study-stuck {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  text-decoration-color: var(--text-faint);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.study-stuck:hover {
+  color: var(--text);
+}
+
+.study-actions.center {
+  justify-content: center;
+}
+
+.study .katex {
+  font-size: 1.08em;
 }
 
 .study-body > section,
@@ -2862,50 +3104,15 @@ a {
   font-size: 13px;
 }
 
-.study-card {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 100%;
-  min-height: 260px;
-  padding: 28px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
 
-.study-card.flipped {
-  border-color: var(--text-faint);
-  background: var(--bg);
-}
 
-.study-card:focus-visible,
 .study-choice:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.study-card-side {
-  color: var(--text-faint);
-  font-size: 12px;
-  font-weight: 600;
-}
 
-.study-card-text {
-  font-size: 17px;
-  line-height: 1.55;
-  white-space: pre-wrap;
-}
 
-.study-card-hint {
-  margin-top: auto;
-  color: var(--text-faint);
-  font-size: 12.5px;
-}
 
 .study-actions {
   display: flex;
@@ -2925,15 +3132,6 @@ a {
   cursor: pointer;
 }
 
-.study kbd {
-  margin-left: 6px;
-  padding: 0 5px;
-  border: 1px solid currentColor;
-  border-radius: 4px;
-  font: inherit;
-  font-size: 11px;
-  opacity: 0.6;
-}
 
 .study-check-head {
   display: flex;
@@ -2977,6 +3175,7 @@ a {
 .study-choice {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
   gap: 10px;
   width: 100%;
   padding: 12px 14px;
@@ -3077,18 +3276,44 @@ a {
     padding: 12px 16px;
   }
 
-  .study-topics {
+
+  .study-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  /* Phones: just the current week and its topics, in one row above the content. */
+  .study-rail {
     padding: 10px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .study-week:not(.cur) {
+    display: none;
+  }
+
+  .study-week.cur {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin: 0;
+  }
+
+  .study-week.cur h3 {
+    margin: 0;
+    padding: 0;
+  }
+
+  .study-week.cur .study-topic {
+    width: auto;
   }
 
   .study-body {
     padding: 20px 16px 32px;
   }
 
-  .study-card {
-    min-height: 220px;
-    padding: 20px;
-  }
 }
 
 /* ---------- Connect Canvas ---------- */

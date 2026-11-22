@@ -1,7 +1,6 @@
 import type { Note } from '../db/db'
-import type { StudySetTopic } from '../map/panelText'
 import type { ClassKind } from './classType'
-import type { NotePayload, TopicError, TopicRequest, TopicSet } from './shape'
+import type { NotePayload, TopicError, WeekRequest, WeekSet } from './shape'
 
 /** Claude takes images up to about 5 MB; phone photos are often bigger, so they're shrunk first. */
 const MAX_IMAGE_SIDE = 2000
@@ -33,18 +32,18 @@ async function payload(n: Note): Promise<NotePayload> {
   return { name: n.name, kind: n.kind, mime: n.mime, data: n.blob ? await base64(n.blob) : '' }
 }
 
-export async function buildTopicRequest(args: {
+export async function buildWeekRequest(args: {
   className: string
   kind: ClassKind
   testTitle: string
-  topic: StudySetTopic
+  week: WeekRequest['week']
   notes: Note[]
-}): Promise<TopicRequest> {
+}): Promise<WeekRequest> {
   return {
     className: args.className,
     kind: args.kind,
     testTitle: args.testTitle,
-    topic: { title: args.topic.title, hint: args.topic.hint },
+    week: { label: args.week.label, items: args.week.items.map(({ title, hint }) => ({ title, hint })) },
     // A note whose file can't be read anymore is left out rather than stopping the whole set.
     notes: (await Promise.all(args.notes.map((n) => payload(n).catch(() => null)))).filter((n): n is NotePayload => n !== null),
   }
@@ -52,15 +51,15 @@ export async function buildTopicRequest(args: {
 
 const KNOWN: TopicError[] = ['signed-out', 'not-configured', 'limit', 'bad-request', 'bad-output', 'failed']
 
-/** Asks the feed helper for one topic's cards and questions. */
-export async function fetchTopic(
-  req: TopicRequest,
+/** Asks the feed helper for one week's topics, lessons and problems. */
+export async function fetchWeek(
+  req: WeekRequest,
   token: string | null,
   fetcher: typeof fetch = fetch,
-): Promise<TopicSet | { error: TopicError }> {
+): Promise<WeekSet | { error: TopicError }> {
   let res: Response
   try {
-    res = await fetcher('/api/study-set/topic', {
+    res = await fetcher('/api/study-set/week', {
       method: 'POST',
       headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify(req),
@@ -69,7 +68,7 @@ export async function fetchTopic(
     return { error: 'offline' }
   }
   const body = await res.json().catch(() => null)
-  if (res.ok && body) return body as TopicSet
+  if (res.ok && body) return body as WeekSet
   const code = body?.error
   return { error: KNOWN.includes(code) ? code : 'failed' }
 }

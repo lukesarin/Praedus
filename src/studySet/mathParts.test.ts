@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mathParts, renderTex } from './mathText'
+import { mathParts, renderTex } from './mathParts'
 
 describe('mathParts', () => {
   it('splits text and $…$ math', () => {

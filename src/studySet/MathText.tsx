@@ -1,8 +1,9 @@
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
-import { mathParts, renderTex } from './mathText'
+import { mathParts, renderTex } from './mathParts'
 
-const draw = (tex: string) => katex.renderToString(tex, { throwOnError: true, output: 'html' })
+// Full-size fractions and limits even inside a sentence: easier to read than KaTeX's small inline style.
+const draw = (tex: string) => katex.renderToString(`\\displaystyle ${tex}`, { throwOnError: true, output: 'html' })
 
 /** Text with `$…$` math drawn by KaTeX. Bad LaTeX shows as plain text instead of an error. */
 export function MathText({ text }: { text: string }) {

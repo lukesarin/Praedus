@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CalendarItem } from '../db/db'
-import { coverLine, countdown, plainDescription, studySetTopics, weekHeading } from './panelText'
+import { coverLine, countdown, plainDescription, studySetTopics, studyWeeks, weekHeading } from './panelText'
 import type { Unit } from './units'
 
 const item = (title: string) => ({ title }) as CalendarItem
@@ -103,5 +103,21 @@ describe('studySetTopics', () => {
   })
   it('empty unit gives no topics', () => {
     expect(studySetTopics(unit({ items: [] }))).toEqual([])
+  })
+})
+
+describe('studyWeeks', () => {
+  const work = (id: string, title: string, due: string, description?: string) =>
+    ({ id, title, start: due, allDay: true, kind: 'assignment', description }) as unknown as CalendarItem
+  it('groups the covered work by week, skipping weeks with nothing due', () => {
+    const weeks = [{ start: '2026-10-26', number: 10 }, { start: '2026-11-02', number: 11 }, { start: '2026-11-09', number: 12 }]
+    const u = unit({
+      weeks,
+      items: [work('q', 'Quiz 3', '2026-10-30', '<p>Covers 2.4</p>'), work('p', 'Problem Set 8', '2026-10-28'), work('r', 'PS 10', '2026-11-11')],
+    })
+    expect(studyWeeks(u)).toEqual([
+      { weekId: '2026-10-26', label: 'Week 10', start: '2026-10-26', items: [{ title: 'Problem Set 8', hint: '' }, { title: 'Quiz 3', hint: 'Covers 2.4' }] },
+      { weekId: '2026-11-09', label: 'Week 12', start: '2026-11-09', items: [{ title: 'PS 10', hint: '' }] },
+    ])
   })
 })

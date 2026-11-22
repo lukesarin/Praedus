@@ -1,7 +1,7 @@
-import { addDays, localDateKey } from '../calendar/dates'
+import { addDays, itemDateKey, localDateKey } from '../calendar/dates'
 import type { CalendarItem } from '../db/db'
 import { dueInstant } from '../study/plan'
-import type { Unit, Week } from './units'
+import { mondayOf, type Unit, type Week } from './units'
 
 const DAY_MS = 86_400_000
 
@@ -93,4 +93,22 @@ export function studySetTopics(unit: Unit): StudySetTopic[] {
   return [...unit.items]
     .sort((a: CalendarItem, b: CalendarItem) => dueInstant(a) - dueInstant(b))
     .map((i) => ({ id: i.id, title: i.title, hint: plainDescription(i.description, 80) }))
+}
+
+/** One week of a study set: its heading and what was due, with short plain hints. */
+export type StudyWeek = { weekId: string; label: string; start?: string; items: { title: string; hint: string }[] }
+
+/** The weeks a test covers, each with the work due that week; weeks with nothing due are left out. */
+export function studyWeeks(unit: Unit): StudyWeek[] {
+  return unit.weeks
+    .map((w) => ({
+      weekId: w.start,
+      label: weekHeading(w),
+      start: w.start,
+      items: unit.items
+        .filter((i) => mondayOf(itemDateKey(i)) === w.start)
+        .sort((a, b) => dueInstant(a) - dueInstant(b))
+        .map((i) => ({ title: i.title, hint: plainDescription(i.description, 80) })),
+    }))
+    .filter((w) => w.items.length > 0)
 }

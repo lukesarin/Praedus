@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { answer, jump, skip, startProblems, startSession, weekFailed, weekReady, type SessionState } from './weekSession'
+import { answer, jump, retryWeeks, skip, startProblems, startSession, weekFailed, weekReady, type SessionState } from './weekSession'
 
 const topic = (s: SessionState) => (s.current && s.current.topic >= 0 ? s.weeks[s.current.week].topics[s.current.topic] : null)
 const learn = (s: SessionState) => [true, true, true].reduce((x, ok) => answer(x, ok), startProblems(s))
@@ -88,4 +88,14 @@ describe('jumping', () => {
 it('is plain JSON', () => {
   const s = skip(answer(startProblems(ready(['w9'], [[6]])), true))
   expect(JSON.parse(JSON.stringify(s))).toEqual(s)
+})
+
+describe('retryWeeks', () => {
+  it('puts failed weeks back to waiting and waits on the first one', () => {
+    let s = weekFailed(weekFailed(startSession(['w9', 'w10']), 'w9'), 'w10')
+    expect(s.done).toBe(true)
+    s = retryWeeks(s, ['w9', 'w10'])
+    expect(s).toMatchObject({ done: false, current: { week: 0, topic: -1 } })
+    expect(s.weeks.map((w) => w.status)).toEqual(['waiting', 'waiting'])
+  })
 })

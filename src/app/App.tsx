@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { AssignmentList } from '../assignments/AssignmentList'
 import { addDays, localDateKey } from '../calendar/dates'
 import { CalendarView, type CommitmentChange, type StudyBlockChange } from '../calendar/CalendarView'
@@ -22,8 +22,7 @@ import { TestPrepPanel, type PanelTest } from '../map/TestPrepPanel'
 import { addNotes, deleteNote, moveNote, notesMessage, type NoteInput } from '../notes/notes'
 import { classType } from '../studySet/classType'
 import { startStudySet } from '../studySet/store'
-import { StudySession } from '../studySet/StudySession'
-import type { StudySetTopic } from '../map/panelText'
+import type { StudyWeek } from '../map/panelText'
 import { defaultPick, defaultTestFor, mapCourses as courseList, classWeeks, mapItems, unitFor } from '../map/units'
 import { StudyBlockDialog } from '../study/StudyBlockDialog'
 import { ImportDialog } from '../import/ImportDialog'
@@ -47,6 +46,9 @@ async function saveCommitment(c: Commitment | null, id: string) {
   if (c) await db.commitments.put(c)
   else await db.commitments.delete(id)
 }
+
+// The study session (and KaTeX, which it uses for math) loads only when a set is opened.
+const StudySession = lazy(() => import('../studySet/StudySession').then((m) => ({ default: m.StudySession })))
 
 export type Account = { email: string; onLogOut: () => void; getToken: () => Promise<string | null> }
 
@@ -231,7 +233,7 @@ export default function App({ account }: { account?: Account } = {}) {
     if (added.length) setNoteFlash({ weeks: [...new Set(added.map((n) => n.week))], key: Date.now() })
   }
 
-  async function createSet(topics: StudySetTopic[]) {
+  async function createSet(weeks: StudyWeek[]) {
     const unit = donut?.unit
     if (!mapCourse || !unit) return
     await startStudySet({
@@ -240,8 +242,7 @@ export default function App({ account }: { account?: Account } = {}) {
       className: mapCourse.name,
       testTitle: unit.test.title,
       kind: classType(mapCourse.name),
-      weeks: unit.weeks.map((w) => w.start),
-      topics,
+      weeks,
     }, getToken)
     setStudyTest(unit.test.id)
   }
@@ -422,12 +423,14 @@ export default function App({ account }: { account?: Account } = {}) {
         />
       )}
       {studyTest && (
-        <StudySession
-          testId={studyTest}
-          getToken={getToken}
-          onClose={() => setStudyTest(null)}
-          onPlan={() => { setStudyTest(null); void plan() }}
-        />
+        <Suspense fallback={<div className="study" />}>
+          <StudySession
+            testId={studyTest}
+            getToken={getToken}
+            onClose={() => setStudyTest(null)}
+            onPlan={() => { setStudyTest(null); void plan() }}
+          />
+        </Suspense>
       )}
     </div>
   )
