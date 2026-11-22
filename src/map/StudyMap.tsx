@@ -42,6 +42,8 @@ const TAG_HEIGHT = 20
 const SPINE = 54
 /** The unit's region: a hull with a wide round stroke, so it pads its outer nodes evenly. */
 const HULL_PAD = 56
+/** Below this zoom labels get too small to read, so the automatic fit frames the picked unit instead. */
+const MIN_READABLE_ZOOM = 0.8
 
 const pillWidth = (code: string) => code.length * 7.6 + 28
 const tagText = (s: string) => (s.length > 22 ? `${s.slice(0, 21)}…` : s)
@@ -110,6 +112,8 @@ export function StudyMap({
   /** The student panned, zoomed or dragged since the layout last changed, so don't re-fit under them. */
   const touched = useRef(false)
   const drag = useRef<{ node: SimNode; startX: number; startY: number; moved: boolean } | null>(null)
+  /** The picked unit's nodes and its test: what the automatic fit frames when the whole class won't fit readably. */
+  const focusIds = useRef(new Set<string>())
 
   const [size, setSize] = useState({ w: 800, h: 600 })
   const [transform, setTransform] = useState<ZoomTransform>(zoomIdentity)
@@ -119,6 +123,9 @@ export function StudyMap({
   const [simLinks, setSimLinks] = useState<SimLink[]>([])
 
   const course = courses.find((c) => c.id === courseId)
+  useEffect(() => {
+    focusIds.current = new Set((graph?.nodes ?? []).filter((n) => n.kind !== 'course' && (n.inUnit || n.picked)).map((n) => n.id))
+  }, [graph])
   const nodeById = useMemo(() => new Map((graph?.nodes ?? []).map((n) => [n.id, n])), [graph])
   const itemById = useMemo(() => new Map((graph?.tests ?? []).map((t) => [t.id, t])), [graph])
   // The simulation restarts only when the shape of the graph changes, not when a tick box does.
@@ -226,18 +233,45 @@ export function StudyMap({
     }
   }, [structure]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function fit(list: SimNode[] = simNodes) {
-    const svg = svgRef.current
-    const z = zoomRef.current
-    if (!svg || !z || list.length === 0) return
+  // On a small map, picking another test moves the view to its unit.
+  const pickedId = graph?.unit?.test.id
+  useEffect(() => {
+    if (pickedId && cramped()) fit()
+  }, [pickedId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** The zoom and center that fit `list` in the map, with extra room on the sides for assignment labels. */
+  function frame(list: SimNode[], width: number, height: number) {
     const xs = list.map((n) => n.x ?? 0)
     const ys = list.map((n) => n.y ?? 0)
     const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]
-    const { width, height } = svg.getBoundingClientRect()
-    // Extra room on the sides for assignment labels.
     const k = Math.min(1.8, Math.max(0.2, Math.min(width / (x1 - x0 + 260), height / (y1 - y0 + 120))))
-    const t = zoomIdentity.translate(width / 2 - (k * (x0 + x1)) / 2, height / 2 - (k * (y0 + y1)) / 2).scale(k)
+    return { k, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 }
+  }
+
+  /**
+   * Fits the whole class. On a small map (a phone) where that would shrink labels past reading,
+   * frames the picked unit instead, unless `whole` (the Fit button) asks for everything.
+   */
+  function fit(list: SimNode[] = simNodes, whole = false) {
+    const svg = svgRef.current
+    const z = zoomRef.current
+    if (!svg || !z || list.length === 0) return
+    const { width, height } = svg.getBoundingClientRect()
+    let f = frame(list, width, height)
+    if (!whole && f.k < MIN_READABLE_ZOOM) {
+      const focus = list.filter((n) => focusIds.current.has(n.id))
+      if (focus.length > 0) f = frame(focus, width, height)
+    }
+    const t = zoomIdentity.translate(width / 2 - f.k * f.cx, height / 2 - f.k * f.cy).scale(f.k)
     select(svg).call(z.transform, t)
+  }
+
+  /** True when the whole class can't be shown at a readable size, so the view follows the picked unit. */
+  function cramped(): boolean {
+    const svg = svgRef.current
+    if (!svg || simNodes.length === 0) return false
+    const { width, height } = svg.getBoundingClientRect()
+    return frame(simNodes, width, height).k < MIN_READABLE_ZOOM
   }
 
   function toGraph(e: React.PointerEvent): [number, number] {
@@ -356,7 +390,7 @@ export function StudyMap({
             {!hasTermStart && graph && (
               <button className="map-link-btn" onClick={onSetTermStart}>Set first day of classes</button>
             )}
-            {graph && <button className="map-fit" onClick={() => fit()}>Fit</button>}
+            {graph && <button className="map-fit" onClick={() => fit(undefined, true)}>Fit</button>}
           </span>
         </div>
 
