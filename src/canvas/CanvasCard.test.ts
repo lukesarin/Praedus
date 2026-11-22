@@ -39,6 +39,11 @@ describe('CanvasCard', () => {
     expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Sync now<\/button>/)
   })
 
+  it('blocks Disconnect while a sync runs, so a finishing sync cannot bring the connection back', () => {
+    expect(render(feed(), { syncing: true })).toMatch(/<button[^>]*disabled=""[^>]*>Disconnect<\/button>/)
+    expect(render(feed())).not.toMatch(/<button[^>]*disabled=""[^>]*>Disconnect<\/button>/)
+  })
+
   it('asks for attention with plain-language guidance when the last sync failed', () => {
     const html = render(feed({ lastError: 'Canvas answered with an error (404). Check that the link is current.' }))
     expect(html).toContain('Needs attention')

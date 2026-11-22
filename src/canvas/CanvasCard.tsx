@@ -44,7 +44,7 @@ export function CanvasCard({ feed, itemCount, courseCount, syncing, now, onSyncN
       )}
       <div className="canvas-card-actions">
         <button className="ghost-btn" onClick={onSyncNow} disabled={syncing}>Sync now</button>
-        <button className="link-btn" onClick={onDisconnect}>Disconnect</button>
+        <button className="link-btn" onClick={onDisconnect} disabled={syncing}>Disconnect</button>
       </div>
     </div>
   )
