@@ -12,6 +12,12 @@ export type Unit = {
   weeks: Week[]
   items: CalendarItem[]
   cumulative: boolean
+  /**
+   * Date key of the class's earliest item. Set only when the unit has no earlier test to bound it
+   * (no `previous`, or a final, which is cumulative and starts at the first known week) and the
+   * app's history may not reach back that far: no `termStart`, or the earliest item falls after
+   * the unit's first week.
+   */
   earliestKnown?: string
 }
 
@@ -45,20 +51,23 @@ export function classWeeks(classItems: CalendarItem[], termStart?: string): Week
   return weeks.slice(-MAX_WEEKS)
 }
 
+const sig = (i: CalendarItem) => `${i.title.trim().toLowerCase()}|${itemDateKey(i)}`
+
 /** The class's tests by due time. An assignment and an event with the same title on one day count once, as the event. */
 export function testsOf(classItems: CalendarItem[]): CalendarItem[] {
   const tests = classItems.filter(isTest)
-  const sig = (i: CalendarItem) => `${i.title.trim().toLowerCase()}|${itemDateKey(i)}`
   const eventSigs = new Set(tests.filter((i) => i.kind === 'event').map(sig))
   return tests
     .filter((i) => i.kind === 'event' || !eventSigs.has(sig(i)))
     .sort((a, b) => dueInstant(a) - dueInstant(b))
 }
 
-export function unitFor(test: CalendarItem, classItems: CalendarItem[], weeks: Week[], termStart?: string): Unit {
-  const cumulative = isFinal(test)
+export function unitFor(given: CalendarItem, classItems: CalendarItem[], weeks: Week[], termStart?: string): Unit {
   const tests = testsOf(classItems)
-  const idx = tests.findIndex((t) => t.id === test.id)
+  // A collapsed-away duplicate resolves to the test testsOf kept.
+  const idx = tests.findIndex((t) => t.id === given.id || sig(t) === sig(given))
+  const test = idx >= 0 ? tests[idx] : given
+  const cumulative = isFinal(test)
   const previous = idx > 0 ? tests[idx - 1] : undefined
   const testWeek = weekOf(test)
   const after = !cumulative && previous ? weekOf(previous) : undefined
@@ -86,15 +95,19 @@ export function defaultPick(
 ): { courseId: string; testId?: string } | null {
   const ids = new Set(courses.map((c) => c.id))
   const mine = items.filter((i) => i.courseId && ids.has(i.courseId))
-  const upcoming = mine
-    .filter((i) => isTest(i) && dueInstant(i) > now.getTime())
-    .sort((a, b) => dueInstant(a) - dueInstant(b))[0]
+  const byCourse = new Map<string, CalendarItem[]>()
+  for (const i of mine) byCourse.set(i.courseId!, [...(byCourse.get(i.courseId!) ?? []), i])
+  let upcoming: CalendarItem | undefined
+  for (const classItems of byCourse.values()) {
+    const next = testsOf(classItems).find((t) => dueInstant(t) > now.getTime())
+    if (next && (!upcoming || dueInstant(next) < dueInstant(upcoming))) upcoming = next
+  }
   if (upcoming) return { courseId: upcoming.courseId!, testId: upcoming.id }
   const first = [...courses]
     .sort((a, b) => a.name.localeCompare(b.name))
-    .find((c) => mine.some((i) => i.courseId === c.id))
+    .find((c) => byCourse.has(c.id))
   if (!first) return null
-  const tests = testsOf(mine.filter((i) => i.courseId === first.id))
+  const tests = testsOf(byCourse.get(first.id)!)
   const latest = tests[tests.length - 1]
   return latest ? { courseId: first.id, testId: latest.id } : { courseId: first.id }
 }

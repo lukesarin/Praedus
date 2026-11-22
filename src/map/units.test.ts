@@ -98,6 +98,19 @@ describe('unitFor', () => {
     expect(u.weeks.map((w) => w.number)).toEqual(Array.from({ length: 15 }, (_, i) => i + 1))
     expect(u.items.map((i) => i.title)).toEqual(['HW'])
   })
+  it('a final with a previous test sets earliestKnown without a term start only', () => {
+    const items = [a('HW', 1), a('Test 1', 4), a('Final exam', 16)]
+    expect(unitFor(items[2], items, classWeeks(items)).earliestKnown).toBe(day(1))
+    expect(unitFor(items[2], items, classWeeks(items, TERM), TERM).earliestKnown).toBeUndefined()
+  })
+  it('resolves a collapsed-away duplicate to the kept test', () => {
+    const t1 = a('Test 1', 3), dup = a('Midterm exam', 8), ev = e('Midterm exam', 8), t3 = a('Test 3', 12)
+    const items = [a('HW', 1), t1, dup, ev, t3]
+    const u = unitFor(dup, items, classWeeks(items, TERM), TERM)
+    expect(u.test).toBe(ev)
+    expect(u.previous).toBe(t1)
+    expect(u.weeks.map((w) => w.number)).toEqual([4, 5, 6, 7])
+  })
   it('back-to-back tests leave an empty unit', () => {
     const items = [a('HW', 2), a('Midterm', 8), a('Test 2', 9)]
     const u = unitFor(items[2], items, classWeeks(items, TERM), TERM)
@@ -131,6 +144,11 @@ describe('defaultPick', () => {
   })
   it('works with a class that has no tests', () => {
     expect(defaultPick(courses, [a('Essay', 1, 0, 'engl')], new Date(2027, 0, 5))).toEqual({ courseId: 'engl' })
+  })
+  it('returns the event when an assignment duplicate comes first', () => {
+    const dup = mk('assignment', 'Midterm exam', '2026-11-24', 'math')
+    const ev = mk('event', 'Midterm exam', '2026-11-24', 'math')
+    expect(defaultPick(courses, [dup, ev], new Date(2026, 10, 21))).toEqual({ courseId: 'math', testId: ev.id })
   })
   it('is null with no items', () => expect(defaultPick(courses, [], new Date())).toBeNull())
 })
