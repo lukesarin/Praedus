@@ -28,10 +28,20 @@ export type CalendarItem = Omit<ParsedItem, 'courseName'> & {
   done: boolean
   /** The student changed this item; re-imports leave its content alone. */
   userEdited: boolean
-  /** The item disappeared from its feed but was kept because the student touched it. */
+  /**
+   * The item disappeared from its feed while not yet past due, but was kept because the student
+   * touched it. (Past assignments and tests that vanish get `keptAsHistory` instead.)
+   */
   removedFromSource: boolean
   /** How long the student expects it to take (minutes). Set by the student, kept on re-import. */
   estimateMinutes?: number
+  /** The student reviewed for this test. Student-owned, independent of `done`; kept on re-import. */
+  reviewed?: boolean
+  /**
+   * Set by sync when a past-due assignment or test aged out of Canvas's 30-day feed and was kept
+   * as semester history. Cleared if the item reappears in the feed.
+   */
+  keptAsHistory?: boolean
 }
 
 /** Small key/value store for per-student settings. */

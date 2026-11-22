@@ -13,7 +13,7 @@ export function groupAssignments(items: CalendarItem[], today: Date): Assignment
   const buckets = new Map<GroupLabel, CalendarItem[]>(ORDER.map((l) => [l, []]))
 
   const sorted = items
-    .filter((i) => i.kind === 'assignment')
+    .filter((i) => i.kind === 'assignment' && !i.keptAsHistory)
     .sort((a, b) => itemDateKey(a).localeCompare(itemDateKey(b)) || a.start.localeCompare(b.start))
 
   for (const item of sorted) {
