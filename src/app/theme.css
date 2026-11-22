@@ -1,43 +1,48 @@
-/* StudyBlocks theme: quiet, Obsidian-inspired. Dark by default. */
+/* Praedus theme: mint on black, set in Figtree. Hairline rules, quiet surfaces,
+   and mint reserved for what is yours or happening now. Dark by default. */
 
 :root,
 :root[data-theme='dark'] {
-  --bg: #1e1e1e;
-  --bg-side: #262626;
-  --bg-raised: #2b2b2b;
-  --bg-hover: #333333;
-  --border: #363636;
-  --text: #dcddde;
-  --text-muted: #9a9a9a;
-  --text-faint: #6f6f6f;
-  --accent: #8b7cf6;
-  --accent-soft: rgba(139, 124, 246, 0.16);
-  --today: rgba(139, 124, 246, 0.06);
-  --danger: #e06c75;
-  --danger-soft: rgba(224, 108, 117, 0.14);
-  --ok: #5fb88a;
-  --ok-soft: rgba(95, 184, 138, 0.14);
-  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --bg: #0e0e0e;
+  --bg-side: #0e0e0e;
+  --bg-raised: #161616;
+  --bg-hover: #1c1c1c;
+  --surface: #181818;
+  --border: #222222;
+  --text: #f2f2f2;
+  --text-muted: #a3a3a3;
+  --text-faint: #6e6e6e;
+  --accent: #5ed3a8;
+  --on-accent: #06140f;
+  --accent-soft: rgba(94, 211, 168, 0.15);
+  --today: transparent;
+  --danger: #f26666;
+  --danger-soft: rgba(242, 102, 102, 0.16);
+  --ok: var(--accent);
+  --ok-soft: var(--accent-soft);
+  --shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
 
 :root[data-theme='light'] {
   --bg: #ffffff;
-  --bg-side: #f6f6f7;
+  --bg-side: #ffffff;
   --bg-raised: #ffffff;
-  --bg-hover: #ececee;
-  --border: #e3e3e6;
-  --text: #222326;
-  --text-muted: #6b6d73;
-  --text-faint: #9a9ca2;
-  --accent: #7060e8;
-  --accent-soft: rgba(112, 96, 232, 0.1);
-  --today: rgba(112, 96, 232, 0.05);
-  --danger: #c94f5a;
-  --danger-soft: rgba(201, 79, 90, 0.1);
-  --ok: #2f8f5f;
-  --ok-soft: rgba(47, 143, 95, 0.1);
-  --shadow: 0 12px 40px rgba(20, 20, 30, 0.14);
+  --bg-hover: #f4f4f2;
+  --surface: #f7f7f5;
+  --border: #ececec;
+  --text: #171717;
+  --text-muted: #737373;
+  --text-faint: #a3a3a3;
+  --accent: #0b7f58;
+  --on-accent: #ffffff;
+  --accent-soft: rgba(11, 127, 88, 0.1);
+  --today: transparent;
+  --danger: #c9302c;
+  --danger-soft: rgba(201, 48, 44, 0.1);
+  --ok: var(--accent);
+  --ok-soft: var(--accent-soft);
+  --shadow: 0 16px 48px rgba(20, 20, 20, 0.12);
   color-scheme: light;
 }
 
@@ -55,7 +60,7 @@ body,
 body {
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font: 14px/1.5 'Figtree Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -103,8 +108,8 @@ a {
   flex: none;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 14px 10px;
+  gap: 22px;
+  padding: 18px 12px;
   background: var(--bg-side);
   border-right: 1px solid var(--border);
   overflow-y: auto;
@@ -122,9 +127,10 @@ a {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 8px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  padding: 2px 8px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
 }
 
 .brand svg {
@@ -156,8 +162,13 @@ a {
 }
 
 .nav button.active {
-  background: var(--accent-soft);
+  background: none;
   color: var(--text);
+  font-weight: 600;
+}
+
+.nav button.active svg {
+  color: var(--accent);
 }
 
 .side-section header {
@@ -169,10 +180,8 @@ a {
 
 .side-section h2 {
   margin: 0;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text-faint);
 }
 
@@ -288,7 +297,8 @@ a {
 .primary-btn {
   border: 1px solid var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
+  font-weight: 700;
 }
 
 .primary-btn:hover {
@@ -334,9 +344,16 @@ a {
 
 .empty h1 {
   margin: 0 0 8px;
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.empty-mark {
+  display: inline-flex;
+  color: var(--accent);
+  margin-bottom: 18px;
 }
 
 .empty-actions {
@@ -367,22 +384,103 @@ a {
   --fc-button-text-color: var(--text);
   --fc-button-hover-bg-color: var(--bg-hover);
   --fc-button-hover-border-color: var(--border);
-  --fc-button-active-bg-color: var(--accent-soft);
-  --fc-button-active-border-color: var(--accent);
-  --fc-event-text-color: #fff;
+  --fc-button-active-bg-color: var(--surface);
+  --fc-button-active-border-color: transparent;
+  --fc-event-text-color: var(--text);
   --fc-small-font-size: 12px;
 }
 
 .fc .fc-toolbar-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Toolbar buttons are quiet text controls; the view switcher reads as a segmented control. */
+.fc .fc-button {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 6px !important;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: none !important;
+  text-transform: none;
+}
+
+.fc .fc-button:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.fc .fc-button-group {
+  gap: 2px;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.fc .fc-today-button {
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.fc .fc-today-button:disabled {
+  opacity: 0.45;
+}
+
+/* Hairline grid: no outer frame, light rules inside. */
+.fc .fc-scrollgrid {
+  border: 0;
+}
+
+.fc-theme-standard .fc-scrollgrid td:last-child,
+.fc-theme-standard .fc-scrollgrid th:last-child {
+  border-right: 0;
+}
+
+/* Week view headers: a small weekday over the date; today is circled in the accent. */
+.sb-dayhead {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0 6px;
+}
+
+.sb-dow {
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sb-dnum {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--text);
   font-size: 17px;
   font-weight: 600;
 }
 
-.fc .fc-button {
-  padding: 4px 10px;
-  font-size: 13px;
-  box-shadow: none !important;
-  text-transform: none;
+.fc .fc-day-today .sb-dow {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.fc .fc-day-today .sb-dnum {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.fc .fc-timegrid-now-indicator-line {
+  border-width: 1px 0 0;
 }
 
 .fc .fc-col-header-cell-cushion,
@@ -395,9 +493,15 @@ a {
 }
 
 .fc .fc-timegrid-event {
-  border-radius: 5px;
-  border-width: 0 0 0 3px;
-  padding: 1px 2px;
+  border-radius: 4px;
+  border-width: 0 0 0 2px;
+  padding: 2px 4px;
+}
+
+/* Imported calendar events (not commitments): an outline with a course-color edge. */
+.fc .fc-timegrid-event.sb-event {
+  background: transparent !important;
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
 .fc .fc-event {
@@ -493,8 +597,9 @@ a {
 
 .page-title {
   margin: 0 0 18px;
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 .group {
@@ -505,8 +610,6 @@ a {
   margin: 0 0 6px;
   font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--text-faint);
 }
 
@@ -628,8 +731,6 @@ a {
 .modal .kind {
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--text-faint);
 }
 
@@ -787,7 +888,14 @@ a {
     gap: 8px;
     padding: 8px 12px;
     border-bottom: 1px solid var(--border);
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+
+  .mobile-bar .brand-mark {
+    display: inline-flex;
+    color: var(--accent);
   }
 
   .calendar-wrap {
@@ -947,13 +1055,13 @@ a {
   text-decoration: underline;
 }
 
-/* Commitment blocks: solid, slightly translucent so the grid shows through. */
-.fc .sb-commitment {
-  opacity: 0.92;
+/* Commitment blocks: a quiet surface with a course/type color edge. */
+.fc .fc-timegrid-event.sb-commitment {
+  background: var(--surface) !important;
 }
 
 .fc .sb-commitment .fc-event-main {
-  color: #fff;
+  color: var(--text);
 }
 
 /* Conflict outlines. */
@@ -1036,7 +1144,7 @@ a {
 .weekdays button.active {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .ghost-btn.danger {
@@ -1191,18 +1299,17 @@ a {
   justify-content: center;
   gap: 8px;
   margin: 0 2px;
-  padding: 7px 10px;
-  border: 1px solid var(--accent);
+  padding: 9px 12px;
+  border: 0;
   border-radius: 6px;
-  background: var(--accent-soft);
-  color: var(--text);
-  font-weight: 500;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
   cursor: pointer;
 }
 
 .plan-btn:hover:not(:disabled) {
-  background: var(--accent);
-  color: #fff;
+  filter: brightness(1.08);
 }
 
 .plan-btn:disabled {
@@ -1210,10 +1317,16 @@ a {
   cursor: default;
 }
 
-/* Study blocks: tinted with a solid left edge, quieter than commitments. */
+/* Study blocks: always the accent, so planned study time reads as "yours" at a glance. */
 .fc .fc-timegrid-event.sb-study {
-  border-width: 0 0 0 3px;
+  border-width: 0 0 0 2px;
   border-radius: 4px;
+  border-color: var(--accent) !important;
+  background: var(--accent-soft) !important;
+}
+
+.fc .sb-study .sb-study-time {
+  color: var(--accent);
 }
 
 .fc .sb-study .fc-event-main {
@@ -1322,8 +1435,6 @@ a {
   margin: 0 0 12px;
   font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--text-faint);
 }
 

@@ -1,11 +1,11 @@
-/** Muted colors that read well on both the dark and light themes. */
+/** Muted colors that read well on both themes and stay clear of the mint accent. */
 export const COURSE_COLORS = [
   '#8b7cf6', // violet
   '#4fa3d1', // blue
-  '#5fb88a', // green
+  '#f08bb4', // pink (was green: too close to the mint accent)
   '#e0a84f', // amber
   '#e06c75', // rose
-  '#56b6c2', // teal
+  '#e8c35a', // gold (was teal: too close to the mint accent)
   '#c678dd', // orchid
   '#d19a66', // clay
 ]

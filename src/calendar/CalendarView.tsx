@@ -1,4 +1,4 @@
-import type { DateSelectArg, DatesSetArg, EventChangeArg, EventClickArg, EventContentArg } from '@fullcalendar/core'
+import type { DateSelectArg, DatesSetArg, DayHeaderContentArg, EventChangeArg, EventClickArg, EventContentArg } from '@fullcalendar/core'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
@@ -11,7 +11,20 @@ import type { CalendarItem, Course } from '../db/db'
 import type { StudyBlock } from '../study/types'
 import { PinIcon } from '../app/icons'
 import { addDays, localDateKey } from './dates'
+import { dayHeaderParts } from './dayHeader'
 import { commitmentEvents, studyBlockEvents, toCalendarEvents, type EventProps, type Marks } from './toEvents'
+
+/** Week view: weekday over a date number (today's number is circled by CSS). Other views keep their text. */
+function renderDayHeader(arg: DayHeaderContentArg) {
+  if (arg.view.type !== 'timeGridWeek') return arg.text
+  const { weekday, day } = dayHeaderParts(arg.date)
+  return (
+    <span className="sb-dayhead">
+      <span className="sb-dow">{weekday}</span>
+      <span className="sb-dnum">{day}</span>
+    </span>
+  )
+}
 
 export type CommitmentChange = {
   occurrenceId: string
@@ -140,6 +153,7 @@ export function CalendarView(props: Props) {
         }
         buttonText={{ today: 'Today', month: 'Month', week: 'Week', list: 'Agenda' }}
         allDayText="Due"
+        dayHeaderContent={renderDayHeader}
         height="100%"
         nowIndicator
         dayMaxEvents={4}

@@ -20,8 +20,14 @@ export const MoonIcon = ({ size = 16 }: P) => svg(size, <path d="M21 12.8A9 9 0 
 export const MenuIcon = ({ size = 18 }: P) => svg(size, <path d="M4 6h16M4 12h16M4 18h16" />)
 export const ExternalIcon = ({ size = 14 }: P) =>
   svg(size, <><path d="M15 3h6v6M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></>)
-export const LogoIcon = ({ size = 20 }: P) =>
-  svg(size, <><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="5" rx="1.5" /><rect x="13" y="10" width="8" height="11" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /></>)
+/** The Praedus "Cadence" mark: one wave that lands on a beat. Drawn on a 48-unit grid. */
+export const LogoIcon = ({ size = 20 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
+    <path d="M6.5 24C6.5 13 19.5 13 19.5 24S32.5 35 32.5 24" fill="none" stroke="currentColor"
+      strokeWidth="5.5" strokeLinecap="round" />
+    <circle cx="40.5" cy="24" r="3.9" fill="currentColor" />
+  </svg>
+)
 export const AlertIcon = ({ size = 16 }: P) =>
   svg(size, <><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /><path d="M12 9v4M12 17h.01" /></>)
 export const PinIcon = ({ size = 11 }: P) =>

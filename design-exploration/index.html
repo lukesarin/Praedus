@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Praedus Color Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #171717; --ink-2: #737373; --ink-3: #a3a3a3; --line: #ececec; --paper: #ffffff;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 "Figtree", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+
+/* ---------- Hero ---------- */
+.hero { background: #0e0e0e; color: #fff; }
+.hero .wrap { padding-top: 88px; padding-bottom: 64px; }
+.hero-lockup { display: flex; align-items: center; gap: clamp(14px, 2.4vw, 24px); }
+.hero-lockup svg { width: clamp(60px, 9vw, 108px); height: clamp(60px, 9vw, 108px); color: #de8050; flex: none; }
+.hero-lockup span { font-weight: 600; font-size: clamp(60px, 11vw, 136px); letter-spacing: -0.045em; line-height: 0.9; }
+.hero p { margin: 40px 0 0; color: #a3a3a3; max-width: 60ch; }
+.hero nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 28px; font-size: 14px; }
+.hero nav a { color: #d4d4d4; text-decoration: none; }
+.hero nav a:hover { color: #fff; }
+
+/* ---------- Option ---------- */
+.opt { padding: 80px 0; border-bottom: 1px solid var(--line); }
+.opt-head { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 40px; align-items: start; margin-bottom: 28px; }
+@media (max-width: 900px) { .opt-head { grid-template-columns: 1fr; gap: 24px; } }
+.opt-head h2 { font-size: 34px; letter-spacing: -0.03em; font-weight: 700; margin: 0 0 8px; line-height: 1.1; display: flex; align-items: center; gap: 12px; }
+.opt-head h2 i { width: 22px; height: 22px; border-radius: 50%; display: inline-block; }
+.opt-head p { margin: 0 0 18px; color: var(--ink-2); max-width: 58ch; }
+.sw { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-width: 560px; }
+.sw div { font-size: 11.5px; color: var(--ink-2); line-height: 1.3; }
+.sw div i { display: block; height: 44px; border-radius: 5px; margin-bottom: 6px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.sw div b { display: block; color: var(--ink); font-weight: 600; font-size: 12px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 16px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px 3px 4px; }
+.chip i { width: 14px; height: 14px; border-radius: 50%; display: block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+.chip b { color: #1f8a4c; font-weight: 600; }
+.brandcol { display: flex; flex-direction: column; gap: 10px; }
+.lock { display: flex; align-items: center; justify-content: center; gap: 12px; height: 128px; border-radius: 8px; color: #fff; }
+.lock svg { width: 42px; height: 42px; }
+.lock span { font-size: 42px; font-weight: 600; letter-spacing: -0.045em; line-height: 1; }
+.icons { display: flex; gap: 10px; align-items: flex-end; }
+.icon { display: grid; place-items: center; border-radius: 23%; flex: none; }
+.icon svg { width: 56%; height: 56%; }
+.icons .cap { font-size: 12px; color: var(--ink-3); margin-left: 6px; align-self: center; }
+
+.frame { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; }
+.frame-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fafafa; font-size: 12.5px; color: var(--ink-2); }
+.frame-bar .dots { display: flex; gap: 6px; }
+.frame-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: #e2e2e2; display: block; }
+.scroller { overflow-x: auto; }
+.note { font-size: 13px; color: var(--ink-2); margin-top: 14px; max-width: 80ch; }
+footer { padding: 40px 0 80px; color: var(--ink-3); font-size: 13px; }
+
+/* ================================================================
+   Mini app: Hairline layout, Figtree, Cadence mark
+   ================================================================ */
+.app { --row: 34px; --hours: 13; display: grid; grid-template-columns: 232px 1fr; min-width: 1040px; height: 640px; background: var(--bg); color: var(--tx); font-size: 13px; font-family: "Figtree", ui-sans-serif, system-ui, sans-serif; }
+.app * { font-family: inherit; }
+.app button { font: inherit; color: inherit; cursor: pointer; }
+.app svg { flex: none; }
+.app .main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.ul { list-style: none; margin: 0; padding: 0; }
+
+.side { border-right: 1px solid var(--rule); padding: 20px 14px; display: flex; flex-direction: column; gap: 22px; overflow: hidden; background: var(--side, var(--bg)); }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; letter-spacing: -0.035em; padding: 0 8px; }
+.brand svg { width: 22px; height: 22px; color: var(--mark, var(--acc)); }
+.nav { display: flex; flex-direction: column; gap: 1px; }
+.nav button { display: flex; align-items: center; gap: 10px; border: 0; background: none; text-align: left; padding: 6px 8px; border-radius: 6px; color: var(--tx2); position: relative; }
+.nav button svg { width: 15px; height: 15px; }
+.nav button:hover { color: var(--tx); background: var(--surface); }
+.nav button.on { color: var(--tx); font-weight: 600; background: var(--nav-on, transparent); }
+.nav button.on svg { color: var(--mark, var(--acc)); }
+.badge { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--red); }
+.app .plan { display: flex; align-items: center; gap: 8px; justify-content: center; background: var(--acc); color: var(--on-acc); border: 0; border-radius: 6px; padding: 9px 12px; font-weight: 700; }
+.plan svg { width: 14px; height: 14px; }
+.sec h5 { font-size: 12px; font-weight: 500; color: var(--tx3); margin: 0 8px 6px; display: flex; justify-content: space-between; }
+.sec li { display: flex; gap: 9px; padding: 5px 8px; align-items: baseline; }
+.sec li .sq { width: 7px; height: 7px; border-radius: 2px; flex: none; transform: translateY(-1px); }
+.sec li small { display: block; color: var(--tx3); font-size: 11.5px; }
+.foot { margin-top: auto; color: var(--tx2); font-size: 12px; padding: 0 8px; display: flex; align-items: center; gap: 8px; }
+.foot svg { width: 14px; height: 14px; }
+
+.bar { display: flex; align-items: center; gap: 14px; padding: 16px 22px 14px; }
+.bar h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.025em; margin: 0; }
+.bar h1 span { color: var(--tx3); font-weight: 400; }
+.arrows { display: flex; gap: 2px; }
+.arrows button, .ghost { border: 0; background: none; padding: 5px 8px; border-radius: 6px; color: var(--tx2); }
+.ghost { border: 1px solid var(--rule); }
+.seg { margin-left: auto; display: flex; gap: 2px; font-size: 12.5px; }
+.seg button { border: 0; background: none; padding: 5px 10px; border-radius: 6px; color: var(--tx2); }
+.seg button.on { color: var(--tx); background: var(--surface); font-weight: 600; }
+
+.cal { flex: 1; display: grid; grid-template-columns: 52px repeat(7, minmax(0, 1fr)); grid-template-rows: auto auto 1fr; min-height: 0; overflow: hidden; padding: 0 22px 0 6px; }
+.cal .dh, .cal .due, .cal .body { display: contents; }
+.cal .col { position: relative; }
+.dh .col { padding: 6px 6px 10px; border-bottom: 1px solid var(--rule); }
+.dh .col small { display: block; color: var(--tx3); font-size: 11.5px; margin-bottom: 4px; }
+.dh .col b { display: inline-grid; place-items: center; width: 30px; height: 30px; margin-left: -6px; border-radius: 50%; font-size: 17px; font-weight: 600; }
+.dh .col.today small { color: var(--acc); font-weight: 700; }
+.dh .col.today b { background: var(--acc); color: var(--on-acc); }
+.due .lab { font-size: 11px; color: var(--tx3); text-align: right; padding: 8px 8px 0 0; border-bottom: 1px solid var(--rule); }
+.due .col { padding: 6px 4px 8px; border-bottom: 1px solid var(--rule); display: flex; flex-direction: column; gap: 3px; min-height: 30px; }
+.dl { display: flex; align-items: flex-start; gap: 5px; font-size: 11.5px; line-height: 1.25; min-width: 0; padding: 2px 4px; border-radius: 4px; }
+.dl .dt { overflow: hidden; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.dl .tm { white-space: nowrap; flex: none; color: var(--tx3); }
+.dl .cd { width: 7px; height: 7px; border-radius: 50%; flex: none; margin-top: 4px; }
+.dl.bad { background: var(--red-tint); color: var(--red); }
+.dl.bad .tm { color: var(--red); }
+.hours { position: relative; }
+.hours span { position: absolute; right: 8px; transform: translateY(-50%); font-size: 11px; color: var(--tx3); white-space: nowrap; }
+.gridcol { position: relative; height: calc(var(--row) * var(--hours)); background-image: linear-gradient(var(--rule) 1px, transparent 1px); background-size: 100% var(--row); border-left: 1px solid var(--rule); }
+.ev { position: absolute; left: 3px; right: 3px; overflow: hidden; top: calc((var(--s) - 8) * var(--row)); height: calc(var(--d) * var(--row) - 2px); font-size: 11.5px; line-height: 1.3; padding: 3px 6px 3px 7px; border-radius: 4px; }
+.ev.l0 { right: 50%; }
+.ev.l1 { left: 50%; }
+.ev .t { font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev .h { display: block; white-space: nowrap; color: var(--tx2); }
+.ev svg.pin { width: 10px; height: 10px; vertical-align: -1px; margin-left: 3px; }
+.ev.class { background: var(--surface); box-shadow: inset 2px 0 0 var(--cc); }
+.ev.work { background: var(--surface); box-shadow: inset 2px 0 0 var(--tx2); }
+.ev.canvas { box-shadow: inset 0 0 0 1px var(--rule), inset 2px 0 0 var(--cc); }
+.ev.study { background: var(--acc-tint); box-shadow: inset 2px 0 0 var(--acc); }
+.ev.study .h { color: var(--acc); }
+.ev.past { opacity: .45; }
+.nowline { position: absolute; left: 0; right: 0; top: calc((var(--now) - 8) * var(--row)); border-top: 1px solid var(--acc); z-index: 3; }
+.nowline::before { content: ""; position: absolute; left: -4px; top: -4px; width: 7px; height: 7px; border-radius: 50%; background: var(--acc); }
+
+/* ---------- The four color options ---------- */
+.v-burnt, .v-cobalt, .v-mint {
+  --bg: #0e0e0e; --tx: #f2f2f2; --tx2: #a3a3a3; --tx3: #6e6e6e; --rule: #222222; --surface: #181818;
+  --on-acc: #140b06; --red: #f26666; --red-tint: rgba(242,102,102,.16);
+}
+.v-burnt { --acc: #de8050; --acc-tint: rgba(222,128,80,.16); --cs: #7a9fe8; --math: #4cc49a; --engl: #b58be0; }
+.v-cobalt { --acc: #7b93ff; --on-acc: #0b0e1f; --acc-tint: rgba(123,147,255,.16); --cs: #f08bb4; --math: #4cc49a; --engl: #e8c35a; }
+.v-mint { --acc: #5ed3a8; --on-acc: #06140f; --acc-tint: rgba(94,211,168,.15); --cs: #7a9fe8; --math: #f08bb4; --engl: #b58be0; }
+.v-smokey {
+  --bg: #2b2b2d; --tx: #f4f4f4; --tx2: #b4b4b8; --tx3: #85858a; --rule: #3b3b3f; --surface: #343437;
+  --acc: #ff8a4c; --on-acc: #1a0d06; --acc-tint: rgba(255,138,76,.18);
+  --red: #ff7a7a; --red-tint: rgba(255,122,122,.16);
+  --cs: #8aacef; --math: #5fd0a8; --engl: #c39ce8;
+}
+.v-smokey .side { --side: #58595b; --tx: #ffffff; --tx2: #e6e6e7; --tx3: #d0d0d2; --surface: #646567; --nav-on: #6a6b6d; --mark: #ff9a5c; border-right-color: #58595b; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="m-cadence" viewBox="0 0 48 48">
+      <path fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" d="M6.5 24C6.5 13 19.5 13 19.5 24S32.5 35 32.5 24"/>
+      <circle fill="currentColor" cx="40.5" cy="24" r="3.9"/>
+    </symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></g></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></g></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="7" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="13" cy="18" r="2.5"/><path d="M8.3 7.6 15.6 6.4M7.4 9.2l4.4 6.6M17 8.3l-3 7.4"/></g></symbol>
+    <symbol id="i-sched" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5c.5 4.6 2.9 7 7.5 7.5-4.6.5-7 2.9-7.5 7.5-.5-4.6-2.9-7-7.5-7.5 4.6-.5 7-2.9 7.5-7.5Z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path fill="currentColor" d="M15 3l6 6-2 1-3 3 .5 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 .5 3-3z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></symbol>
+  </defs>
+</svg>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-lockup" aria-label="Praedus"><svg aria-hidden="true"><use href="#m-cadence"/></svg><span>praedus</span></div>
+    <p>Locked in: the name Praedus, the S mark, and Figtree for both the logo and the app. Below are the four color options, each shown on the full calendar.</p>
+    <nav>
+      <a href="#burnt">Burnt orange on black</a>
+      <a href="#cobalt">Cobalt on black</a>
+      <a href="#mint">Mint on black</a>
+      <a href="#smokey">Smokey grey and orange</a>
+    </nav>
+  </div>
+</header>
+
+<main id="opts"></main>
+
+<footer><div class="wrap">Design exploration only. Lives in <code>design-exploration/</code> and is not loaded by the app. All contrast figures are WCAG ratios; 4.5:1 is the bar for text.</div></footer>
+
+<script>
+const OPTS = [
+  { id: 'burnt', cls: 'v-burnt', title: 'Burnt orange on black', acc: '#de8050', ground: '#0e0e0e', mark: '#de8050',
+    text: 'A lighter, warmer burnt orange (#DE8050) on near-black. Earthier and calmer than a bright orange, and the closest to the lockup you liked.',
+    sw: [['Background', '#0e0e0e'], ['Surface', '#181818'], ['Text', '#f2f2f2'], ['Muted', '#a3a3a3'], ['Burnt orange', '#de8050']],
+    chips: [['#de8050', 'Accent on black 6.7:1'], ['#f2f2f2', 'Text 17.2:1'], ['#a3a3a3', 'Muted text 7.7:1']] },
+  { id: 'cobalt', cls: 'v-cobalt', title: 'Cobalt on black', acc: '#7b93ff', ground: '#0e0e0e', mark: '#7b93ff',
+    text: 'A soft cobalt blue (#7B93FF). Cooler and more focused: calm, trustworthy, a little techy. Course colors shift to pink, green and gold so none of them is mistaken for the accent.',
+    sw: [['Background', '#0e0e0e'], ['Surface', '#181818'], ['Text', '#f2f2f2'], ['Muted', '#a3a3a3'], ['Cobalt', '#7b93ff']],
+    chips: [['#7b93ff', 'Accent on black 6.9:1'], ['#f2f2f2', 'Text 17.2:1'], ['#a3a3a3', 'Muted text 7.7:1']] },
+  { id: 'mint', cls: 'v-mint', title: 'Mint on black', acc: '#5ed3a8', ground: '#0e0e0e', mark: '#5ed3a8',
+    text: 'A fresh mint green (#5ED3A8). Upbeat and "on track", which suits a planner, and it stays readable at any size. Course colors move away from green to keep study blocks distinct.',
+    sw: [['Background', '#0e0e0e'], ['Surface', '#181818'], ['Text', '#f2f2f2'], ['Muted', '#a3a3a3'], ['Mint', '#5ed3a8']],
+    chips: [['#5ed3a8', 'Accent on black 10.4:1'], ['#f2f2f2', 'Text 17.2:1'], ['#a3a3a3', 'Muted text 7.7:1']] },
+  { id: 'smokey', cls: 'v-smokey', title: 'Smokey grey and orange', acc: '#ff8a4c', ground: '#58595b', mark: '#ff9a5c',
+    text: 'The uniform grey (#58595B) carries the sidebar and logo, with the calendar on charcoal (#2B2B2D) so text and orange stay readable. The orange is lightened on the grey for contrast.',
+    sw: [['Smokey grey', '#58595b'], ['Charcoal', '#2b2b2d'], ['Text', '#f4f4f4'], ['Muted', '#b4b4b8'], ['Orange', '#ff8a4c']],
+    chips: [['#ff8a4c', 'Accent on charcoal 6:1'], ['#ffffff', 'White on grey 7:1'], ['#ff9a5c', 'Mark on grey 3.4:1 (icons only)']] },
+];
+
+const use = (id) => `<svg aria-hidden="true"><use href="#${id}"/></svg>`;
+const ico = (id, cls = '') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+
+const DAYS = [['Mon', 23], ['Tue', 24], ['Wed', 25], ['Thu', 26], ['Fri', 27], ['Sat', 28], ['Sun', 29]];
+const TODAY = 1, NOW = 14.6;
+const DUE = [
+  { d: 1, t: 'Lab 9: Recursion', c: 'cs', tm: '11:59p' },
+  { d: 2, t: 'Problem Set 7', c: 'math', tm: '11:59p' },
+  { d: 4, t: 'Essay draft: Argument', c: 'engl' },
+  { d: 5, t: 'Quiz 5', c: 'math', tm: '10:00a', bad: true },
+];
+const EV = [];
+const add = (days, o) => days.forEach(d => EV.push({ ...o, d }));
+add([0, 2, 4], { k: 'class', c: 'cs', t: 'CS 210 Lecture', s: 10, e: 11.25 });
+add([1, 3], { k: 'class', c: 'math', t: 'MATH 120', s: 9.5, e: 10.75 });
+add([1, 3], { k: 'class', c: 'engl', t: 'ENGL 101 Seminar', s: 13, e: 14.25 });
+add([1], { k: 'work', t: 'Work (test shift)', s: 16, e: 21 });
+add([3], { k: 'work', t: 'Work (test shift)', s: 16, e: 21, lane: 0 });
+add([5], { k: 'work', t: 'Work (test shift)', s: 10, e: 16 });
+EV.push({ d: 3, k: 'canvas', c: 'math', t: 'Exam review session', s: 17, e: 18.5, lane: 1 });
+EV.push({ d: 6, k: 'canvas', c: 'engl', t: 'Writing center', s: 14, e: 14.75 });
+EV.push({ d: 0, k: 'study', t: 'Lab 9: Recursion', s: 14, e: 15.5, past: true });
+EV.push({ d: 0, k: 'study', t: 'Problem Set 7', s: 19, e: 20, past: true });
+EV.push({ d: 1, k: 'study', t: 'Lab 9: Recursion', s: 11, e: 12, past: true });
+EV.push({ d: 2, k: 'study', t: 'Essay draft', s: 13, e: 14.5 });
+EV.push({ d: 2, k: 'study', t: 'Problem Set 7', s: 15, e: 16, pinned: true });
+EV.push({ d: 4, k: 'study', t: 'Essay draft', s: 12.5, e: 14 });
+EV.push({ d: 4, k: 'study', t: 'Project 10', s: 15, e: 16.5 });
+EV.push({ d: 6, k: 'study', t: 'Project 10', s: 10, e: 12 });
+
+const fmt = h => { const H = Math.floor(h), m = Math.round((h - H) * 60); const hh = ((H + 11) % 12) + 1; return m ? `${hh}:${String(m).padStart(2, '0')}` : `${hh}`; };
+const ap = h => (h >= 12 ? ' pm' : ' am');
+const range = (s, e) => `${fmt(s)}–${fmt(e)}${ap(e)}`;
+
+function calendar() {
+  let h = '<div class="cal"><div class="dh"><div class="col"></div>';
+  DAYS.forEach(([w, n], i) => h += `<div class="col${i === TODAY ? ' today' : ''}"><small>${w}</small><b>${n}</b></div>`);
+  h += '</div><div class="due"><div class="lab">Due</div>';
+  DAYS.forEach((_, i) => {
+    h += '<div class="col">' + DUE.filter(x => x.d === i).map(x =>
+      `<div class="dl${x.bad ? ' bad' : ''}"><span class="cd" style="background:var(--${x.c})"></span><span class="dt">${x.t}</span>${x.tm ? `<span class="tm">${x.tm}</span>` : ''}</div>`).join('') + '</div>';
+  });
+  h += '</div><div class="body"><div class="col hours">';
+  for (let k = 9; k <= 20; k++) h += `<span style="top:calc(${k - 8} * var(--row))">${fmt(k)}${ap(k).trim()}</span>`;
+  h += '</div>';
+  DAYS.forEach((_, i) => {
+    h += `<div class="col"><div class="gridcol">`;
+    EV.filter(e => e.d === i).forEach(e => {
+      const cls = ['ev', e.k, e.past && 'past', e.lane !== undefined && 'l' + e.lane].filter(Boolean).join(' ');
+      h += `<div class="${cls}" style="--s:${e.s};--d:${e.e - e.s};${e.c ? `--cc:var(--${e.c})` : ''}"><span class="t">${e.t}${e.pinned ? ico('pin', 'pin') : ''}</span><span class="h">${range(e.s, e.e)}</span></div>`;
+    });
+    if (i === TODAY) h += `<div class="nowline" style="--now:${NOW}"></div>`;
+    h += '</div></div>';
+  });
+  return h + '</div></div>';
+}
+
+const NAV = [['cal', 'Calendar'], ['list', 'Assignments'], ['map', 'Study map'], ['sched', 'Schedule']];
+const COMMITS = [['cs', 'CS 210 Lecture', 'Mon, Wed, Fri 10–11:15'], ['math', 'MATH 120', 'Tue, Thu 9:30–10:45'], ['engl', 'ENGL 101 Seminar', 'Tue, Thu 1–2:15'], [null, 'Work (test shift)', 'Tue, Thu 4–9, Sat 10–4']];
+
+function app() {
+  return `<aside class="side">
+    <div class="brand">${use('m-cadence')}praedus</div>
+    <nav class="nav">${NAV.map(([i, n], k) => `<button class="${k === 0 ? 'on' : ''}">${ico(i)}${n}${k === 3 ? '<span class="badge">1</span>' : ''}</button>`).join('')}</nav>
+    <button class="plan">${ico('spark')}Plan my study time</button>
+    <div class="sec"><h5>Commitments ${ico('plus').replace('<svg', '<svg width="13" height="13"')}</h5><ul class="ul">
+      ${COMMITS.map(([c, t, s]) => `<li><span class="sq" style="background:${c ? `var(--${c})` : 'var(--tx2)'}"></span><span>${t}<small>${s}</small></span></li>`).join('')}
+    </ul></div>
+    <div class="sec"><h5>Calendars ${ico('plus').replace('<svg', '<svg width="13" height="13"')}</h5><ul class="ul">
+      <li><span class="sq" style="background:var(--tx3)"></span><span>Sample Canvas Calendar<small>Synced 2 min ago</small></span></li></ul></div>
+    <div class="foot">${ico('sun')}Light theme</div>
+  </aside>
+  <div class="main">
+    <div class="bar"><h1>November <span>2026</span></h1>
+      <div class="arrows"><button aria-label="Previous week">‹</button><button aria-label="Next week">›</button></div>
+      <button class="ghost">Today</button>
+      <div class="seg"><button>Month</button><button class="on">Week</button><button>Agenda</button></div></div>
+    ${calendar()}
+  </div>`;
+}
+
+document.getElementById('opts').innerHTML = OPTS.map(o => `<section class="opt" id="${o.id}"><div class="wrap">
+  <div class="opt-head">
+    <div>
+      <h2><i style="background:${o.acc}"></i>${o.title}</h2>
+      <p>${o.text}</p>
+      <div class="sw">${o.sw.map(([n, c]) => `<div><i style="background:${c}"></i><b>${n}</b>${c.toUpperCase()}</div>`).join('')}</div>
+      <div class="chips">${o.chips.map(([c, t]) => `<span class="chip"><i style="background:${c}"></i>${t} <b>pass</b></span>`).join('')}</div>
+    </div>
+    <div class="brandcol">
+      <div class="lock" style="background:${o.ground}"><svg style="color:${o.mark}"><use href="#m-cadence"/></svg><span>praedus</span></div>
+      <div class="icons">
+        <span class="icon" style="width:64px;height:64px;background:${o.ground};color:${o.mark}">${use('m-cadence')}</span>
+        <span class="icon" style="width:64px;height:64px;background:${o.acc};color:#111">${use('m-cadence')}</span>
+        <span class="icon" style="width:40px;height:40px;background:${o.ground};color:${o.mark}">${use('m-cadence')}</span>
+        <span class="cap">App icons</span>
+      </div>
+    </div>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>Calendar, week view, sample data</div>
+    <div class="scroller"><div class="app ${o.cls}">${app()}</div></div>
+  </div>
+</div></section>`).join('');
+</script>
+</body>
+</html>

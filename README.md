@@ -1,6 +1,6 @@
-# StudyBlocks
+# Praedus
 
-A clean, Obsidian-inspired calendar and planner for students. It pulls your Canvas
+A planner for students, in mint on black. It pulls your Canvas
 assignments into one calm calendar, alongside your classes, work shifts and other
 commitments, flags when things clash, plans your study time around all of it, and
 shows how your coursework connects on an Obsidian-style study map.

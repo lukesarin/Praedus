@@ -21,7 +21,7 @@ import { useMapFilters } from '../map/useMapFilters'
 import { StudyBlockDialog } from '../study/StudyBlockDialog'
 import { ImportDialog } from '../import/ImportDialog'
 import { loadSample } from '../import/syncFeed'
-import { MenuIcon } from './icons'
+import { LogoIcon, MenuIcon } from './icons'
 import { ItemDetail } from './ItemDetail'
 import { Sidebar, type View } from './Sidebar'
 import { useNow } from './useNow'
@@ -200,12 +200,14 @@ export default function App() {
       <main className="main">
         <div className="mobile-bar">
           <button className="icon-btn" onClick={() => setMenuOpen(true)} aria-label="Open menu"><MenuIcon /></button>
-          <span>StudyBlocks</span>
+          <span className="brand-mark"><LogoIcon size={18} /></span>
+          <span>praedus</span>
           {redCount > 0 && <button className="badge red" onClick={() => go('conflicts')}>{redCount}</button>}
         </div>
 
         {isEmpty && view !== 'conflicts' && view !== 'map' ? (
           <div className="empty">
+            <span className="empty-mark"><LogoIcon size={40} /></span>
             <h1>Your semester, in one quiet place.</h1>
             <p className="muted">
               Bring in your Canvas calendar to see every assignment and class event on one calendar.

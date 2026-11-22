@@ -58,7 +58,7 @@ export function Sidebar(props: Props) {
     <aside className={`sidebar${open ? ' is-open' : ''}`} aria-label="Sidebar">
       <div className="brand">
         <LogoIcon />
-        <span>StudyBlocks</span>
+        <span>praedus</span>
       </div>
 
       <nav className="nav">
