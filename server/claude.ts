@@ -1,34 +1,39 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
-import { TOPIC_SCHEMA, type TopicRequest } from '../src/studySet/shape'
+import { WEEK_SCHEMA, type WeekRequest } from '../src/studySet/shape'
 
 const MODEL = 'claude-opus-5-5'
 
-const COMMON = `You make study material for one topic of a college class, for a student preparing for a test.
-Write for a student, in plain language. Plain text only: no Markdown, no LaTeX. Write math the
-way you'd type it (x^2, sqrt(x), dy/dt) and put each step of a solution on its own line. Use only what's true; if the student's notes are given, follow
-their wording, notation and emphasis, and stay within what the notes and the topic cover.
+const COMMON = `You make study material for one week of a college class, for a student preparing for a test.
+Write for a student, in plain language. Use only what's true. If the student's notes are given, they are
+the main source: follow their wording, notation and emphasis, and stay within what they and the week's
+assignments cover.
 
-Return JSON with:
-- "cards": 4 to 6 flashcards ("front" and "back").
-- "questions": 8 multiple-choice questions on the same material, each with exactly 4 "choices",
-  "correct" as the index (0-3) of the one right choice, and "whyWrong": 4 strings, one per choice,
-  explaining why that choice is wrong (use "" for the correct choice). Make the wrong choices
-  mistakes a real student would make. Vary which index is correct.`
+Formatting: plain text, no Markdown. Write every formula, variable, number with units in a formula, and
+expression in LaTeX between single dollar signs, like $x^2 + y^2 = 100$, $\\frac{dy}{dt}$, $\\sqrt{x}$,
+$\\pi r^2$. Never use a dollar sign for anything else (write "5 dollars", not a dollar sign).
+
+Split the week into 1 to 3 topics, named by the idea (like "Related rates"), not by the assignment.
+For each topic return:
+- "lesson": an "overview" of 2 to 4 sentences explaining the idea and how to approach it, and one
+  worked "example" ("problem", "steps" with a short "label" and the "work" for each step, and "answer").
+- "problems": 6 to 8 multiple-choice problems like the ones on the test. Each has a "prompt", exactly 4
+  "choices", "correct" as the index (0-3) of the one right choice, "whyWrong": 4 strings, one per choice,
+  explaining the mistake behind that choice ("" for the correct one), and a "solution" worked step by
+  step ("steps" with "label" and "work", then "answer"). Make wrong choices mistakes a real student would
+  make. Vary which index is correct.`
 
 const KIND = {
-  problems: `This is a problem-solving class. Each card's front is a problem to solve, like one on the test.
-Its back is the full worked solution, step by step, with a short reason for each step, ending with the answer.
-Questions are problems too; each choice is a possible final answer.
-Before writing any answer, work the problem with the code execution tool and make sure the answer is right.
-Only include questions whose correct answer you checked that way.`,
-  ideas: `This is a class about ideas, readings and facts. Each card's front asks about one idea (a term, a
-claim, a passage, an event). Its back answers it in 2-4 sentences: what it means, then one example.
-Questions check understanding, not word-for-word recall.`,
+  problems: `This is a problem-solving class: lessons and problems are computations like the ones on the test.
+Before writing any answer, work the problem with the code execution tool and make sure it's right.
+Only include problems whose answer you checked that way.`,
+  ideas: `This is a class about ideas, readings and facts: lessons explain the idea with one example, and
+problems check understanding (applying the idea to a new case), not word-for-word recall. A "solution"
+explains the reasoning in 2 to 4 short steps.`,
 } as const
 
-/** The user turn: the student's notes as documents/images/text, then the topic. */
-function content(req: TopicRequest): Anthropic.ContentBlockParam[] {
+/** The user turn: the student's notes as documents/images/text, then the week. */
+function content(req: WeekRequest): Anthropic.ContentBlockParam[] {
   const notes: Anthropic.ContentBlockParam[] = req.notes.map((n) =>
     n.kind === 'pdf'
       ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: n.data }, title: n.name }
@@ -36,15 +41,16 @@ function content(req: TopicRequest): Anthropic.ContentBlockParam[] {
         ? { type: 'image', source: { type: 'base64', media_type: n.mime as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp', data: n.data } }
         : { type: 'text', text: `Student's note "${n.name}":\n${n.data}` },
   )
-  const topic = `Class: ${req.className}\nTest: ${req.testTitle}\nTopic: ${req.topic.title}${req.topic.hint ? `\nFrom Canvas: ${req.topic.hint}` : ''}
-${req.notes.length ? 'Use the notes above as the main source.' : 'The student added no notes for these weeks; use standard material for this topic.'}`
-  return [...notes, { type: 'text', text: topic }]
+  const items = req.week.items.map((i) => `- ${i.title}${i.hint ? `: ${i.hint}` : ''}`).join('\n')
+  const week = `Class: ${req.className}\nTest: ${req.testTitle}\n${req.week.label}. What was due:\n${items}
+${req.notes.length ? 'Use the notes above as the main source.' : 'The student added no notes for this week; use standard material for these assignments.'}`
+  return [...notes, { type: 'text', text: week }]
 }
 
-/** Calls Claude for one topic and returns its parsed JSON (validated by the caller). */
+/** Calls Claude for one week and returns its parsed JSON (validated by the caller). */
 export function makeGenerate(apiKey: string, onUsage?: (usage: Anthropic.Usage) => void) {
   const client = new Anthropic({ apiKey })
-  return async (req: TopicRequest): Promise<unknown> => {
+  return async (req: WeekRequest): Promise<unknown> => {
     const messages: Anthropic.MessageParam[] = [{ role: 'user', content: content(req) }]
     const tools: Anthropic.ToolUnion[] = req.kind === 'problems' ? [{ type: 'code_execution_20260521', name: 'code_execution' }] : []
     // Server tools can pause a long turn; resume by sending the turn back (at most a few times).
@@ -56,7 +62,7 @@ export function makeGenerate(apiKey: string, onUsage?: (usage: Anthropic.Usage) 
           system: `${COMMON}\n\n${KIND[req.kind]}`,
           messages,
           tools,
-          output_config: { effort: 'medium', format: { type: 'json_schema', schema: TOPIC_SCHEMA } },
+          output_config: { effort: 'medium', format: { type: 'json_schema', schema: WEEK_SCHEMA } },
         })
         .finalMessage()
       onUsage?.(msg.usage)

@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { createApp } from './app'
 import type { StudySetDeps } from './studySet'
 
-const good = { cards: [{ front: 'f', back: 'b' }], questions: Array(3).fill({ prompt: 'p', choices: ['a', 'b', 'c', 'd'], correct: 0, whyWrong: ['', 'x', 'y', 'z'] }) }
-const body = { className: 'MATH 120', kind: 'problems', testTitle: 'Test 3', topic: { title: 'PS 8', hint: '' }, notes: [] }
+const solution = { steps: [{ label: 'Link', work: 'x' }], answer: 'a' }
+const problem = { prompt: 'p', choices: ['a', 'b', 'c', 'd'], correct: 0, whyWrong: ['', 'x', 'y', 'z'], solution }
+const good = { topics: [{ title: 'Related rates', lesson: { overview: 'o', example: { problem: 'e', ...solution } }, problems: [problem, problem, problem] }] }
+const body = { className: 'MATH 120', kind: 'problems', testTitle: 'Test 3', week: { label: 'Week 10', items: [{ title: 'PS 8', hint: '' }] }, notes: [] }
 
 function setup(over: Partial<StudySetDeps> = {}) {
   let today = new Date(2026, 10, 22, 12)
@@ -15,7 +17,7 @@ function setup(over: Partial<StudySetDeps> = {}) {
   }
   const app = createApp({ studySet: deps })
   const call = (token: string | null, payload: unknown = body) =>
-    app.request('/api/study-set/topic', {
+    app.request('/api/study-set/week', {
       method: 'POST',
       headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify(payload),
@@ -23,7 +25,7 @@ function setup(over: Partial<StudySetDeps> = {}) {
   return { call, setDay: (d: Date) => (today = d) }
 }
 
-describe('POST /api/study-set/topic', () => {
+describe('POST /api/study-set/week', () => {
   it('needs a signed-in student', async () => {
     const { call } = setup()
     expect((await call(null)).status).toBe(401)
@@ -57,7 +59,7 @@ describe('POST /api/study-set/topic', () => {
     expect(await res.json()).toEqual({ error: 'bad-request' })
   })
   it('reports unusable output and failures', async () => {
-    const junk = await setup({ generate: async () => ({ cards: [] }) }).call('tok-a')
+    const junk = await setup({ generate: async () => ({ topics: [] }) }).call('tok-a')
     expect(junk.status).toBe(502)
     expect(await junk.json()).toEqual({ error: 'bad-output' })
     const boom = await setup({ generate: async () => { throw new Error('down') } }).call('tok-a')
