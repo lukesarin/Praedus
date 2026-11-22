@@ -29,6 +29,7 @@
     "dexie-react-hooks": "^4.4.0",
     "hono": "^4.13.19",
     "ical.js": "^2.2.1",
+    "katex": "^0.19.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
