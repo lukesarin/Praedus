@@ -2,7 +2,7 @@ import { itemDateKey, localDateKey } from '../calendar/dates'
 import type { CalendarItem, Course } from '../db/db'
 import { dueInstant } from '../study/plan'
 import { isTest } from '../study/testItems'
-import { classWeeks, mondayOf, testsOf, unitFor, type Unit, type Week } from './units'
+import { classWeeks, mapItems, mondayOf, testsOf, unitFor, type Unit, type Week } from './units'
 
 export type NodeKind = 'course' | 'week' | 'assignment' | 'test'
 
@@ -51,21 +51,21 @@ export function buildClassGraph({ course, items, termStart, testId, now }: Input
   tests: CalendarItem[]
   unit?: Unit
 } {
-  const classItems = items.filter(
-    (i) => i.courseId === course.id && (i.kind === 'assignment' || (i.kind === 'event' && isTest(i))),
-  )
+  const classItems = mapItems(items.filter((i) => i.courseId === course.id))
   const weeks = classWeeks(classItems, termStart)
-  const tests = testsOf(classItems)
+  const weekStarts = new Set(weeks.map((w) => w.start))
+  // Only tests in the weeks the map shows can be picked.
+  const tests = testsOf(classItems).filter((t) => weekStarts.has(mondayOf(itemDateKey(t))))
   const testIds = new Set(tests.map((t) => t.id))
   // A collapsed-away duplicate resolves to the test that was kept.
   const given = testId ? classItems.find((i) => i.id === testId && isTest(i)) : undefined
-  const unit = given ? unitFor(given, classItems, weeks, termStart) : undefined
+  const resolved = given ? unitFor(given, classItems, weeks, termStart) : undefined
+  const unit = resolved && testIds.has(resolved.test.id) ? resolved : undefined
   const picked = unit?.test
   const unitWeeks = new Set(unit?.weeks.map((w) => w.start))
   const unitItems = new Set(unit?.items.map((i) => i.id))
   const currentWeek = mondayOf(localDateKey(now))
   const nowMs = now.getTime()
-  const weekStarts = new Set(weeks.map((w) => w.start))
 
   const courseId = `course:${course.id}`
   const nodes: MapNode[] = [{ id: courseId, kind: 'course', refId: course.id, label: courseCode(course.name), inUnit: false }]

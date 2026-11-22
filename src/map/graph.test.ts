@@ -136,3 +136,12 @@ describe('courseCode', () => {
     expect(courseCode('Introduction to Modern Philosophy')).toHaveLength(16)
   })
 })
+
+describe('tests the map cannot show', () => {
+  it('leaves out a test from before the first day of classes', () => {
+    const early = e('Placement test', 0)
+    const g = build(undefined, { items: [early, ...all] })
+    expect(g.tests.map((t) => t.title)).toEqual(['Test 1', 'Test 2', 'Test 3'])
+    expect(build(early.id, { items: [early, ...all] }).unit).toBeUndefined()
+  })
+})

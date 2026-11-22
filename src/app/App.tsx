@@ -106,8 +106,8 @@ export default function App() {
   // Until the student picks, start from the soonest test (and again if the picked class has nothing left).
   const pickValid = mapPick !== null && mapCourses.some((c) => c.id === mapPick.courseId)
   const fallbackPick = useMemo(
-    () => (pickValid || !items ? null : defaultPick(mapCourses, items, now)),
-    [pickValid, mapCourses, items, now],
+    () => (pickValid || !items ? null : defaultPick(mapCourses, items, now, termStart ?? undefined)),
+    [pickValid, mapCourses, items, now, termStart],
   )
   const pick = pickValid ? mapPick : fallbackPick
   const mapCourse = pick ? mapCourses.find((c) => c.id === pick.courseId) : undefined
@@ -117,7 +117,7 @@ export default function App() {
     const g = buildClassGraph({ ...input, testId: pick?.testId })
     // The picked test is gone (removed from Canvas): fall back to the class's own default.
     if (g.unit || g.tests.length === 0) return g
-    return buildClassGraph({ ...input, testId: defaultTestFor(items.filter((i) => i.courseId === mapCourse.id), now)?.id })
+    return buildClassGraph({ ...input, testId: defaultTestFor(items.filter((i) => i.courseId === mapCourse.id), now, termStart ?? undefined)?.id })
   }, [mapCourse, items, termStart, pick?.testId, now])
 
   if (!feeds || !courses || !items || !commitments || minGap === undefined || !studyBlocks || !studySettings) {
@@ -190,7 +190,7 @@ export default function App() {
   }
 
   function pickCourse(courseId: string) {
-    const testId = defaultTestFor(items!.filter((i) => i.courseId === courseId), now)?.id
+    const testId = defaultTestFor(items!.filter((i) => i.courseId === courseId), now, termStart ?? undefined)?.id
     setMapPick({ courseId, ...(testId ? { testId } : {}) })
   }
 

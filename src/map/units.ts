@@ -61,6 +61,18 @@ export function testsOf(classItems: CalendarItem[]): CalendarItem[] {
     .sort((a, b) => dueInstant(a) - dueInstant(b))
 }
 
+/** What the map draws for a class: its assignments and its tests (not other events). */
+export function mapItems(classItems: CalendarItem[]): CalendarItem[] {
+  return classItems.filter((i) => i.kind === 'assignment' || (i.kind === 'event' && isTest(i)))
+}
+
+/** The class's tests that fall in the weeks the map shows (from the first day of classes, at most MAX_WEEKS). */
+export function visibleTests(classItems: CalendarItem[], termStart?: string): CalendarItem[] {
+  const shown = mapItems(classItems)
+  const starts = new Set(classWeeks(shown, termStart).map((w) => w.start))
+  return testsOf(shown).filter((t) => starts.has(weekOf(t)))
+}
+
 export function unitFor(given: CalendarItem, classItems: CalendarItem[], weeks: Week[], termStart?: string): Unit {
   const tests = testsOf(classItems)
   // A collapsed-away duplicate resolves to the test testsOf kept.
@@ -89,8 +101,8 @@ export function unitFor(given: CalendarItem, classItems: CalendarItem[], weeks: 
 }
 
 /** A class's test to start on: its next upcoming test, else its latest. Undefined when it has none. */
-export function defaultTestFor(classItems: CalendarItem[], now: Date): CalendarItem | undefined {
-  const tests = testsOf(classItems)
+export function defaultTestFor(classItems: CalendarItem[], now: Date, termStart?: string): CalendarItem | undefined {
+  const tests = visibleTests(classItems, termStart)
   return tests.find((t) => dueInstant(t) > now.getTime()) ?? tests[tests.length - 1]
 }
 
@@ -98,6 +110,7 @@ export function defaultPick(
   courses: Course[],
   items: CalendarItem[],
   now: Date,
+  termStart?: string,
 ): { courseId: string; testId?: string } | null {
   const ids = new Set(courses.map((c) => c.id))
   const mine = items.filter((i) => i.courseId && ids.has(i.courseId))
@@ -105,7 +118,7 @@ export function defaultPick(
   for (const i of mine) byCourse.set(i.courseId!, [...(byCourse.get(i.courseId!) ?? []), i])
   let upcoming: CalendarItem | undefined
   for (const classItems of byCourse.values()) {
-    const t = defaultTestFor(classItems, now)
+    const t = defaultTestFor(classItems, now, termStart)
     const next = t && dueInstant(t) > now.getTime() ? t : undefined
     if (next && (!upcoming || dueInstant(next) < dueInstant(upcoming))) upcoming = next
   }
@@ -115,6 +128,6 @@ export function defaultPick(
     .find((c) => byCourse.has(c.id))
   if (!first) return null
   // No class has an upcoming test, so this is the class's latest.
-  const latest = defaultTestFor(byCourse.get(first.id)!, now)
+  const latest = defaultTestFor(byCourse.get(first.id)!, now, termStart)
   return latest ? { courseId: first.id, testId: latest.id } : { courseId: first.id }
 }

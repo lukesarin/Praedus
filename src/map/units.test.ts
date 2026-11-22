@@ -174,3 +174,12 @@ describe('defaultTestFor', () => {
     expect(defaultTestFor([hw], new Date(2026, 9, 1))).toBeUndefined()
   })
 })
+
+describe('defaultTestFor with a first day of classes', () => {
+  it('never picks a test from before the visible weeks', () => {
+    const early = e('Placement test', 0)
+    const t1 = e('Test 1', 5)
+    expect(defaultTestFor([early, t1], new Date(2026, 7, 1), TERM)?.id).toBe(t1.id)
+    expect(defaultTestFor([early], new Date(2026, 7, 1), TERM)).toBeUndefined()
+  })
+})
