@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { isFinal, isPlannable, isTest } from './testItems'
+import type { CalendarItem } from '../db/db'
+import { duplicateTestIds, isFinal, isPlannable, isTest, plannableItems } from './testItems'
 
 const a = (title: string) => ({ kind: 'assignment' as const, title })
 const e = (title: string) => ({ kind: 'event' as const, title })
@@ -28,5 +29,20 @@ describe('isPlannable', () => {
     expect(isPlannable(a('Lab 9'))).toBe(true)
     expect(isPlannable(e('Midterm Exam'))).toBe(true)
     expect(isPlannable(e('Office hours'))).toBe(false)
+  })
+})
+
+describe('duplicate tests', () => {
+  const mk = (id: string, kind: 'assignment' | 'event', title: string, start: string, courseId = 'c'): CalendarItem => ({
+    id, uid: id, feedId: 'f', kind, title, start, allDay: true, courseId, done: false, userEdited: false, removedFromSource: false,
+  })
+  it('flags the assignment, not the event, for the same course, title and day', () => {
+    const items = [mk('a', 'assignment', 'Midterm Exam', '2026-11-25'), mk('e', 'event', 'midterm exam ', '2026-11-25')]
+    expect([...duplicateTestIds(items)]).toEqual(['a'])
+    expect(plannableItems(items).map((i) => i.id)).toEqual(['e'])
+  })
+  it('keeps both when the course or day differs', () => {
+    const items = [mk('a', 'assignment', 'Midterm Exam', '2026-11-25'), mk('e', 'event', 'Midterm Exam', '2026-11-26'), mk('o', 'event', 'Midterm Exam', '2026-11-25', 'other')]
+    expect(duplicateTestIds(items).size).toBe(0)
   })
 })

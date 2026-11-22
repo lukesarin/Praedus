@@ -1,7 +1,7 @@
 import type { CalendarItem, Course } from '../db/db'
 import { addDays, itemDateKey } from '../calendar/dates'
 import { dueInstant } from '../study/plan'
-import { isFinal, isTest } from '../study/testItems'
+import { duplicateTestIds, isFinal, isTest } from '../study/testItems'
 
 export const MAX_WEEKS = 20
 
@@ -55,10 +55,9 @@ const sig = (i: CalendarItem) => `${i.title.trim().toLowerCase()}|${itemDateKey(
 
 /** The class's tests by due time. An assignment and an event with the same title on one day count once, as the event. */
 export function testsOf(classItems: CalendarItem[]): CalendarItem[] {
-  const tests = classItems.filter(isTest)
-  const eventSigs = new Set(tests.filter((i) => i.kind === 'event').map(sig))
-  return tests
-    .filter((i) => i.kind === 'event' || !eventSigs.has(sig(i)))
+  const dupes = duplicateTestIds(classItems)
+  return classItems
+    .filter((i) => isTest(i) && !dupes.has(i.id))
     .sort((a, b) => dueInstant(a) - dueInstant(b))
 }
 

@@ -3,7 +3,7 @@ import { localInstant } from '../commitments/expand'
 import type { Occurrence } from '../commitments/types'
 import type { CalendarItem } from '../db/db'
 import { defaultEstimate } from './estimate'
-import { isPlannable } from './testItems'
+import { plannableItems } from './testItems'
 import { PLAN_HORIZON_DAYS, type StudyBlock, type StudySettings } from './types'
 
 export type PlanInput = {
@@ -111,8 +111,8 @@ export function planStudy(input: PlanInput): PlanResult {
   }
 
   // 3. Place chunks, earliest deadline first.
-  const assignments = items
-    .filter((i) => isPlannable(i) && !i.done && dueInstant(i) > nowMs)
+  const assignments = plannableItems(items)
+    .filter((i) => !i.done && dueInstant(i) > nowMs)
     .sort((a, b) => dueInstant(a) - dueInstant(b) || a.title.localeCompare(b.title))
   const add: StudyBlock[] = []
   const wontFit: PlanResult['wontFit'] = []

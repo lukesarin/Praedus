@@ -153,4 +153,20 @@ describe('planStudy', () => {
     for (const b of mine) expect(Date.parse(b.end)).toBeLessThanOrEqual(Date.parse(start))
     expect(mine.reduce((s, b) => s + minutes(b), 0)).toBe(240)
   })
+
+  it('plans a test posted as both an assignment and an event only once', () => {
+    const due = '2026-11-25'
+    const items = [
+      assignment('a', due, undefined, { title: 'Midterm Exam', courseId: 'c' }),
+      assignment('e', due, undefined, { title: 'midterm exam', kind: 'event', courseId: 'c' }),
+    ]
+    const { add } = plan({ items })
+    expect(new Set(add.map((b) => b.itemId))).toEqual(new Set(['e']))
+    expect(add.reduce((sum, b) => sum + minutes(b), 0)).toBe(240)
+  })
+
+  it('places no blocks for a past item kept as history', () => {
+    const { add } = plan({ items: [assignment('old', iso('2026-11-18', '09:00'), 120, { keptAsHistory: true })] })
+    expect(add).toEqual([])
+  })
 })
