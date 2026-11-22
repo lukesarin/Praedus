@@ -31,6 +31,21 @@ README.md covers running, setup and how features behave. `docs/superpowers/specs
     `main` after that, with the user's OK.
   - A copy of the app started from `main` has no accounts, so there's no Log out. To try accounts,
     run the app from `auth/accounts`.
+  - **AI study sets (merged into `auth/accounts` 2026-11-22, not on `main`):** a notes drop area per
+    class (PDF, photos, pasted text, sorted into weeks; Dexie table `notes`), and study sets made by
+    Claude through the feed helper (`POST /api/study-set/week`, Supabase sign-in check, 30 weeks a day
+    per user in memory, key `ANTHROPIC_API_KEY` in `.env.local`, read only by the server). Sets go
+    **week by week**: each topic has a lesson (overview + worked example), then A–D problems; "I'm
+    stuck" shows the solution under the problem and counts as skipped; 3 right in a row learns a
+    topic, 2 misses bring the lesson back, 8 without the streak marks it for review. Math is LaTeX
+    drawn with KaTeX (`MathText`, loaded lazily with the session). Code: `src/notes/`,
+    `src/studySet/` (`weekSession.ts` rules, `store.ts`, `shape.ts` shared with `server/`),
+    `server/claude.ts` (model `claude-opus-5-5`, code execution checks math answers). Specs:
+    `2026-11-22-ai-study-sets-design.md`, `…-study-session-weeks-design.md`. Real runs: about 70–85 s
+    and $0.20 per week. While a week is made, a waiting screen shows timed steps and a bar (option B of
+    `design-exploration/study-wait.html`; timed estimates, not real progress). `vite.config.ts`
+    pre-bundles KaTeX, or the dev server reloads the page the first time a set opens.
+  - **Next (the author's plan):** more changes to study sets, to be described by the author. Then Google sign-in setup and the remaining account tests.
   - **Intro fix (on `auth/accounts`):** the app's main area had no background, so the intro showed
     through it. The logo lingered over the revealed app and the circle reveal was invisible until
     a hard cut. Now `.app-root` has `background: var(--bg)`, guarded by a test in
