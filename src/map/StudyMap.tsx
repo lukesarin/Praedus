@@ -14,7 +14,7 @@ import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zo
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Course } from '../db/db'
 import { formatMinutes } from '../study/applyPlan'
-import type { MapFilters, MapLink, MapNode } from './graph'
+import { courseCode, RING_NEXT_WEEK, RING_THIS_WEEK, ringDistance, type MapFilters, type MapLink, type MapNode } from './graph'
 
 type SimNode = MapNode & SimulationNodeDatum
 type SimLink = SimulationLinkDatum<SimNode> & { source: SimNode | string; target: SimNode | string }
@@ -29,16 +29,20 @@ type Props = {
 }
 
 const LINK_DISTANCE: Record<MapNode['kind'], number> = { block: 14, assignment: 58, class: 44, course: 0 }
-const CHARGE: Record<MapNode['kind'], number> = { course: -800, assignment: -110, class: -70, block: -8 }
-/** Extra room around course hubs so their names don't run into each other. */
-const HUB_PADDING = 34
+const CHARGE: Record<MapNode['kind'], number> = { course: -1400, assignment: -110, class: -70, block: -8 }
 /** Below this zoom, only course names (and overdue work) are labeled. */
 const LABEL_ZOOM = 0.75
 /** Invisible click target, so tiny dots stay easy to hit. */
 const HIT_RADIUS = 9
 
+/** Course hubs are pills sized to their code ("CS 210"). */
+const pillWidth = (n: MapNode) => courseCode(n.label).length * 7.6 + 28
+const PILL_HEIGHT = 28
+
 /** Calmer than the calendar: course colors blended a little toward gray. */
 const muted = (color: string) => `color-mix(in srgb, ${color} 78%, #8a8a8a)`
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
 /** Small stable pseudo-random offset from an id, so layouts start the same way every time. */
 function jitter(id: string, salt: number): number {
@@ -54,7 +58,8 @@ function jitter(id: string, salt: number): number {
 function seedPositions(nodes: MapNode[], links: MapLink[]): Map<string, { x: number; y: number }> {
   const parent = new Map(links.map((l) => [l.source, l.target]))
   const hubs = nodes.filter((n) => n.kind === 'course')
-  const ring = 60 + hubs.length * 32
+  // Wide enough that each course's due-date rings start mostly clear of its neighbors'.
+  const ring = 140 + hubs.length * 60
   const out = new Map<string, { x: number; y: number }>()
   hubs.forEach((h, i) => {
     const a = (2 * Math.PI * i) / Math.max(1, hubs.length) - Math.PI / 2
@@ -135,14 +140,22 @@ export function StudyMap({ nodes, links, availableCourses, filters, onFilters, o
         'link',
         forceLink<SimNode, SimLink>(sl)
           .id((d) => d.id)
-          .distance((l) => LINK_DISTANCE[byId.get(endId(l.source))?.kind ?? 'assignment'])
-          .strength((l) => (byId.get(endId(l.source))?.kind === 'block' ? 0.8 : 0.35)),
+          // Assignments sit as far from their course as they are from being due: sooner is closer.
+          .distance((l) => {
+            const s = byId.get(endId(l.source))
+            return s?.kind === 'assignment' ? ringDistance(s.dueInDays ?? 2) : LINK_DISTANCE[s?.kind ?? 'assignment']
+          })
+          .strength((l) => {
+            const kind = byId.get(endId(l.source))?.kind
+            return kind === 'block' ? 0.8 : kind === 'assignment' ? 0.7 : 0.35
+          }),
       )
       .force('charge', forceManyBody<SimNode>().strength((d) => CHARGE[d.kind]))
       .force(
         'collide',
         // Assignments get extra room so their side labels don't stack on each other.
-        forceCollide<SimNode>().radius((d) => d.radius + (d.kind === 'course' ? HUB_PADDING : d.kind === 'block' ? 2 : 15)),
+        forceCollide<SimNode>().radius((d) =>
+          d.kind === 'course' ? pillWidth(d) / 2 + 10 : d.radius + (d.kind === 'block' ? 2 : 15)),
       )
       .force('x', forceX(0).strength(0.035))
       .force('y', forceY(0).strength(0.035))
@@ -247,7 +260,6 @@ export function StudyMap({ nodes, links, availableCourses, filters, onFilters, o
 
   const hoveredNode = hovered ? simNodes.find((n) => n.id === hovered) : undefined
   const showLabel = (n: SimNode) =>
-    n.kind === 'course' ||
     n.status === 'overdue' ||
     ((n.kind === 'assignment' || n.kind === 'class') &&
       (transform.k >= LABEL_ZOOM || highlight?.has(n.id) || cluster?.has(n.id)))
@@ -299,6 +311,22 @@ export function StudyMap({ nodes, links, availableCourses, filters, onFilters, o
         <svg ref={svgRef} width={size.w} height={size.h} role="img" aria-label="Study map"
           onPointerMove={onNodeMove} onPointerUp={onNodeUp} onPointerCancel={onNodeUp}>
           <g transform={transform.toString()}>
+            {/* Faint "This week" / "Next week" guides around each course, under everything else. */}
+            <g className="map-rings" aria-hidden="true">
+              {simNodes.filter((n) => n.kind === 'course').map((n) => (
+                <g key={n.id} className={isDim(n.id) ? 'dim' : ''}>
+                  {[RING_THIS_WEEK, RING_NEXT_WEEK].map((r) => (
+                    <circle key={r} cx={n.x ?? 0} cy={n.y ?? 0} r={r} className="map-ring" vectorEffect="non-scaling-stroke" />
+                  ))}
+                  {transform.k >= LABEL_ZOOM && (
+                    <>
+                      <text x={n.x ?? 0} y={(n.y ?? 0) - RING_THIS_WEEK - 6} textAnchor="middle" className="map-ring-label">This week</text>
+                      <text x={n.x ?? 0} y={(n.y ?? 0) - RING_NEXT_WEEK - 6} textAnchor="middle" className="map-ring-label">Next week</text>
+                    </>
+                  )}
+                </g>
+              ))}
+            </g>
             <g className="map-links">
               {simLinks.map((l) => {
                 const s = l.source as SimNode
@@ -325,11 +353,17 @@ export function StudyMap({ nodes, links, availableCourses, filters, onFilters, o
                       else onOpen(n)
                     }}>
                     <circle r={Math.max(HIT_RADIUS, n.radius + 3)} className="hit" />
-                    {n.kind === 'class' ? (
+                    {n.kind === 'course' ? (
+                      <>
+                        <rect x={-pillWidth(n) / 2} y={-PILL_HEIGHT / 2} width={pillWidth(n)} height={PILL_HEIGHT}
+                          rx={PILL_HEIGHT / 2} className="shape pill" />
+                        <text className="pill-text" textAnchor="middle" dominantBaseline="central">{courseCode(n.label)}</text>
+                      </>
+                    ) : n.kind === 'class' ? (
                       <rect x={-n.radius} y={-n.radius} width={n.radius * 2} height={n.radius * 2} rx={1.5}
                         fill={muted(n.color)} className="shape" />
                     ) : (
-                      <circle r={n.radius} fill={muted(n.color)} className="shape" />
+                      <circle r={n.radius} fill={n.kind === 'block' ? 'var(--accent)' : muted(n.color)} className="shape" />
                     )}
                   </g>
                 )
@@ -339,10 +373,7 @@ export function StudyMap({ nodes, links, availableCourses, filters, onFilters, o
             <g className="map-labels" aria-hidden="true">
               {simNodes.filter(showLabel).map((n) => (
                 <text key={n.id} dominantBaseline="central"
-                  {...(n.kind === 'course'
-                    ? // Course names sit centered above the hub, clear of its items on either side.
-                      { x: n.x ?? 0, y: (n.y ?? 0) - n.radius - 9, textAnchor: 'middle' }
-                    : labelOnLeft(n)
+                  {...(labelOnLeft(n)
                       ? { x: (n.x ?? 0) - n.radius - 6, y: n.y ?? 0, textAnchor: 'end' }
                       : { x: (n.x ?? 0) + n.radius + 6, y: n.y ?? 0, textAnchor: 'start' })}
                   className={`label label-${n.kind}${isDim(n.id) ? ' dim' : ''}`}>
@@ -357,6 +388,12 @@ export function StudyMap({ nodes, links, availableCourses, filters, onFilters, o
           </g>
         </svg>
 
+        {hoveredNode && hoveredNode.kind === 'course' && (
+          <div className="map-card">
+            <strong>{hoveredNode.label}</strong>
+            <span>{plural([...(neighbors.get(hoveredNode.id) ?? [])].filter((id) => id.startsWith('item:')).length, 'upcoming assignment')}</span>
+          </div>
+        )}
         {hoveredNode && hoveredNode.kind !== 'course' && (
           <div className="map-card">
             <strong>{hoveredNode.label}</strong>
@@ -368,11 +405,13 @@ export function StudyMap({ nodes, links, availableCourses, filters, onFilters, o
         )}
 
         <div className="map-legend">
+          <span><i className="lg-pill" />course</span>
           <span><i className="lg-dot" />assignment</span>
           <span><i className="lg-dot sm" />study block</span>
           {filters.showClasses && <span><i className="lg-sq" />class</span>}
           <span className="lg-tag red">Overdue</span>
           <span className="lg-tag amber">Needs time</span>
+          <span><i className="lg-ring" />rings: this week · next week</span>
           <span className="lg-hint">scroll to zoom · drag to move</span>
         </div>
       </div>

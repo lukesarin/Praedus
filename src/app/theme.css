@@ -1649,6 +1649,47 @@ a {
   stroke-width: 1.5;
 }
 
+/* Course hubs: a solid mint-tinted pill (solid, so links don't show through) with the course code. */
+.map-node.kind-course .pill,
+.map-node.kind-course:hover .pill,
+.map-node.kind-course.focused .pill {
+  fill: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.map-node.kind-course:hover .pill,
+.map-node.kind-course:focus-visible .pill,
+.map-node.kind-course.focused .pill {
+  stroke-width: 2.5;
+}
+
+.map-node .pill-text {
+  fill: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  pointer-events: none;
+}
+
+/* Due-date guides: faint, dashed, never in the way. */
+.map-ring {
+  fill: none;
+  stroke: var(--map-link);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+
+.map-ring-label {
+  fill: var(--text-faint);
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.map-rings .dim {
+  opacity: 0.25;
+}
+
 .map-labels .label {
   fill: var(--map-label);
   font-size: 9.5px;
@@ -1764,10 +1805,27 @@ a {
 .lg-dot.sm {
   width: 4px;
   height: 4px;
+  background: var(--accent);
 }
 
 .lg-sq {
   border-radius: 1.5px;
+}
+
+.lg-pill {
+  display: inline-block;
+  width: 16px;
+  height: 9px;
+  border: 1.5px solid var(--accent);
+  border-radius: 6px;
+}
+
+.lg-ring {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 1px dashed var(--text-faint);
+  border-radius: 50%;
 }
 
 .lg-tag {
