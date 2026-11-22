@@ -11,13 +11,15 @@ import { expandCommitments } from '../commitments/expand'
 import { ScopePrompt } from '../commitments/ScopePrompt'
 import { buildTestShift } from '../commitments/testShift'
 import type { Commitment } from '../commitments/types'
-import { db } from '../db/db'
+import { db, type CalendarItem } from '../db/db'
 import { getMinGap, getStudySettings, getTermStart } from '../db/settings'
 import { planMyStudyTime, summarize } from '../study/applyPlan'
 import { coverage } from '../study/coverage'
-import { buildGraph, type MapNode } from '../map/graph'
+import { buildClassGraph } from '../map/graph'
 import { StudyMap } from '../map/StudyMap'
-import { useMapFilters } from '../map/useMapFilters'
+import { TestPrepPanel } from '../map/TestPrepPanel'
+import { defaultPick, testsOf } from '../map/units'
+import { dueInstant } from '../study/plan'
 import { StudyBlockDialog } from '../study/StudyBlockDialog'
 import { ImportDialog } from '../import/ImportDialog'
 import { useAutoSync } from '../canvas/autoSync'
@@ -41,6 +43,12 @@ async function saveCommitment(c: Commitment | null, id: string) {
   else await db.commitments.delete(id)
 }
 
+/** A class's own test to start on: its next upcoming test, else its latest. */
+function classDefaultTest(items: CalendarItem[], courseId: string, now: Date): string | undefined {
+  const tests = testsOf(items.filter((i) => i.courseId === courseId))
+  return (tests.find((t) => dueInstant(t) > now.getTime()) ?? tests[tests.length - 1])?.id
+}
+
 export default function App() {
   const [theme, toggleTheme] = useTheme()
   const now = useNow()
@@ -55,7 +63,8 @@ export default function App() {
   const [focus, setFocus] = useState<{ date: string; nonce: number }>()
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null)
   const [planning, setPlanning] = useState(false)
-  const [mapFilters, setMapFilters] = useMapFilters()
+  // The study map's class and test. Kept while switching tabs; picked fresh each time the app opens.
+  const [mapPick, setMapPick] = useState<{ courseId: string; testId?: string } | null>(null)
 
   const feeds = useLiveQuery(() => db.feeds.toArray(), [])
   const courses = useLiveQuery(() => db.courses.orderBy('name').toArray(), [])
@@ -96,15 +105,29 @@ export default function App() {
     [items, studyBlocks, now],
   )
 
-  const graph = useMemo(
-    () =>
-      items && courses && studyBlocks && commitments
-        ? buildGraph({ items, courses, blocks: studyBlocks, commitments, now, filters: mapFilters })
-        : null,
-    [items, courses, studyBlocks, commitments, now, mapFilters],
+  // Classes that have something to show on the map, by name.
+  const mapCourses = useMemo(
+    () => (courses && items ? courses.filter((c) => items.some((i) => i.courseId === c.id)) : []),
+    [courses, items],
   )
+  // Until the student picks, start from the soonest test (and again if the picked class has nothing left).
+  const pickValid = mapPick !== null && mapCourses.some((c) => c.id === mapPick.courseId)
+  const fallbackPick = useMemo(
+    () => (pickValid || !items ? null : defaultPick(mapCourses, items, now)),
+    [pickValid, mapCourses, items, now],
+  )
+  const pick = pickValid ? mapPick : fallbackPick
+  const mapCourse = pick ? mapCourses.find((c) => c.id === pick.courseId) : undefined
+  const graph = useMemo(() => {
+    if (!mapCourse || !items) return null
+    const input = { course: mapCourse, items, termStart: termStart ?? undefined, now }
+    const g = buildClassGraph({ ...input, testId: pick?.testId })
+    // The picked test is gone (removed from Canvas): fall back to the class's own default.
+    if (g.unit || g.tests.length === 0) return g
+    return buildClassGraph({ ...input, testId: classDefaultTest(items, mapCourse.id, now) })
+  }, [mapCourse, items, termStart, pick?.testId, now])
 
-  if (!feeds || !courses || !items || !commitments || minGap === undefined || !studyBlocks || !studySettings || !graph) {
+  if (!feeds || !courses || !items || !commitments || minGap === undefined || !studyBlocks || !studySettings) {
     return <div className="loading" />
   }
   const block = selectedBlock ? studyBlocks.find((b) => b.id === selectedBlock) : undefined
@@ -173,15 +196,9 @@ export default function App() {
     })
   }
 
-  function openFromMap(node: MapNode) {
-    if (node.kind === 'assignment') setSelected(node.refId)
-    else if (node.kind === 'class') setForm({ commitmentId: node.refId })
-    else if (node.kind === 'block') {
-      const b = studyBlocks!.find((x) => x.id === node.refId)
-      if (!b) return
-      setFocus({ date: b.start, nonce: Date.now() })
-      go('calendar')
-    }
+  function pickCourse(courseId: string) {
+    const testId = classDefaultTest(items!, courseId, now)
+    setMapPick({ courseId, ...(testId ? { testId } : {}) })
   }
 
   async function loadTestShift() {
@@ -259,14 +276,33 @@ export default function App() {
         ) : view === 'assignments' ? (
           <AssignmentList items={items} courses={courses} onSelect={setSelected} />
         ) : view === 'map' ? (
-          <StudyMap
-            nodes={graph.nodes}
-            links={graph.links}
-            availableCourses={graph.availableCourses}
-            filters={mapFilters}
-            onFilters={setMapFilters}
-            onOpen={openFromMap}
-          />
+          <div className="map-layout">
+            <StudyMap
+              courses={mapCourses}
+              courseId={mapCourse?.id}
+              graph={graph}
+              now={now}
+              onPickCourse={pickCourse}
+              onPickTest={(testId) => mapCourse && setMapPick({ courseId: mapCourse.id, testId })}
+              onOpenItem={setSelected}
+              hasTermStart={Boolean(termStart)}
+              onSetTermStart={() => go('conflicts')}
+            />
+            {graph && (
+              <TestPrepPanel
+                course={mapCourse}
+                unit={graph.unit}
+                weeks={graph.weeks}
+                blocks={studyBlocks}
+                items={items}
+                now={now}
+                planning={planning}
+                onPlan={() => void plan()}
+                onToggleReviewed={(id, reviewed) => void db.items.update(id, { reviewed })}
+                onOpenItem={setSelected}
+              />
+            )}
+          </div>
         ) : (
           <ConflictsView
             conflicts={conflicts}
