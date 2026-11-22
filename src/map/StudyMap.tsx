@@ -90,7 +90,7 @@ export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, o
             {donut.weeks.map((w) => {
               const am = (w.a0 + w.a1) / 2
               const [nx, ny] = pt(am, R1 - 16)
-              const step = w.more > 0 ? 17 : 21
+              const step = w.more > 0 ? 16 : 21
               const [mx, my] = pt(am, R0 + 26 + w.dots.length * step)
               const odd = (w.week.number ?? donut.weeks.indexOf(w) + 1) % 2 === 0
               return (
@@ -118,7 +118,7 @@ export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, o
                     )
                   })}
                   {w.more > 0 && (
-                    <text className="map-more" x={mx} y={my} textAnchor="middle" dominantBaseline="central">
+                    <text className={`map-more${w.inUnit ? ' in' : ''}`} x={mx} y={my} textAnchor="middle" dominantBaseline="central">
                       +{w.more}
                       <title>{w.more} more in {weekHeading(w.week)}</title>
                     </text>
