@@ -18,7 +18,7 @@ import { coverage } from '../study/coverage'
 import { buildClassGraph } from '../map/graph'
 import { StudyMap } from '../map/StudyMap'
 import { TestPrepPanel } from '../map/TestPrepPanel'
-import { defaultPick, defaultTestFor } from '../map/units'
+import { defaultPick, defaultTestFor, mapCourses as courseList } from '../map/units'
 import { StudyBlockDialog } from '../study/StudyBlockDialog'
 import { ImportDialog } from '../import/ImportDialog'
 import { useAutoSync } from '../canvas/autoSync'
@@ -100,7 +100,7 @@ export default function App() {
 
   // Classes that have something to show on the map, by name.
   const mapCourses = useMemo(
-    () => (courses && items ? courses.filter((c) => items.some((i) => i.courseId === c.id)) : []),
+    () => (courses && items ? courseList(courses, items) : []),
     [courses, items],
   )
   // Until the student picks, start from the soonest test (and again if the picked class has nothing left).

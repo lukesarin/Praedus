@@ -68,6 +68,12 @@ export function mapItems(classItems: CalendarItem[]): CalendarItem[] {
   return classItems.filter((i) => i.kind === 'assignment' || (i.kind === 'event' && isTest(i)))
 }
 
+/** Classes with something to draw: at least one assignment or test. */
+export function mapCourses(courses: Course[], items: CalendarItem[]): Course[] {
+  const ids = new Set(mapItems(items).map((i) => i.courseId))
+  return courses.filter((c) => ids.has(c.id))
+}
+
 /** The class's tests that fall in the weeks the map shows (from the first day of classes, at most MAX_WEEKS). */
 export function visibleTests(classItems: CalendarItem[], termStart?: string): CalendarItem[] {
   const shown = mapItems(classItems)

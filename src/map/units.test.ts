@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CalendarItem, Course } from '../db/db'
 import { addDays } from '../calendar/dates'
-import { classWeeks, defaultPick, defaultTestFor, mondayOf, testsOf, unitFor } from './units'
+import { classWeeks, defaultPick, mapCourses, defaultTestFor, mondayOf, testsOf, unitFor } from './units'
 
 const TERM = '2026-08-24'
 let n = 0
@@ -193,5 +193,22 @@ describe('classWeeks with a far-off term start', () => {
     expect(w.length).toBeLessThanOrEqual(20)
     expect(w[w.length - 1].start).toBe('2026-11-16')
     expect(w[0].number).toBe(1 + Math.round((Date.UTC(2026, 6, 6) - Date.UTC(2000, 0, 3)) / 604_800_000))
+  })
+})
+
+describe('mapCourses', () => {
+  const courses: Course[] = [
+    { id: 'math', name: 'MATH', color: '#111111' },
+    { id: 'hours', name: 'HOURS', color: '#222222' },
+    { id: 'none', name: 'NONE', color: '#333333' },
+  ]
+  it('lists only classes with an assignment or a test', () => {
+    const items = [
+      a('HW', 1, 0, 'math'),
+      e('Office hours', 2, 0, 'hours'),
+      e('Review session', 2, 0, 'hours'),
+      e('Midterm', 5, 0, 'none'),
+    ]
+    expect(mapCourses(courses, items).map((c) => c.id)).toEqual(['math', 'none'])
   })
 })
