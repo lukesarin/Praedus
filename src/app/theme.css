@@ -1681,7 +1681,10 @@ a {
 }
 
 .map-ring-label {
-  fill: var(--text-faint);
+  fill: var(--text-muted);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 4px;
   font-size: 10.5px;
   font-weight: 500;
 }

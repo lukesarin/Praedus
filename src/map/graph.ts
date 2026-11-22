@@ -43,16 +43,17 @@ export const OVERDUE_DAYS = 14
 const RADIUS = { course: 8, class: 4, block: 2.5 }
 
 /** Distance of the "This week" and "Next week" guide rings from a course's center. */
-export const RING_THIS_WEEK = 109
-export const RING_NEXT_WEEK = 172
+export const RING_THIS_WEEK = 128
+export const RING_NEXT_WEEK = 184
 
 /**
- * How far an assignment sits from its course: sooner is closer. The first two weeks are
- * spread evenly (one ring each); later work, up to 8 weeks out, is squeezed into a narrow band.
+ * How far an assignment sits from its course's center: sooner is closer. Starts just outside
+ * the course pill; the first two weeks are spread evenly (one ring each); later work, up to
+ * 8 weeks out, is squeezed into a narrow band.
  */
 export function ringDistance(days: number): number {
-  if (days < 0) return 34
-  if (days <= 14) return 46 + 9 * days
+  if (days < 0) return 60
+  if (days <= 14) return 72 + 8 * days
   return RING_NEXT_WEEK + 1.6 * (Math.min(days, MAP_WINDOW_DAYS) - 14)
 }
 

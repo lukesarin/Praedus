@@ -29,7 +29,7 @@ type Props = {
 }
 
 const LINK_DISTANCE: Record<MapNode['kind'], number> = { block: 14, assignment: 58, class: 44, course: 0 }
-const CHARGE: Record<MapNode['kind'], number> = { course: -1400, assignment: -110, class: -70, block: -8 }
+const CHARGE: Record<MapNode['kind'], number> = { course: -300, assignment: -110, class: -70, block: -8 }
 /** Below this zoom, only course names (and overdue work) are labeled. */
 const LABEL_ZOOM = 0.75
 /** Invisible click target, so tiny dots stay easy to hit. */
@@ -76,6 +76,34 @@ function seedPositions(nodes: MapNode[], links: MapLink[]): Map<string, { x: num
   }
   for (const n of nodes) place(n.id)
   return out
+}
+
+/**
+ * Pushes course hubs apart (and only hubs), so each course's due-date rings get room without
+ * shoving the course's own assignments off their rings the way a strong charge would.
+ */
+function hubSeparation(minDistance: number) {
+  let hubs: SimNode[] = []
+  const force = (alpha: number) => {
+    for (let i = 0; i < hubs.length; i++) {
+      for (let j = i + 1; j < hubs.length; j++) {
+        const a = hubs[i], b = hubs[j]
+        const dx = (b.x ?? 0) - (a.x ?? 0) || 0.01
+        const dy = (b.y ?? 0) - (a.y ?? 0)
+        const d = Math.hypot(dx, dy)
+        if (d >= minDistance) continue
+        const push = ((minDistance - d) / d) * alpha * 0.5
+        a.vx = (a.vx ?? 0) - dx * push
+        a.vy = (a.vy ?? 0) - dy * push
+        b.vx = (b.vx ?? 0) + dx * push
+        b.vy = (b.vy ?? 0) + dy * push
+      }
+    }
+  }
+  force.initialize = (nodes: SimNode[]) => {
+    hubs = nodes.filter((n) => n.kind === 'course')
+  }
+  return force
 }
 
 const endId = (end: SimNode | string) => (typeof end === 'string' ? end : end.id)
@@ -147,7 +175,7 @@ export function StudyMap({ nodes, links, availableCourses, filters, onFilters, o
           })
           .strength((l) => {
             const kind = byId.get(endId(l.source))?.kind
-            return kind === 'block' ? 0.8 : kind === 'assignment' ? 0.7 : 0.35
+            return kind === 'block' ? 0.8 : kind === 'assignment' ? 0.9 : 0.35
           }),
       )
       .force('charge', forceManyBody<SimNode>().strength((d) => CHARGE[d.kind]))
@@ -157,6 +185,7 @@ export function StudyMap({ nodes, links, availableCourses, filters, onFilters, o
         forceCollide<SimNode>().radius((d) =>
           d.kind === 'course' ? pillWidth(d) / 2 + 10 : d.radius + (d.kind === 'block' ? 2 : 15)),
       )
+      .force('hubs', hubSeparation(RING_NEXT_WEEK * 1.9))
       .force('x', forceX(0).strength(0.035))
       .force('y', forceY(0).strength(0.035))
     let raf = 0
@@ -311,19 +340,23 @@ export function StudyMap({ nodes, links, availableCourses, filters, onFilters, o
         <svg ref={svgRef} width={size.w} height={size.h} role="img" aria-label="Study map"
           onPointerMove={onNodeMove} onPointerUp={onNodeUp} onPointerCancel={onNodeUp}>
           <g transform={transform.toString()}>
-            {/* Faint "This week" / "Next week" guides around each course, under everything else. */}
+            {/* Faint "This week" / "Next week" guides around each course, under everything else.
+                Their names only show for the course in play, so they never sit on assignment labels. */}
             <g className="map-rings" aria-hidden="true">
               {simNodes.filter((n) => n.kind === 'course').map((n) => (
                 <g key={n.id} className={isDim(n.id) ? 'dim' : ''}>
                   {[RING_THIS_WEEK, RING_NEXT_WEEK].map((r) => (
                     <circle key={r} cx={n.x ?? 0} cy={n.y ?? 0} r={r} className="map-ring" vectorEffect="non-scaling-stroke" />
                   ))}
-                  {transform.k >= LABEL_ZOOM && (
-                    <>
-                      <text x={n.x ?? 0} y={(n.y ?? 0) - RING_THIS_WEEK - 6} textAnchor="middle" className="map-ring-label">This week</text>
-                      <text x={n.x ?? 0} y={(n.y ?? 0) - RING_NEXT_WEEK - 6} textAnchor="middle" className="map-ring-label">Next week</text>
-                    </>
-                  )}
+                  {(focused === n.id || (hovered !== null && highlight?.has(n.id))) &&
+                    ([[RING_THIS_WEEK, 'This week'], [RING_NEXT_WEEK, 'Next week']] as const).map(([r, name]) => {
+                      // On the side of the ring facing the middle of the map, which is almost always on screen.
+                      const a = Math.atan2(-(n.y ?? 0), -(n.x ?? 0) || 0.01)
+                      return (
+                        <text key={name} x={(n.x ?? 0) + Math.cos(a) * r} y={(n.y ?? 0) + Math.sin(a) * r}
+                          textAnchor="middle" dominantBaseline="central" className="map-ring-label">{name}</text>
+                      )
+                    })}
                 </g>
               ))}
             </g>

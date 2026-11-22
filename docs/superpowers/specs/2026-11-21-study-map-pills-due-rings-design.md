@@ -1,6 +1,6 @@
 # Study map: mint pills + due-date rings — design
 
-Status: awaiting approval · Date: 2026-11-21
+Status: approved and built (see "Changes during build") · Date: 2026-11-21
 
 ## Intent
 
@@ -94,3 +94,21 @@ unchanged.
 - Full suite, typecheck, lint and build.
 - Browser screenshots of the map with sample data, the test shift and a plan, in both themes, plus
   a drag of an assignment showing it springs back toward its ring.
+
+## Changes during build
+
+Found in the browser check and fixed:
+
+- **Scale recalibrated** so it starts outside the course pill. The first numbers put overdue work
+  inside the pill, and collisions pushed due-tomorrow work past the "This week" ring. Now overdue is
+  60, then 72 + 8 per day for 0–14 days, then 1.6 per day up to day 56 (251). Rings sit at 128 and
+  184. Days count from *now*, matching the map's overdue rule.
+- **Courses are spaced by a hub-only force** (minimum distance 1.9 × the next-week ring) in place
+  of a strong charge, which also pushed each course's own assignments off their rings. Course charge
+  is −300 and assignment springs are 0.9.
+- **Ring labels show only for the course you hover or focus,** placed on the side facing the middle
+  of the map with a background-colored halo. Always-on labels sat on top of assignment labels.
+
+Measured with sample data: overdue work at 67; work due in 1–5 days at 95–120 (inside 128); work
+due in 9–13 days at 147–173 (between 128 and 184). An assignment dragged out to 139 returned to 94
+within 3 seconds.

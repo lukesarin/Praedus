@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Distances: overdue 34; 0–7 days 46 + 9·d; 7–14 days 109 + 9·(d−7); 14+ days 172 + 1.6·(d−14), capped at day 56 (239). `RING_THIS_WEEK = 109`, `RING_NEXT_WEEK = 172`.
+- Distances (recalibrated during the build; see the spec's "Changes during build"): overdue 60; 0–14 days 72 + 8·d; 14+ days 184 + 1.6·(d−14), capped at day 56 (251.2). `RING_THIS_WEEK = 128`, `RING_NEXT_WEEK = 184`.
 - `dueInDays = (dueInstant(item) − now) / 86_400_000`. **Ruling vs. spec:** the spec says "from the start of today". Counting from *now* keeps distance consistent with the map's existing overdue rule (`dueInstant <= now`).
 - Assignment link strength 0.7, course charge −1400, class distance 44, block distance 14.
 - Pill: height 28, rx 14, `--accent-soft` fill, 1.5px `--accent` stroke, code in `--accent` at 13px / 700.

@@ -4,7 +4,7 @@ import { localInstant } from '../commitments/expand'
 import type { Commitment } from '../commitments/types'
 import type { CalendarItem, Course } from '../db/db'
 import type { StudyBlock } from '../study/types'
-import { buildGraph, courseCode, DEFAULT_MAP_FILTERS, ringDistance, type MapFilters } from './graph'
+import { buildGraph, courseCode, DEFAULT_MAP_FILTERS, RING_NEXT_WEEK, RING_THIS_WEEK, ringDistance, type MapFilters } from './graph'
 
 const now = localInstant('2026-11-21', '12:00')
 const iso = (d: string, t: string) => localInstant(d, t).toISOString()
@@ -110,18 +110,19 @@ describe('buildGraph', () => {
 })
 
 describe('ringDistance', () => {
-  it('places overdue work right next to its course', () => {
-    expect(ringDistance(-2)).toBe(34)
+  it('places overdue work right next to its course pill', () => {
+    expect(ringDistance(-2)).toBe(60)
   })
 
   it('marks the week rings at 7 and 14 days', () => {
-    expect(ringDistance(0)).toBe(46)
-    expect(ringDistance(7)).toBe(109)
-    expect(ringDistance(14)).toBe(172)
+    expect(ringDistance(0)).toBe(72)
+    expect(ringDistance(7)).toBe(RING_THIS_WEEK)
+    expect(ringDistance(14)).toBe(RING_NEXT_WEEK)
+    expect([RING_THIS_WEEK, RING_NEXT_WEEK]).toEqual([128, 184])
   })
 
   it('squeezes later work into a narrow outer band, capped at 8 weeks', () => {
-    expect(ringDistance(56)).toBeCloseTo(239.2, 5)
+    expect(ringDistance(56)).toBeCloseTo(251.2, 5)
     expect(ringDistance(120)).toBe(ringDistance(56))
   })
 
