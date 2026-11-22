@@ -19,6 +19,23 @@ export type Course = {
   color: string
 }
 
+/** A note the student added to a class: a PDF, a photo, or pasted text. Student-owned; syncs never touch it. */
+export type Note = {
+  id: string
+  courseId: string
+  /** Monday (YYYY-MM-DD) of the week it belongs to. */
+  week: string
+  name: string
+  kind: 'pdf' | 'image' | 'text'
+  mime: string
+  blob?: Blob
+  text?: string
+  addedAt: string
+}
+
+/** A test's study set as stored. Its shape is owned by `src/studySet`; the database only keys it. */
+export type StoredStudySetRow = { testId: string; courseId: string } & Record<string, unknown>
+
 export type CalendarItem = Omit<ParsedItem, 'courseName'> & {
   /** `${feedId}|${uid}` */
   id: string
@@ -54,6 +71,8 @@ export class StudyBlocksDB extends Dexie {
   declare commitments: EntityTable<Commitment, 'id'>
   declare settings: EntityTable<Setting, 'key'>
   declare studyBlocks: EntityTable<StudyBlock, 'id'>
+  declare notes: EntityTable<Note, 'id'>
+  declare studySets: EntityTable<StoredStudySetRow, 'testId'>
 
   constructor(name = 'studyblocks') {
     super(name)
@@ -70,6 +89,11 @@ export class StudyBlocksDB extends Dexie {
     // Milestone 3: planned study blocks.
     this.version(3).stores({
       studyBlocks: 'id, itemId, start',
+    })
+    // AI study sets: the student's notes per class and week, and each test's study set.
+    this.version(4).stores({
+      notes: 'id, courseId, week',
+      studySets: 'testId, courseId',
     })
   }
 }
