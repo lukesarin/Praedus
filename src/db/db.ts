@@ -64,7 +64,55 @@ export class StudyBlocksDB extends Dexie {
   }
 }
 
-export const db = new StudyBlocksDB()
+/**
+ * The signed-in account's database. A live binding: `openUserDatabase` swaps it when someone
+ * signs in, and every module that imports `db` sees the new one.
+ */
+export let db = new StudyBlocksDB()
+
+/** Each account gets its own local database, so people sharing a computer never see each other's data. */
+export function openUserDatabase(userId: string): StudyBlocksDB {
+  const name = `praedus-${userId}`
+  if (db.name !== name) {
+    db.close()
+    db = new StudyBlocksDB(name)
+  }
+  return db
+}
+
+const CLAIM_KEY = 'praedus.legacyClaimedBy'
+
+/**
+ * Data saved before accounts existed lives in the `studyblocks` database. The first account to
+ * sign in on this browser gets a copy (only into an empty database); after that it's never
+ * offered to anyone else.
+ */
+export async function claimLegacyData(
+  target: StudyBlocksDB,
+  userId: string,
+  legacyName = 'studyblocks',
+  storage: Pick<Storage, 'getItem' | 'setItem'> = localStorage,
+): Promise<'claimed' | 'none' | 'taken'> {
+  const owner = storage.getItem(CLAIM_KEY)
+  if (owner && owner !== userId) return 'taken'
+  if (owner === userId || !(await Dexie.exists(legacyName))) return 'none'
+  const legacy = new StudyBlocksDB(legacyName)
+  try {
+    const counts = await Promise.all(legacy.tables.map((t) => t.count()))
+    if (counts.every((c) => c === 0)) return 'none'
+    const targetCounts = await Promise.all(target.tables.map((t) => t.count()))
+    if (targetCounts.some((c) => c > 0)) return 'none'
+    // Read everything first: awaiting another database inside the write transaction would end it early.
+    const rows = await Promise.all(legacy.tables.map(async (t) => [t.name, await t.toArray()] as const))
+    await target.transaction('rw', target.tables, async () => {
+      for (const [name, data] of rows) await target.table(name).bulkPut(data)
+    })
+    storage.setItem(CLAIM_KEY, userId)
+    return 'claimed'
+  } finally {
+    legacy.close()
+  }
+}
 
 export function itemId(feedId: string, uid: string): string {
   return `${feedId}|${uid}`
