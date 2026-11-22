@@ -2005,3 +2005,13 @@ a {
   margin: 0 0 18px;
   max-width: 34ch;
 }
+
+.canvas-card-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.canvas-card-actions .link-btn:disabled:hover {
+  color: var(--text-muted);
+  text-decoration: none;
+}
