@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Map: All Classes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+/* ---------- The preview page (plain, like earlier rounds) ---------- */
+:root { --ink: #171717; --ink-2: #737373; --line: #ececec; --mint: #0b7f58; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; color: var(--ink); font: 15px/1.55 "Figtree", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1340px; margin: 0 auto; padding: 0 32px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+.hero { background: #0e0e0e; color: #f2f2f2; }
+.hero .wrap { padding-top: 60px; padding-bottom: 48px; }
+.hero h1 { margin: 0 0 14px; font-size: clamp(34px, 5vw, 56px); line-height: 1; letter-spacing: -0.045em; font-weight: 700; max-width: 20ch; }
+.hero p { margin: 0 0 10px; color: #a3a3a3; max-width: 70ch; }
+.hero p strong { color: #f2f2f2; font-weight: 600; }
+.hero nav { display: flex; gap: 22px; margin-top: 20px; font-size: 14px; }
+.hero nav a { color: #d4d4d4; text-decoration: none; }
+.hero nav a:hover { color: #5ed3a8; }
+.opt { padding: 64px 0; border-bottom: 1px solid var(--line); }
+.opt-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; margin-bottom: 24px; }
+@media (max-width: 900px) { .opt-head { grid-template-columns: 1fr; gap: 14px; } }
+.opt h2 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.03em; line-height: 1.1; }
+.opt .lede { margin: 0 0 12px; color: var(--ink-2); }
+.opt p { margin: 0 0 10px; color: var(--ink-2); max-width: 60ch; }
+.opt ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+.opt li { margin: 4px 0; }
+.opt li b { color: var(--ink); }
+.pick { margin-left: 10px; font-size: 13px; font-weight: 700; color: var(--mint); vertical-align: middle; }
+.frame { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.frame-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fafafa; font-size: 12.5px; color: var(--ink-2); }
+.frame-bar .dots { display: flex; gap: 6px; }
+.frame-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: #e2e2e2; display: block; }
+.frame-bar button { margin-left: auto; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+.scroller { overflow-x: auto; }
+.foot { padding: 40px 0 80px; color: var(--ink-2); font-size: 14px; max-width: 72ch; }
+
+/* ---------- The app, with Praedus tokens ---------- */
+.app {
+  --bg: #0e0e0e; --hover: #1c1c1c; --surface: #181818; --border: #222; --text: #f2f2f2; --muted: #a3a3a3; --faint: #6e6e6e;
+  --accent: #5ed3a8; --on-accent: #06140f; --accent-soft: rgba(94,211,168,.15); --link: #2a2a2a; --danger: #f26666;
+  background: var(--bg); color: var(--text); font: 14px/1.5 "Figtree", sans-serif; min-width: 1240px; height: 720px;
+  display: grid; grid-template-columns: 176px minmax(0, 1fr) 340px;
+}
+.app.light {
+  --bg: #fff; --hover: #f4f4f2; --surface: #f7f7f5; --border: #ececec; --text: #171717; --muted: #737373; --faint: #a3a3a3;
+  --accent: #0b7f58; --on-accent: #fff; --accent-soft: rgba(11,127,88,.1); --link: #e2e2e2; --danger: #c9302c;
+}
+.app button { font: inherit; color: inherit; }
+.app :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.side { border-right: 1px solid var(--border); padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+.brand { display: flex; align-items: center; gap: 8px; padding: 0 8px 18px; font-weight: 700; font-size: 17px; letter-spacing: -0.035em; }
+.brand svg { color: var(--accent); }
+.nav { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 6px; color: var(--muted); }
+.nav svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav.on { color: var(--text); font-weight: 600; background: var(--hover); }
+.nav.on svg { color: var(--accent); }
+
+.stage { position: relative; border-right: 1px solid var(--border); min-width: 0; overflow: hidden; }
+.stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; cursor: grab; }
+.stage svg:active { cursor: grabbing; }
+.stage svg text { font-family: "Figtree", sans-serif; }
+.map-tools { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
+.map-tools button { border: 1px solid var(--border); background: var(--bg); color: var(--muted); border-radius: 6px; padding: 4px 10px; font-size: 12.5px; cursor: pointer; }
+.map-tools button:hover { color: var(--text); }
+.hint { position: absolute; left: 14px; bottom: 10px; font-size: 11.5px; color: var(--faint); pointer-events: none; }
+
+.spoke { stroke: var(--link); stroke-width: 1; }
+.wk circle { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; }
+.wk text { fill: var(--faint); font-size: 10.5px; font-weight: 600; }
+.wk.in circle { stroke: var(--muted); }
+.wk.in text { fill: var(--text); }
+.wk.now circle { stroke: var(--accent); stroke-width: 1.6; }
+.wk.now text { fill: var(--accent); }
+.dot { stroke: var(--bg); stroke-width: 1.5; }
+.dot.done { opacity: .5; }
+.dot.late { stroke: var(--danger); stroke-width: 1.6; opacity: 1; }
+.dot.rev { fill: var(--accent); opacity: 1; }
+.ilabel { fill: var(--muted); font-size: 10.5px; }
+.ilabel.rev { fill: var(--accent); }
+.ilabel.late { fill: var(--danger); }
+.tag rect { fill: var(--bg); stroke: var(--muted); stroke-width: 1; }
+.tag text { fill: var(--text); font-size: 10.5px; font-weight: 700; }
+.tag { cursor: pointer; }
+.tag.on rect { fill: var(--text); stroke: var(--text); }
+.tag.on text { fill: var(--bg); }
+.course { cursor: pointer; }
+.course rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.course text { fill: var(--accent); font-size: 13px; font-weight: 700; }
+.course.on rect { stroke-width: 2.4; }
+.cdim { opacity: .22; }
+.dim { opacity: .16; }
+.fadein { animation: fadein .5s ease both; }
+@keyframes fadein { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .fadein { animation: none; } }
+
+/* panel: the way in */
+.panel { overflow-y: auto; padding: 18px 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--faint); }
+.crumbs button { border: 0; background: none; padding: 0; color: var(--muted); cursor: pointer; text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+.crumbs button:hover { color: var(--text); }
+.crumbs span.cur { color: var(--text); }
+.p-title { margin: 0; font-size: 28px; line-height: 1.05; letter-spacing: -0.035em; font-weight: 700; }
+.p-sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.p-sub .soon { color: var(--accent); font-weight: 600; }
+.rows { display: flex; flex-direction: column; }
+.row { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 4px; border-top: 1px solid var(--border); background: none; border-left: 0; border-right: 0; border-bottom: 0; text-align: left; cursor: pointer; }
+.row:last-child { border-bottom: 1px solid var(--border); }
+.row:hover { background: var(--hover); }
+.row i { width: 8px; height: 8px; border-radius: 50%; display: block; }
+.row b { display: block; font-size: 14px; font-weight: 600; }
+.row small { display: block; font-size: 12px; color: var(--faint); }
+.row small .soon { color: var(--accent); font-weight: 600; }
+.row .chev { color: var(--faint); font-size: 16px; }
+.row.past b { color: var(--muted); font-weight: 500; }
+.mini { width: 64px; height: 3px; border-radius: 2px; background: var(--border); overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.mini i { display: block; height: 100%; background: var(--accent); border-radius: 0; width: 0; }
+.group-h { font-size: 12px; color: var(--faint); font-weight: 600; margin: 0 0 4px; }
+.meter-row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+.meter-row b { color: var(--text); }
+.bar { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
+.cta { border: 0; border-radius: 6px; padding: 10px 14px; background: var(--accent); color: var(--on-accent) !important; font-weight: 700; cursor: pointer; width: 100%; }
+.wgroup h4 { margin: 0 0 4px; font-size: 12px; font-weight: 600; color: var(--faint); }
+.wgroup + .wgroup { margin-top: 10px; }
+.check { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; padding: 7px 0; border-top: 1px solid var(--border); cursor: pointer; }
+.check input { position: absolute; opacity: 0; pointer-events: none; }
+.box { width: 16px; height: 16px; margin-top: 2px; border-radius: 50%; border: 1.5px solid var(--faint); display: grid; place-items: center; }
+.box svg { width: 10px; height: 10px; opacity: 0; stroke: var(--on-accent); stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.check input:checked + .box { background: var(--accent); border-color: var(--accent); }
+.check input:checked + .box svg { opacity: 1; }
+.check input:focus-visible + .box { outline: 2px solid var(--accent); outline-offset: 2px; }
+.check .t { font-size: 13.5px; }
+.check .d { display: block; font-size: 12px; color: var(--faint); }
+.check .flag { color: var(--danger); font-size: 11.5px; font-weight: 600; margin-left: 6px; }
+.later { border: 1px dashed var(--border); border-radius: 8px; padding: 12px; color: var(--faint); font-size: 12.5px; }
+.empty { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <h1>Every class on one map</h1>
+    <p>All your classes share one map, each as its own branch: the class, its weeks, and each week's work. The panel on the right is the way in: <strong>pick a class, then a test</strong>, and the map glides over to the weeks that test covers. You can still zoom out and drag around freely, and <strong>Show all</strong> brings everything back into view.</p>
+    <p>Same demo semester as before (today is Week 13). Both previews are clickable, with their own light/dark switch. Ticks are shared between them.</p>
+    <nav><a href="#a">A. Free-floating</a><a href="#b">B. Islands</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="opt" id="a">
+    <div class="opt-head">
+      <div>
+        <h2>A. Free-floating</h2>
+        <p class="lede">All classes live in one springy map and push each other apart.</p>
+        <p>The closest to how the map feels now. Drag a class pill and its whole branch follows. Where classes end up shifts a little each visit.</p>
+      </div>
+      <ul>
+        <li><b>Good:</b> organic and playful; the whole map moves as one thing.</li>
+        <li><b>Trade-off:</b> Math isn't always in the same spot, so finding it takes a glance.</li>
+        <li><b>Trade-off:</b> branches can drift into each other with 5–6 classes.</li>
+      </ul>
+    </div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus · Study map<button data-theme-for="a">Light / dark</button></div>
+      <div class="scroller"><div class="app" id="app-a"></div></div></div>
+  </section>
+
+  <section class="opt" id="b">
+    <div class="opt-head">
+      <div>
+        <h2>B. Islands <span class="pick">Recommended</span></h2>
+        <p class="lede">Each class has its own fixed spot; only its weeks and work are springy.</p>
+        <p>Classes sit side by side like islands, in the same order every time. Inside an island everything still drags and springs back, exactly like the map you just tried.</p>
+      </div>
+      <ul>
+        <li><b>Good:</b> Math is always in the same place, so the glide always goes the same way and you learn the map.</li>
+        <li><b>Good:</b> branches never overlap, even with 5–6 classes.</li>
+        <li><b>Trade-off:</b> a bit tidier and less free-form than A.</li>
+      </ul>
+    </div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus · Study map<button data-theme-for="b">Light / dark</button></div>
+      <div class="scroller"><div class="app" id="app-b"></div></div></div>
+  </section>
+
+  <p class="foot">In both: the panel starts with your classes, each with its next test and how much of it you've reviewed. Picking a class glides to it and lists its tests; picking a test glides to its weeks and shows the checklist. The breadcrumb at the top of the panel walks back out. Clicking a class pill or test tag on the map does the same as picking it in the panel.</p>
+</main>
+
+<script>
+/* ================= Demo semester (same as the last preview) ================= */
+const SEM_START = new Date(2026, 7, 24)
+const TODAY = new Date(2026, 10, 21, 12)
+const WEEKS = 16, DAY = 864e5
+const dayOf = (w, dow, h = 23, m = 59) => new Date(2026, 7, 24 + (w - 1) * 7 + dow, h, m)
+const weekFrac = (d) => (d - SEM_START) / (7 * DAY)
+const NOW_WEEK = Math.floor(weekFrac(TODAY)) + 1
+const fmtDay = (d) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+const fmtShort = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+const COURSES = [
+  { id: 'cs', code: 'CS 210', color: '#c792ea' },
+  { id: 'eng', code: 'ENGL 101', color: '#f2a65a' },
+  { id: 'math', code: 'MATH 120', color: '#6aa9ff' },
+]
+const courseById = (id) => COURSES.find((c) => c.id === id)
+const muted = (c) => `color-mix(in srgb, ${c} 78%, #8a8a8a)`
+const items = []
+let uid = 0
+const add = (course, w, title, due, desc) => items.push({ id: 'i' + uid++, course, week: w, title, due, desc })
+const mathTopics = ['1.1–1.2 Functions and limits', '1.3 Limit laws', '1.4 Continuity', null, '2.1 The derivative',
+  '2.2 Power and product rules', '2.3 Chain rule', null, '2.4 Implicit differentiation', '2.5 Related rates',
+  '3.1 Max and min values', '3.2 Mean value theorem', '3.3 Curve sketching', '3.4 Optimization', '4.1 Antiderivatives', null]
+let ps = 1, qz = 1
+mathTopics.forEach((topic, i) => {
+  const w = i + 1
+  if (w === 4) add('math', w, 'Test 1', dayOf(w, 1, 10), 'In class, chapters 1.1–1.4')
+  if (w === 8) add('math', w, 'Test 2', dayOf(w, 1, 10), 'In class, chapters 2.1–2.3')
+  if (w === 14) add('math', w, 'Test 3', dayOf(w, 1, 10), 'In class, chapters 2.4–3.3')
+  if (w === 16) add('math', w, 'Final exam', dayOf(w, 3, 9), 'Cumulative')
+  if (topic) add('math', w, `Problem Set ${ps++}`, dayOf(w, 3), `Sections ${topic}`)
+  if ([2, 6, 10, 12].includes(w)) add('math', w, `Quiz ${qz++}`, dayOf(w, 4, 10), `Covers ${mathTopics[w - 2]}`)
+})
+const csTopics = ['Variables', 'Conditionals', 'Loops', 'Functions', 'Lists', 'Strings', 'Dictionaries', null,
+  'Classes', 'Inheritance', 'Files', 'Recursion', 'Sorting', 'Searching', 'Testing', null]
+let lab = 1
+csTopics.forEach((topic, i) => {
+  const w = i + 1
+  if (topic) add('cs', w, `Lab ${lab++}: ${topic}`, dayOf(w, 2), `Practice ${topic.toLowerCase()} in Python`)
+  if (w === 5) add('cs', w, 'Project 1: Text adventure', dayOf(w, 4), 'Uses functions, lists and loops')
+  if (w === 8) add('cs', w, 'Midterm exam', dayOf(w, 3, 14), 'Labs 1–7')
+  if (w === 11) add('cs', w, 'Project 2: Gradebook', dayOf(w, 4), 'Uses classes and files')
+  if (w === 16) add('cs', w, 'Final exam', dayOf(w, 2, 14), 'Cumulative')
+})
+;[[2, 'Reading response 1', 'Chapter 1, rhetorical situations'], [3, 'Essay 1 draft', 'Personal narrative'],
+  [5, 'Essay 1 final', 'Personal narrative'], [6, 'Reading response 2', 'Chapter 4, argument'],
+  [8, 'Essay 2 draft', 'Argument essay'], [10, 'Essay 2 final', 'Argument essay'], [11, 'Reading response 3', 'Chapter 7, sources'],
+  [12, 'Peer review', 'Research paper outline'], [13, 'Annotated bibliography', 'Eight sources'], [15, 'Research paper', 'Final paper'],
+].forEach(([w, t, d]) => add('eng', w, t, dayOf(w, 4), d))
+const isTest = (it) => /\b(test|exam|midterm)\b/i.test(it.title)
+items.forEach((it) => {
+  it.test = isTest(it)
+  it.done = it.due < TODAY && !it.test && it.title !== 'Problem Set 11'
+  it.late = it.due < TODAY && !it.done && !it.test
+})
+const courseItems = (c) => items.filter((it) => it.course === c).sort((a, b) => a.due - b.due)
+const testsOf = (c) => courseItems(c).filter((it) => it.test)
+const isFinal = (t) => /final/i.test(t.title)
+function unitOf(t) {
+  const tests = testsOf(t.course)
+  const prev = tests[tests.indexOf(t) - 1]
+  const cumulative = isFinal(t)
+  const from = cumulative || !prev ? 1 : prev.week + 1
+  const to = Math.max(from, t.week - 1)
+  return { test: t, prev, from, to, cumulative, list: courseItems(t.course).filter((it) => !it.test && it.week >= from && it.week <= to) }
+}
+const nextTest = (c) => testsOf(c).find((t) => t.due >= TODAY)
+function daysUntil(d) {
+  const mid = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate())
+  const n = Math.round((mid(d) - mid(TODAY)) / DAY)
+  return n === 0 ? 'today' : n === 1 ? 'tomorrow' : n > 0 ? `in ${n} days` : `${-n} days ago`
+}
+const reviewed = new Set()
+const apps = {}
+
+/* ================= Panel: the way in ================= */
+const ICONS = {
+  logo: '<svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path d="M6.5 24C6.5 13 19.5 13 19.5 24S32.5 35 32.5 24" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"/><circle cx="40.5" cy="24" r="3.9" fill="currentColor"/></svg>',
+  cal: '<svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>',
+  list: '<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>',
+  graph: '<svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="7" r="2"/><circle cx="12" cy="17" r="3"/><path d="M8.2 7.3 10.6 14.4M16.4 8.4 13.5 14.6M8.4 6.2l7.6.6"/></svg>',
+  check: '<svg viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.6l4.5-5"/></svg>',
+}
+const progress = (u) => { const n = u.list.length; const d = u.list.filter((i) => reviewed.has(i.id)).length; return { n, d } }
+const mini = (u) => { const { n, d } = progress(u); return `<span class="mini"><i style="width:${n ? (d / n) * 100 : 0}%"></i></span>${d}/${n}` }
+
+function panelHtml(st) {
+  if (!st.course) {
+    const rows = COURSES.map((c) => {
+      const t = nextTest(c.id)
+      const sub = t ? `${t.title}, <span class="soon">${daysUntil(t.due)}</span>` : 'No tests coming up'
+      return `<button class="row" data-course="${c.id}"><i style="background:${c.color}"></i>
+        <span><b>${c.code}</b><small>${sub}</small></span><span class="chev">${t ? `<small>${mini(unitOf(t))}</small>` : '›'}</span></button>`
+    }).join('')
+    return `<div><h2 class="p-title">Your classes</h2><p class="p-sub">Pick a class to see its tests and what to review.</p></div><div class="rows">${rows}</div>`
+  }
+  const c = courseById(st.course)
+  const crumbs = (tail) => `<nav class="crumbs" aria-label="Breadcrumb"><button data-home>All classes</button>›${tail}</nav>`
+  if (!st.test) {
+    const ts = testsOf(c.id)
+    const rows = ts.length ? ts.map((t) => {
+      const u = unitOf(t), past = t.due < TODAY
+      return `<button class="row${past ? ' past' : ''}" data-test="${t.id}"><i style="background:${past ? 'var(--border)' : c.color}"></i>
+        <span><b>${t.title}</b><small>${fmtDay(t.due)}${past ? '' : `, <span class="soon">${daysUntil(t.due)}</span>`}</small></span><span class="chev"><small>${mini(u)}</small></span></button>`
+    }).join('') : `<p class="empty">${c.code} has no tests: essays and reading responses only.</p>`
+    return `${crumbs(`<span class="cur">${c.code}</span>`)}<div><h2 class="p-title">${c.code}</h2><p class="p-sub">${ts.length} test${ts.length === 1 ? '' : 's'} this term</p></div><div class="rows">${rows}</div>`
+  }
+  const u = unitOf(items.find((i) => i.id === st.test)), { n, d } = progress(u), up = u.test.due >= TODAY
+  let groups = ''
+  for (let w = u.from; w <= u.to; w++) {
+    const its = u.list.filter((i) => i.week === w)
+    if (!its.length) continue
+    groups += `<div class="wgroup"><h4>Week ${w}</h4>${its.map((it) => `<label class="check"><input type="checkbox" data-rev="${it.id}"${reviewed.has(it.id) ? ' checked' : ''}><span class="box">${ICONS.check}</span>
+      <span><span class="t">${it.title}</span>${it.late ? '<span class="flag">Not turned in</span>' : ''}<span class="d">${it.desc}</span></span></label>`).join('')}</div>`
+  }
+  return `${crumbs(`<button data-course="${c.id}">${c.code}</button>›<span class="cur">${u.test.title}</span>`)}
+    <div><h2 class="p-title">${u.test.title}</h2><p class="p-sub"><b>${c.code}</b>, ${fmtDay(u.test.due)}${up ? `, <span class="soon">${daysUntil(u.test.due)}</span>` : ''}</p>
+      <p class="p-sub">${u.cumulative ? 'Covers the whole semester' : `Covers weeks ${u.from} to ${u.to}, since ${u.prev ? u.prev.title : 'the start of term'}`}</p></div>
+    <div><div class="meter-row"><span><b>${d}</b> of ${n} reviewed</span><span>${n ? Math.round((d / n) * 100) : 0}%</span></div><div class="bar"><i style="width:${n ? (d / n) * 100 : 0}%"></i></div></div>
+    ${up ? '<button class="cta">Plan review time</button>' : '<p class="p-sub">This test is past, so there is no review time to plan.</p>'}
+    <div>${groups}</div><div class="later">Study guide, coming with Premium.</div>`
+}
+
+/* ================= Map: every class, one simulation ================= */
+function mount(key, mode) {
+  const el = document.getElementById('app-' + key)
+  el.innerHTML = `<nav class="side" aria-label="App"><div class="brand">${ICONS.logo}praedus</div>
+      <span class="nav">${ICONS.cal}Calendar</span><span class="nav">${ICONS.list}Assignments</span><span class="nav on">${ICONS.graph}Study map</span></nav>
+    <div class="stage"><svg role="group" aria-label="Study map"><g class="vp"></g></svg>
+      <div class="map-tools"><button data-showall>Show all</button></div>
+      <div class="hint">Scroll to zoom, drag to move. Pick a class or test on the right.</div></div>
+    <aside class="panel" aria-label="Classes and tests"></aside>`
+  const svg = el.querySelector('.stage svg'), vp = d3.select(svg).select('.vp')
+  const st = { course: null, test: null, fresh: false }
+  const A = (w) => -Math.PI / 2 + ((w - 0.5) / WEEKS) * 2 * Math.PI
+  // Anchors: islands sit in fixed spots; free-floating starts there and drifts.
+  const anchors = { cs: [-470, -40], eng: [470, -40], math: [0, 300] }
+  if (mode === 'islands') { anchors.cs = [-520, 0]; anchors.math = [0, 0]; anchors.eng = [520, 0] }
+  const nodes = [], links = []
+  for (const c of COURSES) {
+    const [ax, ay] = anchors[c.id]
+    const hub = { id: c.id, kind: 'course', c, x: ax, y: ay }
+    if (mode === 'islands') { hub.fx = ax; hub.fy = ay }
+    nodes.push(hub)
+    for (let w = 1; w <= WEEKS; w++) {
+      nodes.push({ id: `${c.id}w${w}`, kind: 'week', c, w, x: ax + Math.cos(A(w)) * 130, y: ay + Math.sin(A(w)) * 130 })
+      links.push({ source: c.id, target: `${c.id}w${w}`, d: 130, s: 0.22 })
+      if (w > 1) links.push({ source: `${c.id}w${w - 1}`, target: `${c.id}w${w}`, d: 54, s: 0.6 })
+    }
+    for (const it of courseItems(c.id)) {
+      const a = A(it.week) + (Math.random() - 0.5) * 0.2
+      nodes.push({ id: it.id, kind: 'item', c, it, w: it.week, x: ax + Math.cos(a) * 200, y: ay + Math.sin(a) * 200 })
+      links.push({ source: `${c.id}w${it.week}`, target: it.id, d: it.test ? 52 : 44, s: 0.8 })
+    }
+  }
+  const sim = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id((d) => d.id).distance((l) => l.d).strength((l) => l.s))
+    .force('collide', d3.forceCollide((d) => (d.kind === 'week' ? 17 : d.kind === 'course' ? 50 : d.it?.test ? 26 : 11)))
+    .on('tick', paint)
+  if (mode === 'islands') {
+    // Charge only within a class, so islands never push each other around.
+    for (const c of COURSES) sim.force('charge-' + c.id, d3.forceManyBody().strength((d) => (d.c.id !== c.id ? 0 : d.kind === 'course' ? -500 : d.kind === 'week' ? -140 : -70)).distanceMax(320))
+  } else {
+    sim.force('charge', d3.forceManyBody().strength((d) => (d.kind === 'course' ? -2600 : d.kind === 'week' ? -140 : -70)))
+    sim.force('x', d3.forceX(0).strength((d) => (d.kind === 'course' ? 0.02 : 0)))
+    sim.force('y', d3.forceY(0).strength((d) => (d.kind === 'course' ? 0.02 : 0)))
+  }
+
+  const zoom = d3.zoom().scaleExtent([0.2, 3]).on('zoom', (e) => vp.attr('transform', e.transform))
+  d3.select(svg).call(zoom).on('dblclick.zoom', null)
+  const drag = d3.drag()
+    .filter((e) => !e.target.closest('.tag'))
+    .subject((e) => { const t = d3.zoomTransform(svg); const [px, py] = d3.pointer(e, svg); const [x, y] = t.invert([px, py]); const n = sim.find(x, y, 24); return n && !(mode === 'islands' && n.kind === 'course') ? n : null })
+    .on('start', (e) => { e.sourceEvent.stopPropagation(); sim.alphaTarget(0.25).restart(); e.subject.fx = e.subject.x; e.subject.fy = e.subject.y })
+    .on('drag', (e) => { const t = d3.zoomTransform(svg); const [x, y] = t.invert(d3.pointer(e, svg)); e.subject.fx = x; e.subject.fy = y })
+    .on('end', (e) => { sim.alphaTarget(0); if (!(mode === 'islands' && e.subject.kind === 'course')) { e.subject.fx = null; e.subject.fy = null } })
+  d3.select(svg).call(drag)
+
+  // The glide: frame a set of nodes with a smooth zoom transition.
+  function glideTo(list, pad = 70) {
+    const xs = list.map((n) => n.x), ys = list.map((n) => n.y)
+    const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]
+    const { width, height } = svg.getBoundingClientRect()
+    const k = Math.min(2.2, Math.max(0.2, Math.min(width / (x1 - x0 + pad * 2 + 160), height / (y1 - y0 + pad * 2))))
+    const t = d3.zoomIdentity.translate(width / 2 - k * (x0 + x1) / 2, height / 2 - k * (y0 + y1) / 2).scale(k)
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+    d3.select(svg).transition().duration(reduce ? 0 : 750).ease(d3.easeCubicInOut).call(zoom.transform, t)
+  }
+  const frame = () => {
+    if (st.test) {
+      const u = unitOf(items.find((i) => i.id === st.test))
+      glideTo(nodes.filter((n) => n.c.id === st.course && n.kind !== 'course' && n.w >= u.from && n.w <= u.test.week))
+    } else if (st.course) glideTo(nodes.filter((n) => n.c.id === st.course))
+    else glideTo(nodes, 40)
+  }
+
+  function paint() {
+    const u = st.test ? unitOf(items.find((i) => i.id === st.test)) : null
+    const inUnit = (n) => u && n.c.id === u.test.course && n.w >= u.from && n.w <= u.to
+    const cls = (n) => (st.course && n.c.id !== st.course ? ' cdim' : u && n.kind !== 'course' && !inUnit(n) && !(n.it && n.it.id === u.test.id) ? ' dim' : '')
+    let back = '', mid = '', top = ''
+    if (u) {
+      const pts = nodes.filter((n) => inUnit(n) && !(n.it && n.it.test)).map((n) => [n.x, n.y])
+      const hull = (pts.length > 2 && d3.polygonHull(pts)) || pts
+      if (hull.length) {
+        const d = 'M' + hull.map((p) => p.join(',')).join('L') + 'Z', { n, d: done } = progress(u)
+        back += `<g class="${st.fresh ? 'fadein' : ''}" opacity=".1"><path d="${d}" fill="${u.test.course && courseById(u.test.course).color}" stroke="${courseById(u.test.course).color}" stroke-width="56" stroke-linejoin="round"/></g>`
+        if (done) back += `<g opacity="${0.06 + 0.16 * (done / n)}"><path d="${d}" fill="var(--accent)" stroke="var(--accent)" stroke-width="56" stroke-linejoin="round"/></g>`
+      }
+    }
+    for (const l of links) {
+      if (l.source.kind === 'course') back += `<line class="spoke${cls(l.target)}" stroke-opacity=".5" x1="${l.source.x}" y1="${l.source.y}" x2="${l.target.x}" y2="${l.target.y}"/>`
+      else back += `<line class="spoke${cls(l.target)}" x1="${l.source.x}" y1="${l.source.y}" x2="${l.target.x}" y2="${l.target.y}"/>`
+    }
+    for (const n of nodes) {
+      if (n.kind === 'week') mid += `<g class="wk${n.w === NOW_WEEK ? ' now' : ''}${inUnit(n) ? ' in' : ''}${cls(n)}"><circle cx="${n.x}" cy="${n.y}" r="12"/><text x="${n.x}" y="${n.y}" text-anchor="middle" dominant-baseline="central">${n.w}</text></g>`
+      else if (n.kind === 'item') {
+        const it = n.it
+        if (it.test) {
+          const w = it.title.length * 6.3 + 16, on = st.test === it.id
+          top += `<g class="tag${on ? ' on' : ''}${cls(n)}" data-test="${it.id}"><rect x="${n.x - w / 2}" y="${n.y - 10}" width="${w}" height="20" rx="5"/><text x="${n.x}" y="${n.y}" text-anchor="middle" dominant-baseline="central">${it.title}</text></g>`
+        } else {
+          const r = reviewed.has(it.id)
+          mid += `<circle class="dot${it.done ? ' done' : ''}${it.late ? ' late' : ''}${r ? ' rev' : ''}${cls(n)}" cx="${n.x}" cy="${n.y}" r="4.5" fill="${muted(n.c.color)}"/>`
+          if (inUnit(n)) top += `<text class="ilabel${r ? ' rev' : it.late ? ' late' : ''}" x="${n.x + (n.x < nodes.find((h) => h.id === n.c.id).x ? -9 : 9)}" y="${n.y}" text-anchor="${n.x < nodes.find((h) => h.id === n.c.id).x ? 'end' : 'start'}" dominant-baseline="central">${it.title}</text>`
+        }
+      }
+    }
+    for (const n of nodes.filter((n) => n.kind === 'course')) {
+      const w = n.c.code.length * 7.6 + 28
+      top += `<g class="course${st.course === n.c.id ? ' on' : ''}${st.course && st.course !== n.c.id ? ' cdim' : ''}" data-course="${n.c.id}"><rect x="${n.x - w / 2}" y="${n.y - 14}" width="${w}" height="28" rx="14"/><text x="${n.x}" y="${n.y}" text-anchor="middle" dominant-baseline="central">${n.c.code}</text></g>`
+    }
+    vp.html(back + mid + top)
+  }
+  function drawPanel() { el.querySelector('.panel').innerHTML = panelHtml(st) }
+  function go(course, test) {
+    st.course = course; st.test = test; st.fresh = true
+    drawPanel(); paint(); frame()
+    setTimeout(() => { st.fresh = false }, 600)
+  }
+  el.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-course],[data-test],[data-home],[data-showall]')
+    if (!t) return
+    if (t.dataset.home !== undefined) go(null, null)
+    else if (t.dataset.showall !== undefined) glideTo(nodes, 40)
+    else if (t.dataset.test) go(items.find((i) => i.id === t.dataset.test).course, t.dataset.test)
+    else if (t.dataset.course) go(t.dataset.course, null)
+  })
+  el.addEventListener('change', (e) => {
+    const id = e.target.dataset.rev
+    if (!id) return
+    e.target.checked ? reviewed.add(id) : reviewed.delete(id)
+    for (const k in apps) apps[k].refresh()
+  })
+  apps[key] = { refresh: () => { drawPanel(); paint() } }
+  drawPanel()
+  setTimeout(() => frame(), 900)
+}
+document.querySelectorAll('[data-theme-for]').forEach((b) => b.addEventListener('click', () => document.getElementById('app-' + b.dataset.themeFor).classList.toggle('light')))
+mount('a', 'free')
+mount('b', 'islands')
+</script>
+</body>
+</html>

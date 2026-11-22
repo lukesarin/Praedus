@@ -44,7 +44,7 @@ const review: ParsedItem = {
 describe('importFeed', () => {
   it('adds everything on first import and creates courses with distinct colors', async () => {
     const result = await importFeed(db, 'feed-a', [lab, quiz, review])
-    expect(result).toEqual({ added: 3, updated: 0, removed: 0, kept: 0 })
+    expect(result).toEqual({ added: 3, updated: 0, removed: 0, kept: 0, history: 0 })
 
     const items = await db.items.toArray()
     expect(items).toHaveLength(3)
@@ -62,7 +62,7 @@ describe('importFeed', () => {
   it('does not duplicate on re-import', async () => {
     await importFeed(db, 'feed-a', [lab, quiz, review])
     const result = await importFeed(db, 'feed-a', [lab, quiz, review])
-    expect(result).toEqual({ added: 0, updated: 3, removed: 0, kept: 0 })
+    expect(result).toEqual({ added: 0, updated: 3, removed: 0, kept: 0, history: 0 })
     expect(await db.items.count()).toBe(3)
     expect(await db.courses.count()).toBe(2)
   })
@@ -88,7 +88,7 @@ describe('importFeed', () => {
     await db.items.update('feed-a|event-assignment-2', { done: true })
 
     const result = await importFeed(db, 'feed-a', [lab])
-    expect(result).toEqual({ added: 0, updated: 1, removed: 1, kept: 1 })
+    expect(result).toEqual({ added: 0, updated: 1, removed: 1, kept: 1, history: 0 })
 
     expect(await db.items.get('feed-a|event-calendar-event-3')).toBeUndefined()
     const kept = await db.items.get('feed-a|event-assignment-2')
@@ -140,5 +140,69 @@ describe('study data on re-import (milestone 3)', () => {
     ])
     await importFeed(db, 'feed-a', [quiz])
     expect((await db.studyBlocks.toArray()).map((b) => b.id)).toEqual(['s2'])
+  })
+})
+
+describe('importFeed history', () => {
+  const now = new Date('2026-12-10T12:00:00Z')
+  const past = { ...lab, start: '2026-12-01' }
+  const exam: ParsedItem = { ...review, uid: 'exam-1', title: 'Midterm Exam' }
+  const id = 'feed-a|event-assignment-1'
+
+  it('keeps a past assignment that drops out of the feed as history', async () => {
+    await importFeed(db, 'feed-a', [past, quiz], now)
+    const result = await importFeed(db, 'feed-a', [quiz], now)
+    const row = await db.items.get(id)
+    expect(row?.keptAsHistory).toBe(true)
+    expect(row?.removedFromSource).toBe(false)
+    expect(result.history).toBe(1)
+    expect(result.removed).toBe(0)
+  })
+
+  it('keeps a done past assignment as history, not as removed', async () => {
+    await importFeed(db, 'feed-a', [past], now)
+    await db.items.update(id, { done: true })
+    await importFeed(db, 'feed-a', [], now)
+    const row = await db.items.get(id)
+    expect(row).toMatchObject({ keptAsHistory: true, removedFromSource: false, done: true })
+  })
+
+  it('keeps a past test event as history but deletes other past events', async () => {
+    await importFeed(db, 'feed-a', [exam, review], now)
+    await importFeed(db, 'feed-a', [], now)
+    expect(await db.items.get('feed-a|exam-1')).toBeDefined()
+    expect(await db.items.get('feed-a|event-calendar-event-3')).toBeUndefined()
+  })
+
+  it('still deletes a future assignment that drops out, and flags a future done one', async () => {
+    const future = { ...lab, start: '2026-12-20' }
+    const future2 = { ...quiz, start: '2026-12-21T10:00:00.000Z' }
+    await importFeed(db, 'feed-a', [future, future2], now)
+    await db.items.update('feed-a|event-assignment-2', { done: true })
+    const result = await importFeed(db, 'feed-a', [], now)
+    expect(await db.items.get(id)).toBeUndefined()
+    expect((await db.items.get('feed-a|event-assignment-2'))?.removedFromSource).toBe(true)
+    expect(result).toMatchObject({ removed: 1, kept: 1, history: 0 })
+  })
+
+  it('clears keptAsHistory when the item comes back', async () => {
+    await importFeed(db, 'feed-a', [past], now)
+    await importFeed(db, 'feed-a', [], now)
+    await importFeed(db, 'feed-a', [past], now)
+    expect((await db.items.get(id))?.keptAsHistory).toBeFalsy()
+  })
+
+  it('keeps reviewed through an update', async () => {
+    await importFeed(db, 'feed-a', [past], now)
+    await db.items.update(id, { reviewed: true })
+    await importFeed(db, 'feed-a', [{ ...past, title: 'Lab 7 v2' }], now)
+    expect(await db.items.get(id)).toMatchObject({ title: 'Lab 7 v2', reviewed: true })
+  })
+
+  it('keeps the study blocks of items kept as history', async () => {
+    await importFeed(db, 'feed-a', [past], now)
+    await db.studyBlocks.add({ id: 'sb1', itemId: id, date: '2026-11-30', startTime: '10:00', minutes: 30 } as never)
+    await importFeed(db, 'feed-a', [], now)
+    expect(await db.studyBlocks.where('itemId').equals(id).count()).toBe(1)
   })
 })

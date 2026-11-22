@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatMinutes } from '../study/applyPlan'
 import { dueInstant, estimateFor } from '../study/plan'
+import { isPlannable } from '../study/testItems'
 import type { StudyBlock } from '../study/types'
 import type { CalendarItem, Course } from '../db/db'
 import { db } from '../db/db'
@@ -57,7 +58,7 @@ export function ItemDetail({ item, course, blocks, onClose }: Props) {
           {course && (<><dt>Course</dt><dd><span className="dot" style={{ background: course.color }} />{course.name}</dd></>)}
           <dt>{item.kind === 'assignment' ? 'Due' : 'When'}</dt>
           <dd>{formatRange(item)}</dd>
-          {item.kind === 'assignment' && (
+          {isPlannable(item) && (
             <>
               <dt>Est. time</dt>
               <dd><EstimateField key={item.estimateMinutes ?? 'default'} item={item} /></dd>

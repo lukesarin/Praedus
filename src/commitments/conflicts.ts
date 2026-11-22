@@ -53,7 +53,7 @@ export function findConflicts(
   }
 
   const deadlines = items.filter(
-    (i) => i.kind === 'assignment' && !i.allDay && !i.done && Date.parse(i.start) >= startOfToday,
+    (i) => i.kind === 'assignment' && !i.keptAsHistory && !i.allDay && !i.done && Date.parse(i.start) >= startOfToday,
   )
   for (const item of deadlines) {
     const due = Date.parse(item.start)

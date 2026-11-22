@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Map: Pie Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ---------- The preview page (plain, like earlier rounds) ---------- */
+:root { --ink: #171717; --ink-2: #737373; --line: #ececec; --mint: #0b7f58; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; color: var(--ink); font: 15px/1.55 "Figtree", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1340px; margin: 0 auto; padding: 0 32px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+.hero { background: #0e0e0e; color: #f2f2f2; }
+.hero .wrap { padding-top: 60px; padding-bottom: 48px; }
+.hero h1 { margin: 0 0 14px; font-size: clamp(34px, 5vw, 56px); line-height: 1; letter-spacing: -0.045em; font-weight: 700; max-width: 18ch; }
+.hero p { margin: 0 0 10px; color: #a3a3a3; max-width: 72ch; }
+.hero p strong { color: #f2f2f2; font-weight: 600; }
+.hero nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 20px; font-size: 14px; }
+.hero nav a { color: #d4d4d4; text-decoration: none; }
+.hero nav a:hover { color: #5ed3a8; }
+.opt { padding: 64px 0; border-bottom: 1px solid var(--line); }
+.opt-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; margin-bottom: 24px; }
+@media (max-width: 900px) { .opt-head { grid-template-columns: 1fr; gap: 14px; } }
+.opt h2 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.03em; line-height: 1.1; }
+.opt .lede { margin: 0 0 12px; color: var(--ink-2); }
+.opt p { margin: 0 0 10px; color: var(--ink-2); max-width: 60ch; }
+.opt ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+.opt li { margin: 4px 0; }
+.opt li b { color: var(--ink); }
+.pick { margin-left: 10px; font-size: 13px; font-weight: 700; color: var(--mint); vertical-align: middle; }
+.frame { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.frame-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fafafa; font-size: 12.5px; color: var(--ink-2); }
+.frame-bar .dots { display: flex; gap: 6px; }
+.frame-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: #e2e2e2; display: block; }
+.frame-bar button { margin-left: auto; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+.scroller { overflow-x: auto; }
+.foot { padding: 40px 0 80px; color: var(--ink-2); font-size: 14px; max-width: 72ch; }
+
+/* ---------- The app, with Praedus tokens ---------- */
+.app {
+  --bg: #0e0e0e; --hover: #1c1c1c; --surface: #181818; --slice: #1b1b1b; --slice-2: #232323; --border: #222; --text: #f2f2f2; --muted: #a3a3a3; --faint: #6e6e6e;
+  --accent: #5ed3a8; --on-accent: #06140f; --accent-soft: rgba(94,211,168,.15); --danger: #f26666;
+  background: var(--bg); color: var(--text); font: 14px/1.5 "Figtree", sans-serif; min-width: 1240px; height: 740px;
+  display: grid; grid-template-columns: 176px minmax(0, 1fr) 350px;
+}
+.app.light {
+  --bg: #fff; --hover: #f4f4f2; --surface: #f7f7f5; --slice: #f2f2ef; --slice-2: #e9e9e5; --border: #ececec; --text: #171717; --muted: #737373; --faint: #a3a3a3;
+  --accent: #0b7f58; --on-accent: #fff; --accent-soft: rgba(11,127,88,.1); --danger: #c9302c;
+}
+.app button, .app select, .app input { font: inherit; color: inherit; }
+.app :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.side { border-right: 1px solid var(--border); padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+.brand { display: flex; align-items: center; gap: 8px; padding: 0 8px 18px; font-weight: 700; font-size: 17px; letter-spacing: -0.035em; }
+.brand svg { color: var(--accent); }
+.nav { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 6px; color: var(--muted); }
+.nav svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav.on { color: var(--text); font-weight: 600; background: var(--hover); }
+.nav.on svg { color: var(--accent); }
+
+.main { display: flex; flex-direction: column; min-width: 0; border-right: 1px solid var(--border); }
+.head { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.pickr { position: relative; display: inline-flex; align-items: center; }
+.pickr i { position: absolute; left: 12px; width: 9px; height: 9px; border-radius: 50%; pointer-events: none; }
+.pickr select { appearance: none; -webkit-appearance: none; border: 1px solid var(--border); background: var(--bg); border-radius: 8px; padding: 7px 34px 7px 30px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pickr select:hover { border-color: var(--muted); }
+.pickr::after { content: ""; position: absolute; right: 13px; width: 7px; height: 7px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: translateY(-2px) rotate(45deg); pointer-events: none; }
+.head .meta { color: var(--faint); font-size: 13px; }
+.legend { margin-left: auto; display: flex; gap: 14px; font-size: 12px; color: var(--muted); align-items: center; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 9px; height: 9px; border-radius: 2px; display: block; }
+.legend .lg-dot { border-radius: 50%; }
+.chart { position: relative; flex: 1; min-height: 0; }
+.chart svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; }
+.chart svg text { font-family: "Figtree", sans-serif; }
+
+/* chart marks */
+.sl { fill: var(--slice); stroke: var(--bg); stroke-width: 2; transition: fill .25s, opacity .25s; }
+.sl.alt { fill: var(--slice-2); }
+.sl.now { stroke: var(--accent); stroke-width: 2; }
+.wnum { fill: var(--faint); font-size: 11px; font-weight: 600; }
+.wnum.in { fill: var(--text); }
+.wnum.now { fill: var(--accent); }
+.mk { stroke: var(--bg); stroke-width: 1.5; }
+.mk.done { opacity: .45; }
+.mk.late { stroke: var(--danger); stroke-width: 1.6; opacity: 1; }
+.mk.rev { fill: var(--accent) !important; opacity: 1; }
+.tflag line { stroke: var(--muted); stroke-width: 1; }
+.tflag text { fill: var(--muted); font-size: 11.5px; font-weight: 600; cursor: pointer; }
+.tflag.on text { fill: var(--text); font-weight: 700; }
+.tflag.on line { stroke: var(--text); }
+.tflag rect { fill: transparent; cursor: pointer; }
+.center-code { fill: var(--text); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.center-name { fill: var(--muted); font-size: 12px; }
+.center-wk { fill: var(--accent); font-size: 12px; font-weight: 600; }
+.chip rect { stroke-width: 1; }
+.chip text { font-size: 11px; font-weight: 500; }
+.colhead { fill: var(--faint); font-size: 12px; font-weight: 600; }
+.colhead.in { fill: var(--text); }
+.coldate { fill: var(--faint); font-size: 10px; }
+.band { opacity: .14; }
+.todayline { stroke: var(--accent); stroke-width: 1.5; }
+.today-word { fill: var(--accent); font-size: 10.5px; font-weight: 700; }
+.fadein { animation: fadein .45s ease both; }
+@keyframes fadein { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .fadein { animation: none; } .sl { transition: none; } }
+
+/* panel */
+.panel { overflow-y: auto; padding: 18px 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.p-title { margin: 0; font-size: 22px; letter-spacing: -0.03em; font-weight: 700; }
+.p-sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.tests { display: flex; flex-direction: column; }
+.trow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 12px 12px; border: 1px solid transparent; border-top-color: var(--border); background: none; text-align: left; cursor: pointer; border-radius: 0; }
+.trow:hover { background: var(--hover); }
+.trow.on { border: 1px solid var(--text); border-radius: 8px; }
+.trow.on + .trow { border-top-color: transparent; }
+.trow b { font-size: 15px; font-weight: 600; }
+.trow .when { font-size: 12.5px; color: var(--muted); text-align: right; }
+.trow .when .soon { color: var(--accent); font-weight: 600; }
+.trow .cov { grid-column: 1 / -1; font-size: 12.5px; color: var(--faint); }
+.trow.past b { color: var(--muted); font-weight: 500; }
+.sec-h { font-size: 12px; color: var(--faint); font-weight: 600; margin: 6px 0 0; }
+.detail { display: flex; flex-direction: column; gap: 12px; }
+.meter-row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+.meter-row b { color: var(--text); }
+.bar { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
+.cta { border: 0; border-radius: 8px; padding: 11px 14px; background: var(--accent); color: var(--on-accent) !important; font-weight: 700; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.cta svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ghost { border: 1px solid var(--border); background: none; border-radius: 8px; padding: 9px 14px; cursor: pointer; width: 100%; color: var(--muted) !important; }
+.ghost:hover { color: var(--text) !important; border-color: var(--muted); }
+.wgroup h4 { margin: 0 0 2px; font-size: 12px; font-weight: 600; color: var(--faint); }
+.wgroup + .wgroup { margin-top: 8px; }
+.check { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; padding: 6px 0; border-top: 1px solid var(--border); cursor: pointer; }
+.check input { position: absolute; opacity: 0; pointer-events: none; }
+.box { width: 16px; height: 16px; margin-top: 2px; border-radius: 50%; border: 1.5px solid var(--faint); display: grid; place-items: center; }
+.box svg { width: 10px; height: 10px; opacity: 0; stroke: var(--on-accent); stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.check input:checked + .box { background: var(--accent); border-color: var(--accent); }
+.check input:checked + .box svg { opacity: 1; }
+.check input:focus-visible + .box { outline: 2px solid var(--accent); outline-offset: 2px; }
+.check .t { font-size: 13.5px; }
+.check .flag { color: var(--danger); font-size: 11.5px; font-weight: 600; margin-left: 6px; }
+.empty { color: var(--muted); font-size: 13px; }
+/* study set sheet */
+.sheet { border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: var(--surface); }
+.sheet h3 { margin: 0; font-size: 16px; letter-spacing: -0.02em; }
+.sheet p { margin: 0; font-size: 12.5px; color: var(--muted); }
+.topics { display: flex; flex-wrap: wrap; gap: 6px; }
+.topic { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12.5px; background: var(--bg); }
+.topic button { border: 0; background: none; padding: 0 4px; cursor: pointer; color: var(--faint); font-size: 14px; line-height: 1; }
+.topic button:hover { color: var(--text); }
+.addt { display: flex; gap: 6px; }
+.addt input { flex: 1; min-width: 0; border: 1px solid var(--border); background: var(--bg); border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+.addt button { border: 1px solid var(--border); background: var(--bg); border-radius: 6px; padding: 6px 10px; font-size: 13px; cursor: pointer; }
+.premium { font-size: 12px; color: var(--faint); text-align: center; }
+.cta[disabled] { opacity: .55; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <h1>One class, one chart</h1>
+    <p>Pick a class from the dropdown. The chart is its semester: <strong>the class in the center, split into weeks</strong>. The panel lists the class's upcoming tests; pick one and the chart highlights the weeks it covers. Then <strong>Make a study set</strong> pulls the topics from those weeks so an AI can turn them into a study set (marked as coming with Premium).</p>
+    <p>Same demo semester (today is Week 13). Everything is clickable, with a light/dark switch on each preview.</p>
+    <nav><a href="#a">A. Donut</a><a href="#b">B. Sunburst</a><a href="#c">C. Workload pie</a><a href="#d">D. Semester track (my own idea)</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="opt" id="a">
+    <div class="opt-head">
+      <div>
+        <h2>A. Donut <span class="pick">Recommended</span></h2>
+        <p class="lede">Sixteen equal slices, one per week. Small dots in each slice are that week's work.</p>
+        <p>The covered weeks fill with the class color; everything else stays a quiet gray. Tests sit on the rim where they fall, and the current week has a mint outline.</p>
+      </div>
+      <ul>
+        <li><b>Good:</b> the cleanest, most "pie chart" of the four. Readable at a glance.</li>
+        <li><b>Good:</b> weeks are always in the same spot, so Week 9 is always at about seven o'clock.</li>
+        <li><b>Trade-off:</b> assignment names live in the panel (and on hover), not on the chart.</li>
+      </ul>
+    </div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus · Study map<button data-theme-for="a">Light / dark</button></div>
+      <div class="scroller"><div class="app" id="app-a"></div></div></div>
+  </section>
+
+  <section class="opt" id="b">
+    <div class="opt-head">
+      <div>
+        <h2>B. Sunburst</h2>
+        <p class="lede">Weeks on the inner ring; every assignment gets its own slice on the outer ring.</p>
+        <p>The outer ring shows status: done work is gray, unfinished work is the class color, missing work is red, and anything you've reviewed turns mint.</p>
+      </div>
+      <ul>
+        <li><b>Good:</b> shows the most at once, and progress is easy to see.</li>
+        <li><b>Trade-off:</b> busier than A; small slices for busy weeks.</li>
+        <li><b>Trade-off:</b> names still need a hover or the panel.</li>
+      </ul>
+    </div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus · Study map<button data-theme-for="b">Light / dark</button></div>
+      <div class="scroller"><div class="app" id="app-b"></div></div></div>
+  </section>
+
+  <section class="opt" id="c">
+    <div class="opt-head">
+      <div>
+        <h2>C. Workload pie</h2>
+        <p class="lede">Each week's slice reaches out as far as that week's workload.</p>
+        <p>Uses the time estimates the app already has, so heavy weeks (a project, a test) stick out and light weeks stay small. Covered weeks fill with the class color.</p>
+      </div>
+      <ul>
+        <li><b>Good:</b> answers "how much was in this unit?" without reading anything.</li>
+        <li><b>Trade-off:</b> less symmetrical than A, so a little less calm.</li>
+        <li><b>Trade-off:</b> depends on estimates being roughly right.</li>
+      </ul>
+    </div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus · Study map<button data-theme-for="c">Light / dark</button></div>
+      <div class="scroller"><div class="app" id="app-c"></div></div></div>
+  </section>
+
+  <section class="opt" id="d">
+    <div class="opt-head">
+      <div>
+        <h2>D. Semester track <span class="pick" style="color:var(--ink-2)">My own idea</span></h2>
+        <p class="lede">The semester as sixteen columns, left to right, with every assignment written out.</p>
+        <p>Tests are flags above their week, the covered weeks get a shaded band, and a mint line marks today. Not a pie, but every name is readable without hovering, which is what makes it feel professional to me.</p>
+      </div>
+      <ul>
+        <li><b>Good:</b> the most readable: you can scan a whole unit's work in one look.</li>
+        <li><b>Good:</b> fits phones better (it can scroll sideways).</li>
+        <li><b>Trade-off:</b> drops the class-in-the-center idea.</li>
+      </ul>
+    </div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus · Study map<button data-theme-for="d">Light / dark</button></div>
+      <div class="scroller"><div class="app" id="app-d"></div></div></div>
+  </section>
+
+  <p class="foot">In all four: the dropdown picks the class, the panel lists its upcoming tests (past ones below), and picking a test highlights its weeks on the chart. Under the test, <b>Make a study set</b> opens a short step that pulls the topics from the covered assignments; you can remove or add topics before the AI makes the set. Reviewed ticks are shared across the previews.</p>
+</main>
+
+<script>
+/* ================= Demo semester ================= */
+const SEM_START = new Date(2026, 7, 24)
+const TODAY = new Date(2026, 10, 21, 12)
+const WEEKS = 16, DAY = 864e5
+const dayOf = (w, dow, h = 23, m = 59) => new Date(2026, 7, 24 + (w - 1) * 7 + dow, h, m)
+const weekFrac = (d) => (d - SEM_START) / (7 * DAY)
+const NOW_WEEK = Math.floor(weekFrac(TODAY)) + 1
+const fmtDay = (d) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+const fmtShort = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+const COURSES = [
+  { id: 'cs', code: 'CS 210', name: 'Intro to Programming', color: '#c792ea' },
+  { id: 'eng', code: 'ENGL 101', name: 'Composition', color: '#f2a65a' },
+  { id: 'math', code: 'MATH 120', name: 'Calculus I', color: '#6aa9ff' },
+]
+const courseById = (id) => COURSES.find((c) => c.id === id)
+const muted = (c, p = 78) => `color-mix(in srgb, ${c} ${p}%, #8a8a8a)`
+const items = []
+let uid = 0
+const add = (course, w, title, due, desc, est) => items.push({ id: 'i' + uid++, course, week: w, title, due, desc, est })
+const mathTopics = ['1.1–1.2 Functions and limits', '1.3 Limit laws', '1.4 Continuity', null, '2.1 The derivative',
+  '2.2 Power and product rules', '2.3 Chain rule', null, '2.4 Implicit differentiation', '2.5 Related rates',
+  '3.1 Max and min values', '3.2 Mean value theorem', '3.3 Curve sketching', '3.4 Optimization', '4.1 Antiderivatives', null]
+let ps = 1, qz = 1
+mathTopics.forEach((topic, i) => {
+  const w = i + 1
+  if (w === 4) add('math', w, 'Test 1', dayOf(w, 1, 10), 'In class, chapters 1.1–1.4', 240)
+  if (w === 8) add('math', w, 'Test 2', dayOf(w, 1, 10), 'In class, chapters 2.1–2.3', 240)
+  if (w === 14) add('math', w, 'Test 3', dayOf(w, 1, 10), 'In class, chapters 2.4–3.3', 240)
+  if (w === 16) add('math', w, 'Final exam', dayOf(w, 3, 9), 'Cumulative', 240)
+  if (topic) add('math', w, `Problem Set ${ps++}`, dayOf(w, 3), `Sections ${topic}`, 120)
+  if ([2, 6, 10, 12].includes(w)) add('math', w, `Quiz ${qz++}`, dayOf(w, 4, 10), `Covers ${mathTopics[w - 2]}`, 60)
+})
+const csTopics = ['Variables', 'Conditionals', 'Loops', 'Functions', 'Lists', 'Strings', 'Dictionaries', null,
+  'Classes', 'Inheritance', 'Files', 'Recursion', 'Sorting', 'Searching', 'Testing', null]
+let lab = 1
+csTopics.forEach((topic, i) => {
+  const w = i + 1
+  if (topic) add('cs', w, `Lab ${lab++}: ${topic}`, dayOf(w, 2), `Practice ${topic.toLowerCase()} in Python`, 120)
+  if (w === 5) add('cs', w, 'Project 1: Text adventure', dayOf(w, 4), 'Uses functions, lists and loops', 360)
+  if (w === 8) add('cs', w, 'Midterm exam', dayOf(w, 3, 14), 'Labs 1–7', 240)
+  if (w === 11) add('cs', w, 'Project 2: Gradebook', dayOf(w, 4), 'Uses classes and files', 360)
+  if (w === 16) add('cs', w, 'Final exam', dayOf(w, 2, 14), 'Cumulative', 240)
+})
+;[[2, 'Reading response 1', 'Chapter 1, rhetorical situations', 60], [3, 'Essay 1 draft', 'Personal narrative', 240],
+  [5, 'Essay 1 final', 'Personal narrative', 240], [6, 'Reading response 2', 'Chapter 4, argument', 60],
+  [8, 'Essay 2 draft', 'Argument essay', 240], [10, 'Essay 2 final', 'Argument essay', 240], [11, 'Reading response 3', 'Chapter 7, sources', 60],
+  [12, 'Peer review', 'Research paper outline', 60], [13, 'Annotated bibliography', 'Eight sources', 120], [15, 'Research paper', 'Final paper', 360],
+].forEach(([w, t, d, e]) => add('eng', w, t, dayOf(w, 4), d, e))
+const isTest = (it) => /\b(test|exam|midterm)\b/i.test(it.title)
+items.forEach((it) => {
+  it.test = isTest(it)
+  it.done = it.due < TODAY && !it.test && it.title !== 'Problem Set 11'
+  it.late = it.due < TODAY && !it.done && !it.test
+})
+const courseItems = (c) => items.filter((it) => it.course === c).sort((a, b) => a.due - b.due)
+const testsOf = (c) => courseItems(c).filter((it) => it.test)
+const isFinal = (t) => /final/i.test(t.title)
+function unitOf(t) {
+  const tests = testsOf(t.course)
+  const prev = tests[tests.indexOf(t) - 1]
+  const cumulative = isFinal(t)
+  const from = cumulative || !prev ? 1 : prev.week + 1
+  const to = Math.max(from, t.week - 1)
+  return { test: t, prev, from, to, cumulative, list: courseItems(t.course).filter((it) => !it.test && it.week >= from && it.week <= to) }
+}
+function daysUntil(d) {
+  const mid = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate())
+  const n = Math.round((mid(d) - mid(TODAY)) / DAY)
+  return n === 0 ? 'today' : n === 1 ? 'tomorrow' : n > 0 ? `in ${n} days` : `${-n} days ago`
+}
+/** Topics for a study set: the section/topic text of each covered assignment, de-duplicated. */
+function topicsFor(u) {
+  const seen = new Set(), out = []
+  for (const it of u.list) {
+    const t = it.desc.replace(/^(Sections|Covers|Practice)\s+/i, '').replace(/ in Python$/, '').trim()
+    const key = t.toLowerCase()
+    if (!seen.has(key)) { seen.add(key); out.push(t) }
+  }
+  return out
+}
+const reviewed = new Set()
+const apps = {}
+
+/* ================= Shared shell and panel ================= */
+const ICONS = {
+  logo: '<svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path d="M6.5 24C6.5 13 19.5 13 19.5 24S32.5 35 32.5 24" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"/><circle cx="40.5" cy="24" r="3.9" fill="currentColor"/></svg>',
+  cal: '<svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>',
+  list: '<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>',
+  graph: '<svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="7" r="2"/><circle cx="12" cy="17" r="3"/><path d="M8.2 7.3 10.6 14.4M16.4 8.4 13.5 14.6M8.4 6.2l7.6.6"/></svg>',
+  check: '<svg viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.6l4.5-5"/></svg>',
+  spark: '<svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>',
+}
+
+function panelHtml(st) {
+  const c = courseById(st.course)
+  const ts = testsOf(c.id), up = ts.filter((t) => t.due >= TODAY), past = ts.filter((t) => t.due < TODAY).reverse()
+  const row = (t) => {
+    const u = unitOf(t), isPast = t.due < TODAY
+    return `<button class="trow${isPast ? ' past' : ''}${st.test === t.id ? ' on' : ''}" data-test="${t.id}" aria-pressed="${st.test === t.id}">
+      <b>${t.title}</b><span class="when">${fmtShort(t.due)}${isPast ? '' : `<br><span class="soon">${daysUntil(t.due)}</span>`}</span>
+      <span class="cov">${u.cumulative ? 'Covers the whole semester' : `Covers weeks ${u.from}–${u.to}`}</span></button>`
+  }
+  let h = `<div><h2 class="p-title">Upcoming tests</h2><p class="p-sub">${c.code}. Pick a test to see the weeks it covers.</p></div>`
+  if (!ts.length) return h + `<p class="empty">${c.code} has no tests: essays and reading responses only.</p>`
+  h += `<div class="tests">${up.length ? up.map(row).join('') : '<p class="empty">No more tests this term.</p>'}</div>`
+  if (st.test) h += detailHtml(st)
+  if (past.length) h += `<p class="sec-h">Past tests</p><div class="tests">${past.map(row).join('')}</div>`
+  return h
+}
+
+function detailHtml(st) {
+  const u = unitOf(items.find((i) => i.id === st.test))
+  const n = u.list.length, d = u.list.filter((i) => reviewed.has(i.id)).length
+  if (st.sheet) {
+    const topics = st.topics
+    return `<div class="sheet" aria-label="Study set">
+      <h3>Study set for ${u.test.title}</h3>
+      <p>These topics come from the ${n} assignments in weeks ${u.from}–${u.to}. Remove anything that won't be on the test, or add your own.</p>
+      <div class="topics">${topics.map((t, i) => `<span class="topic">${t}<button data-rmtopic="${i}" aria-label="Remove ${t}">×</button></span>`).join('')}</div>
+      <form class="addt" data-addtopic><input placeholder="Add a topic" aria-label="Add a topic"><button>Add</button></form>
+      <button class="cta" disabled>${ICONS.spark}Create study set</button>
+      <p class="premium">AI study sets are coming with Premium.</p>
+      <button class="ghost" data-closesheet>Back</button></div>`
+  }
+  let groups = ''
+  for (let w = u.from; w <= u.to; w++) {
+    const its = u.list.filter((i) => i.week === w)
+    if (!its.length) continue
+    groups += `<div class="wgroup"><h4>Week ${w}</h4>${its.map((it) => `<label class="check"><input type="checkbox" data-rev="${it.id}"${reviewed.has(it.id) ? ' checked' : ''}><span class="box">${ICONS.check}</span>
+      <span><span class="t">${it.title}</span>${it.late ? '<span class="flag">Not turned in</span>' : ''}</span></label>`).join('')}</div>`
+  }
+  return `<div class="detail">
+    ${u.test.due >= TODAY ? `<button class="cta fadein" data-sheet>${ICONS.spark}Make a study set</button>` : ''}
+    <div><div class="meter-row"><span><b>${d}</b> of ${n} reviewed</span><span>${n ? Math.round((d / n) * 100) : 0}%</span></div><div class="bar"><i style="width:${n ? (d / n) * 100 : 0}%"></i></div></div>
+    <div>${groups}</div></div>`
+}
+
+function mount(key, render, legend) {
+  const el = document.getElementById('app-' + key)
+  const st = { course: 'math', test: null, sheet: false, topics: [], fresh: false }
+  const firstUp = (c) => testsOf(c).find((t) => t.due >= TODAY)
+  st.test = firstUp('math')?.id ?? null
+  el.innerHTML = `<nav class="side" aria-label="App"><div class="brand">${ICONS.logo}praedus</div>
+      <span class="nav">${ICONS.cal}Calendar</span><span class="nav">${ICONS.list}Assignments</span><span class="nav on">${ICONS.graph}Study map</span></nav>
+    <div class="main"><div class="head">
+        <label class="pickr"><i></i><select aria-label="Class">${COURSES.map((c) => `<option value="${c.id}"${c.id === st.course ? ' selected' : ''}>${c.code} · ${c.name}</option>`).join('')}</select></label>
+        <span class="meta">Week ${NOW_WEEK} of ${WEEKS}</span>
+        <div class="legend">${legend}</div></div>
+      <div class="chart"><svg role="img" aria-label="Semester chart"></svg></div></div>
+    <aside class="panel" aria-label="Tests"></aside>`
+  const svg = el.querySelector('.chart svg')
+  const dot = el.querySelector('.pickr i')
+  const draw = () => {
+    dot.style.background = courseById(st.course).color
+    render(svg, st)
+    el.querySelector('.panel').innerHTML = panelHtml(st)
+    st.fresh = false
+  }
+  el.querySelector('select').addEventListener('change', (e) => { st.course = e.target.value; st.test = firstUp(st.course)?.id ?? null; st.sheet = false; st.fresh = true; draw() })
+  el.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-test],[data-sheet],[data-closesheet],[data-rmtopic]')
+    if (!t) return
+    if (t.dataset.test) { st.test = st.test === t.dataset.test ? null : t.dataset.test; st.sheet = false; st.fresh = true }
+    else if (t.dataset.sheet !== undefined) { st.sheet = true; st.topics = topicsFor(unitOf(items.find((i) => i.id === st.test))) }
+    else if (t.dataset.closesheet !== undefined) st.sheet = false
+    else if (t.dataset.rmtopic !== undefined) st.topics.splice(+t.dataset.rmtopic, 1)
+    draw()
+  })
+  el.addEventListener('submit', (e) => {
+    e.preventDefault()
+    const input = e.target.querySelector('input')
+    if (input.value.trim()) st.topics.push(input.value.trim())
+    draw()
+  })
+  el.addEventListener('change', (e) => {
+    const id = e.target.dataset.rev
+    if (!id) return
+    e.target.checked ? reviewed.add(id) : reviewed.delete(id)
+    for (const k in apps) apps[k]()
+  })
+  apps[key] = draw
+  draw()
+}
+document.querySelectorAll('[data-theme-for]').forEach((b) => b.addEventListener('click', () => document.getElementById('app-' + b.dataset.themeFor).classList.toggle('light')))
+
+/* ================= Geometry helpers ================= */
+const ang = (w) => -Math.PI / 2 + ((w - 1) / WEEKS) * 2 * Math.PI   // start angle of week w
+const P = (a, r) => [Math.cos(a) * r, Math.sin(a) * r]
+function slicePath(a0, a1, r0, r1) {
+  const big = a1 - a0 > Math.PI ? 1 : 0
+  const [x0, y0] = P(a0, r1), [x1, y1] = P(a1, r1), [x2, y2] = P(a1, r0), [x3, y3] = P(a0, r0)
+  return `M${x0},${y0} A${r1},${r1} 0 ${big} 1 ${x1},${y1} L${x2},${y2} A${r0},${r0} 0 ${big} 0 ${x3},${y3}Z`
+}
+const GAP = 0.012
+function ctx(st) {
+  const c = courseById(st.course), u = st.test ? unitOf(items.find((i) => i.id === st.test)) : null
+  const inU = (w) => u && w >= u.from && w <= u.to
+  return { c, u, inU }
+}
+function centerHtml(c, r) {
+  return `<circle r="${r}" fill="var(--bg)"/><text class="center-code" text-anchor="middle" y="-6">${c.code}</text>
+    <text class="center-name" text-anchor="middle" y="14">${c.name}</text><text class="center-wk" text-anchor="middle" y="34">Week ${NOW_WEEK} of ${WEEKS}</text>`
+}
+/** Test labels outside the rim, with a short tick. */
+function testFlags(c, st, rIn, rOut) {
+  return testsOf(c.id).map((t) => {
+    const a = ang(1) + (weekFrac(t.due) / WEEKS) * 2 * Math.PI
+    const [x0, y0] = P(a, rIn), [x1, y1] = P(a, rOut), [tx, ty] = P(a, rOut + 8)
+    const left = Math.cos(a) < -0.15, right = Math.cos(a) > 0.15
+    const anchor = left ? 'end' : right ? 'start' : 'middle'
+    const dy = Math.sin(a) > 0.6 ? 10 : Math.sin(a) < -0.6 ? -4 : 4
+    return `<g class="tflag${st.test === t.id ? ' on' : ''}" data-test="${t.id}" role="button" aria-label="${t.title}">
+      <line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}"/><text x="${tx}" y="${ty + dy}" text-anchor="${anchor}">${t.title}</text>
+      <rect x="${tx - 40}" y="${ty - 12}" width="80" height="24"/></g>`
+  }).join('')
+}
+
+/* ================= A. Donut ================= */
+function renderDonut(svg, st) {
+  const { c, u, inU } = ctx(st)
+  const R0 = 118, R1 = 262
+  let h = ''
+  for (let w = 1; w <= WEEKS; w++) {
+    const a0 = ang(w) + GAP, a1 = ang(w + 1) - GAP, am = (a0 + a1) / 2
+    const fill = inU(w) ? muted(c.color, 62) : null
+    h += `<path class="sl${w % 2 ? '' : ' alt'}${w === NOW_WEEK ? ' now' : ''}${inU(w) && st.fresh ? ' fadein' : ''}" d="${slicePath(a0, a1, R0, R1)}" ${fill ? `style="fill:${fill}"` : ''}><title>Week ${w}</title></path>`
+    const [nx, ny] = P(am, R1 - 18)
+    h += `<text class="wnum${inU(w) ? ' in' : ''}${w === NOW_WEEK ? ' now' : ''}" x="${nx}" y="${ny}" text-anchor="middle" dominant-baseline="central">${w}</text>`
+    courseItems(c.id).filter((i) => i.week === w && !i.test).forEach((it, j) => {
+      const [x, y] = P(am, R0 + 26 + j * 22)
+      const col = inU(w) ? '#fff' : muted(c.color)
+      h += `<circle class="mk${it.done ? ' done' : ''}${it.late ? ' late' : ''}${reviewed.has(it.id) ? ' rev' : ''}" cx="${x}" cy="${y}" r="5.5" style="fill:${inU(w) ? 'var(--bg)' : col}"><title>${it.title}</title></circle>`
+    })
+  }
+  h += testFlags(c, st, R1 + 4, R1 + 18) + centerHtml(c, R0 - 6)
+  svg.setAttribute('viewBox', '-340 -320 680 640')
+  svg.innerHTML = h
+}
+
+/* ================= B. Sunburst ================= */
+function renderSunburst(svg, st) {
+  const { c, u, inU } = ctx(st)
+  const R0 = 112, R1 = 168, R2 = 174, R3 = 258
+  let h = ''
+  for (let w = 1; w <= WEEKS; w++) {
+    const a0 = ang(w) + GAP, a1 = ang(w + 1) - GAP, am = (a0 + a1) / 2
+    h += `<path class="sl${w % 2 ? '' : ' alt'}${w === NOW_WEEK ? ' now' : ''}" d="${slicePath(a0, a1, R0, R1)}" ${inU(w) ? `style="fill:${muted(c.color, 62)}"` : ''}><title>Week ${w}</title></path>`
+    const [nx, ny] = P(am, (R0 + R1) / 2)
+    h += `<text class="wnum${inU(w) ? ' in' : ''}${w === NOW_WEEK ? ' now' : ''}" x="${nx}" y="${ny}" text-anchor="middle" dominant-baseline="central">${w}</text>`
+    const its = courseItems(c.id).filter((i) => i.week === w)
+    const span = (a1 - a0) / Math.max(1, its.length)
+    its.forEach((it, j) => {
+      const b0 = a0 + j * span + (j ? 0.004 : 0), b1 = a0 + (j + 1) * span - (j < its.length - 1 ? 0.004 : 0)
+      let fill = 'var(--slice)'
+      if (it.test) fill = 'var(--text)'
+      else if (reviewed.has(it.id)) fill = 'var(--accent)'
+      else if (it.late) fill = 'var(--danger)'
+      else if (it.done) fill = inU(w) ? muted(c.color, 35) : 'var(--slice-2)'
+      else fill = muted(c.color, inU(w) ? 85 : 45)
+      const op = u && !inU(w) && !(it.test && it.id === st.test) ? 0.45 : 1
+      h += `<path class="sl" d="${slicePath(b0, b1, R2, R3)}" style="fill:${fill};opacity:${op}"><title>${it.title}</title></path>`
+    })
+  }
+  h += testFlags(c, st, R3 + 4, R3 + 18) + centerHtml(c, R0 - 6)
+  svg.setAttribute('viewBox', '-340 -320 680 640')
+  svg.innerHTML = h
+}
+
+/* ================= C. Workload pie ================= */
+function renderRose(svg, st) {
+  const { c, inU } = ctx(st)
+  const R0 = 104, RMAX = 262
+  const load = (w) => courseItems(c.id).filter((i) => i.week === w).reduce((s, i) => s + i.est, 0)
+  const max = Math.max(...Array.from({ length: WEEKS }, (_, i) => load(i + 1)), 60)
+  let h = `<circle r="${RMAX}" fill="none" stroke="var(--border)" stroke-dasharray="2 5"/><circle r="${(R0 + RMAX) / 2}" fill="none" stroke="var(--border)" stroke-dasharray="2 5"/>`
+  for (let w = 1; w <= WEEKS; w++) {
+    const a0 = ang(w) + GAP, a1 = ang(w + 1) - GAP, am = (a0 + a1) / 2
+    const L = load(w), r = R0 + 14 + (RMAX - R0 - 14) * Math.sqrt(L / max)
+    h += `<path class="sl alt${w === NOW_WEEK ? ' now' : ''}" d="${slicePath(a0, a1, R0, r)}" ${inU(w) ? `style="fill:${muted(c.color, 62)}"` : ''}><title>Week ${w}: about ${Math.round(L / 60)} h of work</title></path>`
+    const [nx, ny] = P(am, R0 + 14)
+    h += `<text class="wnum${inU(w) ? ' in' : ''}${w === NOW_WEEK ? ' now' : ''}" x="${nx}" y="${ny}" text-anchor="middle" dominant-baseline="central">${w}</text>`
+    if (L) { const [hx, hy] = P(am, r - 14); h += `<text x="${hx}" y="${hy}" text-anchor="middle" dominant-baseline="central" style="fill:${inU(w) ? 'var(--bg)' : 'var(--faint)'};font-size:10px;font-weight:600">${Math.round(L / 60)}h</text>` }
+  }
+  h += testFlags(c, st, RMAX + 4, RMAX + 18) + centerHtml(c, R0 - 6)
+  svg.setAttribute('viewBox', '-340 -320 680 640')
+  svg.innerHTML = h
+}
+
+/* ================= D. Semester track ================= */
+function renderTrack(svg, st) {
+  const { c, u, inU } = ctx(st)
+  const W = 760, X0 = 20, CW = (W - 40) / WEEKS, TOP = 92, ROWH = 32
+  const X = (wf) => X0 + wf * CW
+  let h = ''
+  if (u) h += `<rect class="band${st.fresh ? ' fadein' : ''}" x="${X(u.from - 1)}" y="58" width="${X(u.to) - X(u.from - 1)}" height="${TOP + ROWH * 4 + 10 - 58}" rx="6" fill="${c.color}"/>`
+  for (let w = 1; w <= WEEKS; w++) {
+    const x = X(w - 1)
+    h += `<line x1="${x}" y1="60" x2="${x}" y2="${TOP + ROWH * 4}" stroke="var(--border)"/>`
+    h += `<text class="colhead${inU(w) ? ' in' : ''}" x="${x + CW / 2}" y="74" text-anchor="middle">${w}</text>`
+    h += `<text class="coldate" x="${x + CW / 2}" y="${TOP + ROWH * 4 + 26}" text-anchor="middle">${fmtShort(dayOf(w, 0))}</text>`
+    courseItems(c.id).filter((i) => i.week === w && !i.test).forEach((it, j) => {
+      const y = TOP + j * ROWH, r = reviewed.has(it.id)
+      const stroke = r ? 'var(--accent)' : it.late ? 'var(--danger)' : inU(w) ? muted(c.color, 85) : 'var(--border)'
+      const fill = r ? 'var(--accent-soft)' : inU(w) ? 'var(--bg)' : 'var(--slice)'
+      // Short names so each fits its column; the full title is in the hover and the panel.
+      const short = it.title.replace('Problem Set', 'PS').replace(/^Reading response (\d+)/, 'Read $1').replace(/^Lab (\d+):.*/, 'Lab $1')
+        .replace(/^Project (\d+):.*/, 'Proj $1').replace(/^Essay (\d+) (draft|final)/, (_, n, k) => `Ess ${n}${k[0]}`)
+        .replace('Annotated bibliography', 'Bib').replace('Peer review', 'Peer').replace('Research paper', 'Paper')
+      h += `<g class="chip"><rect x="${x + 3}" y="${y}" width="${CW - 6}" height="${ROWH - 6}" rx="4" style="fill:${fill};stroke:${stroke};opacity:${it.done && !inU(w) ? 0.6 : 1}"/>
+        <text x="${x + CW / 2}" y="${y + (ROWH - 6) / 2}" text-anchor="middle" dominant-baseline="central" style="fill:${r ? 'var(--accent)' : it.late ? 'var(--danger)' : inU(w) ? 'var(--text)' : 'var(--muted)'}">${short}</text><title>${it.title}</title></g>`
+    })
+  }
+  h += `<line x1="${X(WEEKS)}" y1="60" x2="${X(WEEKS)}" y2="${TOP + ROWH * 4}" stroke="var(--border)"/>`
+  for (const t of testsOf(c.id)) {
+    const x = X(weekFrac(t.due)), on = st.test === t.id, w = t.title.length * 6.6 + 18
+    h += `<g class="tflag${on ? ' on' : ''}" data-test="${t.id}" role="button" aria-label="${t.title}"><line x1="${x}" y1="32" x2="${x}" y2="${TOP + ROWH * 4}" stroke-dasharray="${on ? '' : '3 3'}"/>
+      <rect x="${x - w / 2}" y="16" width="${w}" height="20" rx="5" style="fill:${on ? 'var(--text)' : 'var(--bg)'};stroke:${on ? 'var(--text)' : 'var(--muted)'}"/>
+      <text x="${x}" y="27" text-anchor="middle" dominant-baseline="central" style="fill:${on ? 'var(--bg)' : 'var(--text)'}">${t.title}</text></g>`
+  }
+  const nx = X(weekFrac(TODAY))
+  h += `<line class="todayline" x1="${nx}" y1="44" x2="${nx}" y2="${TOP + ROWH * 4 + 6}"/><text class="today-word" x="${nx + 5}" y="52">Today</text>`
+  svg.setAttribute('viewBox', `-10 -40 ${W + 40} ${TOP + ROWH * 4 + 120}`)
+  svg.innerHTML = h
+}
+
+const DONUT_LEGEND = '<span><i style="background:var(--text)"></i>Covered weeks</span><span><i class="lg-dot" style="background:var(--muted)"></i>Assignment</span><span><i class="lg-dot" style="background:var(--accent)"></i>Reviewed</span>'
+mount('a', renderDonut, DONUT_LEGEND)
+mount('b', renderSunburst, '<span><i style="background:var(--muted)"></i>Inner: weeks</span><span><i style="background:var(--text)"></i>Outer: work</span><span><i style="background:var(--danger)"></i>Missing</span><span><i style="background:var(--accent)"></i>Reviewed</span>')
+mount('c', renderRose, '<span>Slice length = hours of work</span><span><i style="background:var(--accent)"></i>Today</span>')
+mount('d', renderTrack, '<span><i style="background:var(--accent)"></i>Today / reviewed</span><span><i style="background:var(--danger)"></i>Missing</span>')
+</script>
+</body>
+</html>

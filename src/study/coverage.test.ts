@@ -34,4 +34,25 @@ describe('coverage', () => {
     ).filter((c) => c.short > 0)
     expect(list.map((c) => c.item.id)).toEqual(['soon', 'later'])
   })
+
+  it('coverage includes upcoming test events', () => {
+    const ev = item('mid', { kind: 'event', title: 'Midterm Exam', estimateMinutes: undefined })
+    const list = coverage([ev], [], now)
+    expect(list).toHaveLength(1)
+    expect(list[0].estimate).toBe(240)
+  })
+
+  it('reports a test posted twice once, as the event', () => {
+    const due = '2026-11-25'
+    const list = coverage(
+      [
+        item('a', { title: 'Midterm Exam', allDay: true, start: due, courseId: 'c', estimateMinutes: undefined }),
+        item('e', { title: 'Midterm Exam', kind: 'event', allDay: true, start: due, courseId: 'c', estimateMinutes: undefined }),
+      ],
+      [],
+      now,
+    )
+    expect(list.map((c) => c.item.id)).toEqual(['e'])
+    expect(list[0].estimate).toBe(240)
+  })
 })

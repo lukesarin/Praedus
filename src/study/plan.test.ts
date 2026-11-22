@@ -143,4 +143,30 @@ describe('planStudy', () => {
     const orphan: StudyBlock = { id: 'o', itemId: 'gone', start: iso('2026-11-21', '10:00'), end: iso('2026-11-21', '11:00'), pinned: false }
     expect(plan({ items: [], blocks: [orphan] }).remove).toEqual(['o'])
   })
+
+  it('planStudy places blocks before a test that is a calendar event', () => {
+    const start = iso('2026-11-23', '10:00')
+    const ev = assignment('mid', start, undefined, { kind: 'event', title: 'Midterm Exam' })
+    const { add } = plan({ items: [ev] })
+    const mine = add.filter((b) => b.itemId === 'mid')
+    expect(mine.length).toBeGreaterThan(0)
+    for (const b of mine) expect(Date.parse(b.end)).toBeLessThanOrEqual(Date.parse(start))
+    expect(mine.reduce((s, b) => s + minutes(b), 0)).toBe(240)
+  })
+
+  it('plans a test posted as both an assignment and an event only once', () => {
+    const due = '2026-11-25'
+    const items = [
+      assignment('a', due, undefined, { title: 'Midterm Exam', courseId: 'c' }),
+      assignment('e', due, undefined, { title: 'midterm exam', kind: 'event', courseId: 'c' }),
+    ]
+    const { add } = plan({ items })
+    expect(new Set(add.map((b) => b.itemId))).toEqual(new Set(['e']))
+    expect(add.reduce((sum, b) => sum + minutes(b), 0)).toBe(240)
+  })
+
+  it('places no blocks for a past item kept as history', () => {
+    const { add } = plan({ items: [assignment('old', iso('2026-11-18', '09:00'), 120, { keptAsHistory: true })] })
+    expect(add).toEqual([])
+  })
 })

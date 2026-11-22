@@ -20,6 +20,30 @@ export async function setMinGap(db: StudyBlocksDB, minutes: number): Promise<voi
   await db.settings.put({ key: MIN_GAP_KEY, value: normalizeMinGap(minutes) })
 }
 
+const TERM_START_KEY = 'termStart'
+
+/** Only a real calendar date written exactly as YYYY-MM-DD, in the years 2000 to 2100. */
+export function normalizeTermStart(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!m) return undefined
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])]
+  const check = new Date(Date.UTC(y, mo - 1, d))
+  if (y < 2000 || y > 2100) return undefined
+  const real = check.getUTCFullYear() === y && check.getUTCMonth() === mo - 1 && check.getUTCDate() === d
+  return real ? value : undefined
+}
+
+export async function getTermStart(db: StudyBlocksDB): Promise<string | undefined> {
+  return normalizeTermStart((await db.settings.get(TERM_START_KEY))?.value)
+}
+
+export async function setTermStart(db: StudyBlocksDB, date: string | undefined): Promise<void> {
+  const valid = normalizeTermStart(date)
+  if (valid === undefined) await db.settings.delete(TERM_START_KEY)
+  else await db.settings.put({ key: TERM_START_KEY, value: valid })
+}
+
 const STUDY_KEY = 'study'
 
 export async function getStudySettings(db: StudyBlocksDB): Promise<StudySettings> {

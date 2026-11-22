@@ -1,5 +1,6 @@
 import type { CalendarItem } from '../db/db'
 import { dueInstant, estimateFor } from './plan'
+import { plannableItems } from './testItems'
 import type { StudyBlock } from './types'
 
 export type Coverage = {
@@ -16,8 +17,8 @@ export type Coverage = {
 /** How much study time each upcoming, unfinished assignment has, soonest due first. */
 export function coverage(items: CalendarItem[], blocks: StudyBlock[], now: Date): Coverage[] {
   const nowMs = now.getTime()
-  return items
-    .filter((i) => i.kind === 'assignment' && !i.done && dueInstant(i) > nowMs)
+  return plannableItems(items)
+    .filter((i) => !i.done && dueInstant(i) > nowMs)
     .sort((a, b) => dueInstant(a) - dueInstant(b))
     .map((item) => {
       let studied = 0

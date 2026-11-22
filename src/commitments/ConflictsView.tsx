@@ -14,6 +14,8 @@ type Props = {
   /** Upcoming assignments that don't have enough study time yet. */
   short: Coverage[]
   studySettings: StudySettings
+  /** First day of classes (YYYY-MM-DD), or null when not set. */
+  termStart: string | null
   planning: boolean
   onPlan: () => void
   onSelectItem: (itemId: string) => void
@@ -38,7 +40,7 @@ function describe(c: Conflict): { title: string; detail: string } {
   }
 }
 
-export function ConflictsView({ conflicts, minGap, short, studySettings, planning, onPlan, onSelectItem, onJump }: Props) {
+export function ConflictsView({ conflicts, minGap, short, studySettings, termStart, planning, onPlan, onSelectItem, onJump }: Props) {
   const red = conflicts.filter((c) => c.kind !== 'tight')
   const amber = conflicts.filter((c) => c.kind === 'tight')
 
@@ -101,7 +103,7 @@ export function ConflictsView({ conflicts, minGap, short, studySettings, plannin
       </section>
 
       <GapSetting key={minGap} minGap={minGap} />
-      <StudySettingsForm key={JSON.stringify(studySettings)} settings={studySettings} />
+      <StudySettingsForm key={JSON.stringify(studySettings)} settings={studySettings} termStart={termStart} />
     </div>
   )
 }

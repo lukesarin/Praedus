@@ -43,4 +43,9 @@ describe('groupAssignments', () => {
   it('returns no groups for no assignments', () => {
     expect(groupAssignments([], today)).toEqual([])
   })
+
+  it('leaves out assignments kept as history', () => {
+    const groups = groupAssignments([a('old', '2026-09-01', { keptAsHistory: true })], today)
+    expect(groups).toEqual([])
+  })
 })
