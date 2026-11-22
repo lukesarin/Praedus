@@ -123,7 +123,12 @@ export function AuthGate({ client = defaultClient }: { client?: SupabaseClient |
     )
   }
 
-  const account = { email: user.email ?? '', onLogOut: () => void auth.signOut({ scope: 'local' }) }
+  const account = {
+    email: user.email ?? '',
+    onLogOut: () => void auth.signOut({ scope: 'local' }),
+    // A fresh access token for the feed helper (Supabase refreshes it as needed).
+    getToken: async () => (await auth.getSession()).data.session?.access_token ?? null,
+  }
   return (
     <>
       <div ref={appRef} className="app-root">

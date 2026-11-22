@@ -5,7 +5,8 @@ import { TOPIC_SCHEMA, type TopicRequest } from '../src/studySet/shape'
 const MODEL = 'claude-opus-5-5'
 
 const COMMON = `You make study material for one topic of a college class, for a student preparing for a test.
-Write for a student, in plain language. Use only what's true; if the student's notes are given, follow
+Write for a student, in plain language. Plain text only: no Markdown, no LaTeX. Write math the
+way you'd type it (x^2, sqrt(x), dy/dt) and put each step of a solution on its own line. Use only what's true; if the student's notes are given, follow
 their wording, notation and emphasis, and stay within what the notes and the topic cover.
 
 Return JSON with:

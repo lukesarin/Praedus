@@ -20,6 +20,10 @@ import { coverLine } from '../map/panelText'
 import { StudyMap } from '../map/StudyMap'
 import { TestPrepPanel, type PanelTest } from '../map/TestPrepPanel'
 import { addNotes, deleteNote, moveNote, notesMessage, type NoteInput } from '../notes/notes'
+import { classType } from '../studySet/classType'
+import { startStudySet } from '../studySet/store'
+import { StudySession } from '../studySet/StudySession'
+import type { StudySetTopic } from '../map/panelText'
 import { defaultPick, defaultTestFor, mapCourses as courseList, classWeeks, mapItems, unitFor } from '../map/units'
 import { StudyBlockDialog } from '../study/StudyBlockDialog'
 import { ImportDialog } from '../import/ImportDialog'
@@ -44,7 +48,7 @@ async function saveCommitment(c: Commitment | null, id: string) {
   else await db.commitments.delete(id)
 }
 
-export type Account = { email: string; onLogOut: () => void }
+export type Account = { email: string; onLogOut: () => void; getToken: () => Promise<string | null> }
 
 export default function App({ account }: { account?: Account } = {}) {
   const [theme, toggleTheme] = useTheme()
@@ -121,6 +125,13 @@ export default function App({ account }: { account?: Account } = {}) {
     [mapCourse?.id],
   ) ?? []
   const [noteFlash, setNoteFlash] = useState<{ weeks: string[]; key: number }>()
+  const studySetIds = useLiveQuery(
+    async () => (mapCourse ? (await db.studySets.where('courseId').equals(mapCourse.id).primaryKeys()).map(String) : []),
+    [mapCourse?.id],
+  ) ?? []
+  // The study session on screen, by test id.
+  const [studyTest, setStudyTest] = useState<string | null>(null)
+  const getToken = account?.getToken ?? (async () => null)
   const donut = useMemo(() => {
     if (!mapCourse || !items) return null
     const input = { course: mapCourse, items, termStart: termStart ?? undefined, now }
@@ -218,6 +229,21 @@ export default function App({ account }: { account?: Account } = {}) {
     const { added, rejected } = await addNotes(db, mapCourse.id, inputs, weeks, new Date())
     setNotice(notesMessage(added, rejected, weeks))
     if (added.length) setNoteFlash({ weeks: [...new Set(added.map((n) => n.week))], key: Date.now() })
+  }
+
+  async function createSet(topics: StudySetTopic[]) {
+    const unit = donut?.unit
+    if (!mapCourse || !unit) return
+    await startStudySet({
+      testId: unit.test.id,
+      courseId: mapCourse.id,
+      className: mapCourse.name,
+      testTitle: unit.test.title,
+      kind: classType(mapCourse.name),
+      weeks: unit.weeks.map((w) => w.start),
+      topics,
+    }, getToken)
+    setStudyTest(unit.test.id)
   }
 
   function pickTest(testId: string | undefined) {
@@ -332,6 +358,9 @@ export default function App({ account }: { account?: Account } = {}) {
                 onOpenItem={setSelected}
                 notes={mapNotes}
                 onFiles={(inputs) => void dropNotes(inputs)}
+                studySetIds={studySetIds}
+                onCreateSet={(topics) => void createSet(topics)}
+                onOpenSet={setStudyTest}
               />
             )}
           </div>
@@ -390,6 +419,14 @@ export default function App({ account }: { account?: Account } = {}) {
             else pending.cancel?.()
             setPending(null)
           }}
+        />
+      )}
+      {studyTest && (
+        <StudySession
+          testId={studyTest}
+          getToken={getToken}
+          onClose={() => setStudyTest(null)}
+          onPlan={() => { setStudyTest(null); void plan() }}
         />
       )}
     </div>

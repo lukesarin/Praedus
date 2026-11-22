@@ -31,6 +31,11 @@ type Props = {
   /** The class's notes, all weeks. */
   notes: Note[]
   onFiles: (inputs: NoteInput[]) => void
+  /** Tests of this class that already have a study set. */
+  studySetIds: string[]
+  /** Makes a new set from these topics (replacing any old one) and opens it. */
+  onCreateSet: (topics: StudySetTopic[]) => void
+  onOpenSet: (testId: string) => void
 }
 
 function testDate(item: CalendarItem): string {
@@ -73,9 +78,17 @@ function SparkIcon() {
 }
 
 /** Picks topics for a study set. Nothing is saved yet: saving comes with the AI. */
-type StepProps = { test: CalendarItem; unit: Unit; weeks: Week[]; notes: Note[]; onFiles: (inputs: NoteInput[]) => void; onBack: () => void }
+type StepProps = {
+  test: CalendarItem
+  unit: Unit
+  weeks: Week[]
+  notes: Note[]
+  onFiles: (inputs: NoteInput[]) => void
+  onCreate: (topics: StudySetTopic[]) => void
+  onBack: () => void
+}
 
-function StudySetStep({ test, unit, weeks, notes, onFiles, onBack }: StepProps) {
+function StudySetStep({ test, unit, weeks, notes, onFiles, onCreate, onBack }: StepProps) {
   const [topics, setTopics] = useState<StudySetTopic[]>(() => studySetTopics(unit))
   const [draft, setDraft] = useState('')
   const picker = useFilePicker(onFiles)
@@ -127,14 +140,16 @@ function StudySetStep({ test, unit, weeks, notes, onFiles, onBack }: StepProps) 
         <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Add a topic" aria-label="Add a topic" />
         <button type="submit">Add</button>
       </form>
-      <button className="primary-btn prep-cta prep-spark" disabled><SparkIcon />Create study set</button>
-      <p className="prep-premium">AI study sets are coming with Premium.</p>
+      <button className="primary-btn prep-cta prep-spark" disabled={topics.length === 0} onClick={() => onCreate(topics)}>
+        <SparkIcon />Create study set
+      </button>
       <button className="prep-ghost" onClick={onBack}>Back</button>
     </section>
   )
 }
 
-export function TestPrepPanel({ course, tests, unit, weeks, blocks, short: missing, now, planning, onPlan, onPickTest, onToggleReviewed, onOpenItem, notes, onFiles }: Props) {
+export function TestPrepPanel(props: Props) {
+  const { course, tests, unit, weeks, blocks, short: missing, now, planning, onPlan, onPickTest, onToggleReviewed, onOpenItem, notes, onFiles } = props
   // The study set step is open for this test id; picking another test closes it.
   const [sheetFor, setSheetFor] = useState<string>()
   if (!course) return <aside className="prep" aria-label="Upcoming tests" />
@@ -181,7 +196,7 @@ export function TestPrepPanel({ course, tests, unit, weeks, blocks, short: missi
 
       {unit && (sheetFor === unit.test.id ? (
         <StudySetStep key={unit.test.id} test={unit.test} unit={unit} weeks={weeks} notes={notes} onFiles={onFiles}
-          onBack={() => setSheetFor(undefined)} />
+          onCreate={(topics) => { setSheetFor(undefined); props.onCreateSet(topics) }} onBack={() => setSheetFor(undefined)} />
       ) : (
         detail()
       ))}
@@ -215,8 +230,9 @@ export function TestPrepPanel({ course, tests, unit, weeks, blocks, short: missi
     return (
       <div className="prep-detail">
         {upcoming && total > 0 && (
-          <button className="primary-btn prep-cta prep-spark fadein" onClick={() => setSheetFor(test.id)}>
-            <SparkIcon />Make a study set
+          <button className="primary-btn prep-cta prep-spark fadein"
+            onClick={() => (props.studySetIds.includes(test.id) ? props.onOpenSet(test.id) : setSheetFor(test.id))}>
+            <SparkIcon />{props.studySetIds.includes(test.id) ? 'Continue study set' : 'Make a study set'}
           </button>
         )}
 

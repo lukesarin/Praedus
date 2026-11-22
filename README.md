@@ -45,6 +45,12 @@ an "Almost there" screen instead of the welcome page.
    the callback URL shown on Supabase's **Authentication → Providers → Google** page. Paste the
    Google client ID and secret into that Supabase page and enable it.
 
+4. **Turn on AI study sets (optional).** Create an API key in the Claude Console
+   (platform.claude.com, **API keys**) and add it to `.env.local` as `ANTHROPIC_API_KEY=...`.
+   Only the feed helper server reads it; it never reaches the browser (don't give it a `VITE_`
+   prefix). Each topic costs roughly $0.05–0.15 with Claude Opus 5.5, and each student can make 30
+   topics a day. Without a key the app says "AI study sets aren't set up on this computer."
+
 Restart `npm run dev` after changing `.env.local`.
 
 **Email limits:** Supabase's built-in email only sends to members of your Supabase team, about 2
