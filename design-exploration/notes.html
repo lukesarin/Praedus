@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Map: Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ---------- The preview page (plain, like earlier rounds) ---------- */
+:root { --ink: #171717; --ink-2: #737373; --line: #ececec; --mint: #0b7f58; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; color: var(--ink); font: 15px/1.55 "Figtree", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1340px; margin: 0 auto; padding: 0 32px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+.hero { background: #0e0e0e; color: #f2f2f2; }
+.hero .wrap { padding-top: 60px; padding-bottom: 48px; }
+.hero h1 { margin: 0 0 14px; font-size: clamp(34px, 5vw, 56px); line-height: 1; letter-spacing: -0.045em; font-weight: 700; max-width: 18ch; }
+.hero p { margin: 0 0 10px; color: #a3a3a3; max-width: 72ch; }
+.hero p strong { color: #f2f2f2; font-weight: 600; }
+.hero nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 20px; font-size: 14px; }
+.hero nav a { color: #d4d4d4; text-decoration: none; }
+.hero nav a:hover { color: #5ed3a8; }
+.opt { padding: 64px 0; border-bottom: 1px solid var(--line); }
+.opt-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; margin-bottom: 24px; }
+@media (max-width: 900px) { .opt-head { grid-template-columns: 1fr; gap: 14px; } }
+.opt h2 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.03em; line-height: 1.1; }
+.opt .lede { margin: 0 0 12px; color: var(--ink-2); }
+.opt p { margin: 0 0 10px; color: var(--ink-2); max-width: 60ch; }
+.opt ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+.opt li { margin: 4px 0; }
+.opt li b { color: var(--ink); }
+.pick { margin-left: 10px; font-size: 13px; font-weight: 700; color: var(--mint); vertical-align: middle; }
+.frame { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.frame-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fafafa; font-size: 12.5px; color: var(--ink-2); }
+.frame-bar .dots { display: flex; gap: 6px; }
+.frame-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: #e2e2e2; display: block; }
+.frame-bar button { margin-left: auto; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+.scroller { overflow-x: auto; }
+.foot { padding: 40px 0 80px; color: var(--ink-2); font-size: 14px; max-width: 72ch; }
+
+/* ---------- The app, with Praedus tokens ---------- */
+.app {
+  --bg: #0e0e0e; --hover: #1c1c1c; --surface: #181818; --slice: #1b1b1b; --slice-2: #232323; --border: #222; --text: #f2f2f2; --muted: #a3a3a3; --faint: #6e6e6e;
+  --accent: #5ed3a8; --on-accent: #06140f; --accent-soft: rgba(94,211,168,.15); --danger: #f26666;
+  background: var(--bg); color: var(--text); font: 14px/1.5 "Figtree", sans-serif; min-width: 1240px; height: 740px;
+  display: grid; grid-template-columns: 176px minmax(0, 1fr) 350px;
+}
+.app.light {
+  --bg: #fff; --hover: #f4f4f2; --surface: #f7f7f5; --slice: #f2f2ef; --slice-2: #e9e9e5; --border: #ececec; --text: #171717; --muted: #737373; --faint: #a3a3a3;
+  --accent: #0b7f58; --on-accent: #fff; --accent-soft: rgba(11,127,88,.1); --danger: #c9302c;
+}
+.app button, .app select, .app input { font: inherit; color: inherit; }
+.app :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.side { border-right: 1px solid var(--border); padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+.brand { display: flex; align-items: center; gap: 8px; padding: 0 8px 18px; font-weight: 700; font-size: 17px; letter-spacing: -0.035em; }
+.brand svg { color: var(--accent); }
+.nav { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 6px; color: var(--muted); }
+.nav svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav.on { color: var(--text); font-weight: 600; background: var(--hover); }
+.nav.on svg { color: var(--accent); }
+
+.main { display: flex; flex-direction: column; min-width: 0; border-right: 1px solid var(--border); }
+.head { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.pickr { position: relative; display: inline-flex; align-items: center; }
+.pickr i { position: absolute; left: 12px; width: 9px; height: 9px; border-radius: 50%; pointer-events: none; }
+.pickr select { appearance: none; -webkit-appearance: none; border: 1px solid var(--border); background: var(--bg); border-radius: 8px; padding: 7px 34px 7px 30px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pickr select:hover { border-color: var(--muted); }
+.pickr::after { content: ""; position: absolute; right: 13px; width: 7px; height: 7px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: translateY(-2px) rotate(45deg); pointer-events: none; }
+.head .meta { color: var(--faint); font-size: 13px; }
+.legend { margin-left: auto; display: flex; gap: 14px; font-size: 12px; color: var(--muted); align-items: center; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 9px; height: 9px; border-radius: 2px; display: block; }
+.legend .lg-dot { border-radius: 50%; }
+.chart { position: relative; flex: 1; min-height: 0; }
+.chart svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; }
+.chart svg text { font-family: "Figtree", sans-serif; }
+
+/* chart marks */
+.sl { fill: var(--slice); stroke: var(--bg); stroke-width: 2; transition: fill .25s, opacity .25s; }
+.sl.alt { fill: var(--slice-2); }
+.sl.now { stroke: var(--accent); stroke-width: 2; }
+.wnum { fill: var(--faint); font-size: 11px; font-weight: 600; }
+.wnum.in { fill: var(--text); }
+.wnum.now { fill: var(--accent); }
+.mk { stroke: var(--bg); stroke-width: 1.5; }
+.mk.done { opacity: .45; }
+.mk.late { stroke: var(--danger); stroke-width: 1.6; opacity: 1; }
+.mk.rev { fill: var(--accent) !important; opacity: 1; }
+.tflag line { stroke: var(--muted); stroke-width: 1; }
+.tflag text { fill: var(--muted); font-size: 11.5px; font-weight: 600; cursor: pointer; }
+.tflag.on text { fill: var(--text); font-weight: 700; }
+.tflag.on line { stroke: var(--text); }
+.tflag rect { fill: transparent; cursor: pointer; }
+.center-code { fill: var(--text); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.center-name { fill: var(--muted); font-size: 12px; }
+.center-wk { fill: var(--accent); font-size: 12px; font-weight: 600; }
+.chip rect { stroke-width: 1; }
+.chip text { font-size: 11px; font-weight: 500; }
+.colhead { fill: var(--faint); font-size: 12px; font-weight: 600; }
+.colhead.in { fill: var(--text); }
+.coldate { fill: var(--faint); font-size: 10px; }
+.band { opacity: .14; }
+.todayline { stroke: var(--accent); stroke-width: 1.5; }
+.today-word { fill: var(--accent); font-size: 10.5px; font-weight: 700; }
+.fadein { animation: fadein .45s ease both; }
+@keyframes fadein { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .fadein { animation: none; } .sl { transition: none; } }
+
+/* panel */
+.panel { overflow-y: auto; padding: 18px 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.p-title { margin: 0; font-size: 22px; letter-spacing: -0.03em; font-weight: 700; }
+.p-sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.tests { display: flex; flex-direction: column; }
+.trow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 12px 12px; border: 1px solid transparent; border-top-color: var(--border); background: none; text-align: left; cursor: pointer; border-radius: 0; }
+.trow:hover { background: var(--hover); }
+.trow.on { border: 1px solid var(--text); border-radius: 8px; }
+.trow.on + .trow { border-top-color: transparent; }
+.trow b { font-size: 15px; font-weight: 600; }
+.trow .when { font-size: 12.5px; color: var(--muted); text-align: right; }
+.trow .when .soon { color: var(--accent); font-weight: 600; }
+.trow .cov { grid-column: 1 / -1; font-size: 12.5px; color: var(--faint); }
+.trow.past b { color: var(--muted); font-weight: 500; }
+.sec-h { font-size: 12px; color: var(--faint); font-weight: 600; margin: 6px 0 0; }
+.detail { display: flex; flex-direction: column; gap: 12px; }
+.meter-row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+.meter-row b { color: var(--text); }
+.bar { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
+.cta { border: 0; border-radius: 8px; padding: 11px 14px; background: var(--accent); color: var(--on-accent) !important; font-weight: 700; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.cta svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ghost { border: 1px solid var(--border); background: none; border-radius: 8px; padding: 9px 14px; cursor: pointer; width: 100%; color: var(--muted) !important; }
+.ghost:hover { color: var(--text) !important; border-color: var(--muted); }
+.wgroup h4 { margin: 0 0 2px; font-size: 12px; font-weight: 600; color: var(--faint); }
+.wgroup + .wgroup { margin-top: 8px; }
+.check { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; padding: 6px 0; border-top: 1px solid var(--border); cursor: pointer; }
+.check input { position: absolute; opacity: 0; pointer-events: none; }
+.box { width: 16px; height: 16px; margin-top: 2px; border-radius: 50%; border: 1.5px solid var(--faint); display: grid; place-items: center; }
+.box svg { width: 10px; height: 10px; opacity: 0; stroke: var(--on-accent); stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.check input:checked + .box { background: var(--accent); border-color: var(--accent); }
+.check input:checked + .box svg { opacity: 1; }
+.check input:focus-visible + .box { outline: 2px solid var(--accent); outline-offset: 2px; }
+.check .t { font-size: 13.5px; }
+.check .flag { color: var(--danger); font-size: 11.5px; font-weight: 600; margin-left: 6px; }
+.empty { color: var(--muted); font-size: 13px; }
+/* study set sheet */
+.sheet { border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: var(--surface); }
+.sheet h3 { margin: 0; font-size: 16px; letter-spacing: -0.02em; }
+.sheet p { margin: 0; font-size: 12.5px; color: var(--muted); }
+.topics { display: flex; flex-wrap: wrap; gap: 6px; }
+.topic { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12.5px; background: var(--bg); }
+.topic button { border: 0; background: none; padding: 0 4px; cursor: pointer; color: var(--faint); font-size: 14px; line-height: 1; }
+.topic button:hover { color: var(--text); }
+.addt { display: flex; gap: 6px; }
+.addt input { flex: 1; min-width: 0; border: 1px solid var(--border); background: var(--bg); border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+.addt button { border: 1px solid var(--border); background: var(--bg); border-radius: 6px; padding: 6px 10px; font-size: 13px; cursor: pointer; }
+.premium { font-size: 12px; color: var(--faint); text-align: center; }
+.cta[disabled] { opacity: .55; cursor: not-allowed; }
+
+/* ---------- week card ---------- */
+.sl, .mk { cursor: pointer; }
+.sel { fill: none; stroke: var(--text); stroke-width: 2.5; pointer-events: none; }
+.lead { stroke: var(--text); stroke-width: 1.25; }
+.lead-end { fill: var(--text); }
+.wk-layer { position: absolute; inset: 0; pointer-events: none; }
+.wk-layer > * { pointer-events: auto; }
+.app [hidden] { display: none !important; }
+.wk-layer > .wk-line { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.wk-line line { stroke: var(--text); stroke-width: 1.25; }
+.wk-line circle { fill: var(--text); }
+.wk-card { position: absolute; width: 300px; max-height: calc(100% - 20px); overflow-y: auto; background: var(--bg); border: 1px solid var(--text); border-radius: 10px; padding: 14px 14px 10px; }
+.wk-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 10px; margin-bottom: 6px; }
+.wk-head h3 { margin: 0; font-size: 18px; letter-spacing: -0.02em; line-height: 1.15; }
+.wk-head p { margin: 1px 0 0; font-size: 12.5px; color: var(--faint); }
+.wk-tags { display: flex; flex-wrap: wrap; gap: 4px; padding-top: 2px; }
+.wk-tag { font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.wk-tag.now { color: var(--accent); background: var(--accent-soft); }
+.wk-tag.cov { color: var(--text); background: color-mix(in srgb, var(--c) 26%, transparent); }
+.wk-x { border: 0; background: none; color: var(--faint) !important; font-size: 20px; line-height: 1; padding: 0 2px; cursor: pointer; }
+.wk-x:hover { color: var(--text) !important; }
+.wk-list { list-style: none; margin: 0; padding: 0; }
+.wk-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 8px 0; border-top: 1px solid var(--border); }
+.wk-st { width: 10px; height: 10px; margin-top: 4px; border-radius: 50%; background: var(--c); }
+.wk-row.done .wk-st { opacity: .45; }
+.wk-row.late .wk-st { background: transparent; border: 1.6px solid var(--danger); }
+.wk-row.rev .wk-st { background: var(--accent); }
+.wk-row.test .wk-st { border-radius: 2px; background: var(--text); }
+.wk-t { display: flex; flex-direction: column; gap: 1px; min-width: 0; border: 0; background: none; padding: 0; text-align: left; cursor: pointer; }
+.wk-t b { font-size: 13.5px; font-weight: 600; }
+.wk-t:hover b { text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
+.wk-t span { font-size: 12.5px; color: var(--muted); }
+.wk-row.done .wk-t b { color: var(--muted); font-weight: 500; }
+.wk-when { font-size: 12px; color: var(--faint); text-align: right; display: flex; flex-direction: column; }
+.wk-when em { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--faint); }
+.wk-row.late em { color: var(--danger); }
+.wk-row.rev em { color: var(--accent); }
+.wk-empty, .wk-more { margin: 6px 0 2px; font-size: 12.5px; color: var(--faint); }
+/* B: the hole becomes the week */
+.wk-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 26px 30px; }
+.wk-center h3 { margin: 0; font-size: 20px; letter-spacing: -0.02em; }
+.wk-center > p { margin: 0 0 6px; font-size: 12px; color: var(--accent); font-weight: 600; }
+.wk-center .wk-row { grid-template-columns: 8px minmax(0, 1fr); gap: 7px; padding: 4px 0; border: 0; text-align: left; }
+.wk-center .wk-st { width: 8px; height: 8px; margin-top: 5px; }
+.wk-center .wk-when { display: none; }
+.wk-center .wk-t b { font-size: 12.5px; }
+.wk-center .wk-t span { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.wk-center .wk-more { margin: 2px 0 0; font-size: 11px; }
+/* C: drawer */
+.wk-drawer { position: absolute; left: 0; right: 0; bottom: 0; max-height: 48%; overflow-y: auto; background: var(--bg); border-top: 1px solid var(--text); padding: 14px 20px 12px; }
+.wk-drawer .wk-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; }
+/* D: peek */
+.peek { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 1px; font-size: 12px; color: var(--muted); max-width: 200px; }
+.peek b { color: var(--text); font-size: 12.5px; }
+.toast { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); margin: 0; background: var(--text); color: var(--bg); font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 999px; }
+/* opening motion answers the click */
+.pop { animation: pop .18s ease-out both; }
+.wk-drawer.pop { animation: rise .22s ease-out both; }
+.wk-center.pop { animation: fadein .2s ease both; }
+@keyframes pop { from { opacity: 0; transform: scale(.97); } }
+@keyframes rise { from { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) { .pop, .wk-drawer.pop, .wk-center.pop { animation: none; } }
+
+/* ---------- notes ---------- */
+.frame-bar .sample { margin-left: auto; }
+.frame-bar .sample + button { margin-left: 0; }
+.note { display: inline-flex; align-items: center; gap: 6px; max-width: 220px; padding: 3px 9px 3px 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-size: 12px; color: var(--text); }
+.note span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note svg, .nz svg, .nbtn svg, .ndrop svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; color: var(--muted); }
+.note-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.addmore { align-self: flex-start; border: 0; background: none; padding: 2px 0; color: var(--accent) !important; font-weight: 600; font-size: 12.5px; cursor: pointer; }
+.nmark path { fill: var(--text); stroke: var(--bg); stroke-width: 1; }
+.sl.pulse { animation: pulse 1.2s ease-out; }
+@keyframes pulse { 0%, 30% { fill: var(--accent); } }
+@media (prefers-reduced-motion: reduce) { .sl.pulse { animation: none; } }
+.wk-notes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--border); }
+.wk-notes > b { width: 100%; font-size: 12px; color: var(--faint); font-weight: 600; }
+.wk-none { font-size: 12.5px; color: var(--faint); }
+.sheet-notes { display: flex; flex-direction: column; gap: 8px; padding: 10px 0 2px; border-top: 1px solid var(--border); }
+/* A: a drop area at the top of the panel */
+.nz { border: 1.5px dashed var(--faint); border-radius: 10px; padding: 12px; transition: border-color .15s, background .15s; }
+.nz:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nz.dragging { border-color: var(--accent); background: var(--accent-soft); }
+.nz-zone { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 4px 10px; align-items: start; }
+.nz-zone button { grid-column: 2; justify-self: start; margin-top: 6px; }
+.nz-zone svg { width: 18px; height: 18px; margin-top: 1px; }
+.nz-zone b { display: block; font-size: 13.5px; }
+.nz-zone span { display: block; font-size: 12px; color: var(--muted); line-height: 1.4; margin-top: 2px; }
+.nz-zone button { border: 1px solid var(--border); background: var(--bg); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.nz.has { padding: 10px 12px; }
+.nz-sum { margin: 8px 0 0 28px; font-size: 12px; color: var(--accent); font-weight: 600; }
+/* B: drop anywhere, with a Notes button in the header */
+.head { flex-wrap: nowrap; }
+#app-b .legend { gap: 10px; }
+#app-b .legend span:first-child { display: none; }
+.head .meta, .legend span { white-space: nowrap; }
+.nbtn { white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: none; border-radius: 8px; padding: 5px 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.nbtn:hover { border-color: var(--muted); }
+.head .nbtn + .legend { margin-left: 14px; }
+.head:has(.nbtn) .nbtn { margin-left: auto; }
+.nhint { position: absolute; left: 16px; bottom: 12px; margin: 0; font-size: 12px; color: var(--faint); pointer-events: none; }
+.ndrop { position: absolute; inset: 10px; display: none; place-items: center; border: 2px dashed var(--accent); border-radius: 14px; background: color-mix(in srgb, var(--bg) 82%, transparent); pointer-events: none; z-index: 3; }
+.ndrop div { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.ndrop svg { width: 28px; height: 28px; color: var(--accent); }
+.ndrop b { font-size: 18px; letter-spacing: -0.02em; }
+.ndrop span { font-size: 13px; color: var(--muted); }
+.main.dragging .ndrop { display: grid; }
+.nlist { position: absolute; top: 12px; right: 12px; width: 300px; max-height: calc(100% - 24px); overflow-y: auto; background: var(--bg); border: 1px solid var(--text); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; z-index: 2; }
+.nlist header { display: flex; justify-content: space-between; align-items: center; }
+.nlist header button { border: 0; background: none; font-size: 20px; color: var(--faint) !important; cursor: pointer; line-height: 1; }
+.nrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--faint); }
+/* C: a notes strip under the chart */
+.nstrip { display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-top: 1px solid var(--border); transition: background .15s; }
+.nstrip:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.nstrip > b { font-size: 13px; }
+.nstrip .note-row { flex: 1; min-width: 0; flex-wrap: nowrap; overflow: hidden; }
+.nstrip .more { font-size: 12px; color: var(--faint); align-self: center; }
+.nadd { border: 1.5px dashed var(--faint); background: none; border-radius: 6px; padding: 5px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.nstrip.dragging { background: var(--accent-soft); }
+.nstrip.dragging .nadd { border-color: var(--accent); color: var(--accent) !important; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <h1>Drop your notes in once</h1>
+    <p>Each class gets one place for notes. Drag in slides, study guides or photos of your notes, several at a time, or paste text. <strong>Praedus sorts each one into the right week on its own</strong>, so a study set for Test 3 automatically uses your notes from weeks 9 to 13.</p>
+    <p>Try it for real: drag PDFs or photos from your desktop onto any option, or paste with ⌘V. No files handy? Use <strong>Drop sample notes</strong> on each preview. Weeks that have notes get a small page mark, the week card lists them, and the study set step (pick Test 3, then Make a study set) shows which notes it will use.</p>
+    <nav><a href="#a">A. Drop area in the panel</a><a href="#b">B. Drop anywhere</a><a href="#c">C. Notes strip</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="opt" id="a">
+    <div class="opt-head">
+      <div><h2>A. Drop area in the panel<span class="pick">Recommended</span></h2><p class="lede">A dashed box at the top of the panel, for the class you’re looking at.</p><p>Always visible, so it’s obvious that notes go there. Once you’ve added some, it says how many and which weeks they landed in.</p></div>
+      <ul><li><b>Good:</b> the easiest to discover: you can’t miss it.</li><li><b>Good:</b> also works with Choose files and paste.</li><li><b>Trade-off:</b> pushes the tests list down a little.</li></ul>
+    </div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus, Study map<button class="sample" data-sample-for="a">Drop sample notes</button><button data-theme-for="a">Light / dark</button></div>
+      <div class="scroller"><div class="app" id="app-a"></div></div></div>
+  </section>
+  <section class="opt" id="b">
+    <div class="opt-head">
+      <div><h2>B. Drop anywhere</h2><p class="lede">Drag files over the map and the whole thing becomes a drop area.</p><p>A small Notes button in the header lists what you’ve added. A quiet line under the chart says you can drop notes anywhere.</p></div>
+      <ul><li><b>Good:</b> the least effort: no target to aim for.</li><li><b>Good:</b> keeps the panel just for tests.</li><li><b>Trade-off:</b> easier to miss until someone tells you.</li></ul>
+    </div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus, Study map<button class="sample" data-sample-for="b">Drop sample notes</button><button data-theme-for="b">Light / dark</button></div>
+      <div class="scroller"><div class="app" id="app-b"></div></div></div>
+  </section>
+  <section class="opt" id="c">
+    <div class="opt-head">
+      <div><h2>C. Notes strip</h2><p class="lede">A thin bar under the chart with your latest notes and a dashed Add button.</p><p>Your notes stay in sight next to the semester they belong to.</p></div>
+      <ul><li><b>Good:</b> notes always visible with the chart.</li><li><b>Trade-off:</b> takes height from the donut.</li><li><b>Trade-off:</b> only the latest few fit; the rest are a count.</li></ul>
+    </div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus, Study map<button class="sample" data-sample-for="c">Drop sample notes</button><button data-theme-for="c">Light / dark</button></div>
+      <div class="scroller"><div class="app" id="app-c"></div></div></div>
+  </section>
+  <p class="foot">In all three: drop several files at once, paste text with ⌘V, or click to choose files. PDFs (including slides exported as PDF), photos and pasted text work. Notes are saved to the class, not to one test, so they’re ready for every test that covers their week.</p>
+</main>
+
+<script>
+/* ================= Demo semester ================= */
+const SEM_START = new Date(2026, 7, 24)
+const TODAY = new Date(2026, 10, 21, 12)
+const WEEKS = 16, DAY = 864e5
+const dayOf = (w, dow, h = 23, m = 59) => new Date(2026, 7, 24 + (w - 1) * 7 + dow, h, m)
+const weekFrac = (d) => (d - SEM_START) / (7 * DAY)
+const NOW_WEEK = Math.floor(weekFrac(TODAY)) + 1
+const fmtDay = (d) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+const fmtShort = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+const COURSES = [
+  { id: 'cs', code: 'CS 210', name: 'Intro to Programming', color: '#c792ea' },
+  { id: 'eng', code: 'ENGL 101', name: 'Composition', color: '#f2a65a' },
+  { id: 'math', code: 'MATH 120', name: 'Calculus I', color: '#6aa9ff' },
+]
+const courseById = (id) => COURSES.find((c) => c.id === id)
+const muted = (c, p = 78) => `color-mix(in srgb, ${c} ${p}%, #8a8a8a)`
+const items = []
+let uid = 0
+const add = (course, w, title, due, desc, est) => items.push({ id: 'i' + uid++, course, week: w, title, due, desc, est })
+const mathTopics = ['1.1–1.2 Functions and limits', '1.3 Limit laws', '1.4 Continuity', null, '2.1 The derivative',
+  '2.2 Power and product rules', '2.3 Chain rule', null, '2.4 Implicit differentiation', '2.5 Related rates',
+  '3.1 Max and min values', '3.2 Mean value theorem', '3.3 Curve sketching', '3.4 Optimization', '4.1 Antiderivatives', null]
+let ps = 1, qz = 1
+mathTopics.forEach((topic, i) => {
+  const w = i + 1
+  if (w === 4) add('math', w, 'Test 1', dayOf(w, 1, 10), 'In class, chapters 1.1–1.4', 240)
+  if (w === 8) add('math', w, 'Test 2', dayOf(w, 1, 10), 'In class, chapters 2.1–2.3', 240)
+  if (w === 14) add('math', w, 'Test 3', dayOf(w, 1, 10), 'In class, chapters 2.4–3.3', 240)
+  if (w === 16) add('math', w, 'Final exam', dayOf(w, 3, 9), 'Cumulative', 240)
+  if (topic) add('math', w, `Problem Set ${ps++}`, dayOf(w, 3), `Sections ${topic}`, 120)
+  if ([2, 6, 10, 12].includes(w)) add('math', w, `Quiz ${qz++}`, dayOf(w, 4, 10), `Covers ${mathTopics[w - 2]}`, 60)
+})
+const csTopics = ['Variables', 'Conditionals', 'Loops', 'Functions', 'Lists', 'Strings', 'Dictionaries', null,
+  'Classes', 'Inheritance', 'Files', 'Recursion', 'Sorting', 'Searching', 'Testing', null]
+let lab = 1
+csTopics.forEach((topic, i) => {
+  const w = i + 1
+  if (topic) add('cs', w, `Lab ${lab++}: ${topic}`, dayOf(w, 2), `Practice ${topic.toLowerCase()} in Python`, 120)
+  if (w === 5) add('cs', w, 'Project 1: Text adventure', dayOf(w, 4), 'Uses functions, lists and loops', 360)
+  if (w === 8) add('cs', w, 'Midterm exam', dayOf(w, 3, 14), 'Labs 1–7', 240)
+  if (w === 11) add('cs', w, 'Project 2: Gradebook', dayOf(w, 4), 'Uses classes and files', 360)
+  if (w === 16) add('cs', w, 'Final exam', dayOf(w, 2, 14), 'Cumulative', 240)
+})
+;[[2, 'Reading response 1', 'Chapter 1, rhetorical situations', 60], [3, 'Essay 1 draft', 'Personal narrative', 240],
+  [5, 'Essay 1 final', 'Personal narrative', 240], [6, 'Reading response 2', 'Chapter 4, argument', 60],
+  [8, 'Essay 2 draft', 'Argument essay', 240], [10, 'Essay 2 final', 'Argument essay', 240], [11, 'Reading response 3', 'Chapter 7, sources', 60],
+  [12, 'Peer review', 'Research paper outline', 60], [13, 'Annotated bibliography', 'Eight sources', 120], [15, 'Research paper', 'Final paper', 360],
+].forEach(([w, t, d, e]) => add('eng', w, t, dayOf(w, 4), d, e))
+const isTest = (it) => /\b(test|exam|midterm)\b/i.test(it.title)
+items.forEach((it) => {
+  it.test = isTest(it)
+  it.done = it.due < TODAY && !it.test && it.title !== 'Problem Set 11'
+  it.late = it.due < TODAY && !it.done && !it.test
+})
+const courseItems = (c) => items.filter((it) => it.course === c).sort((a, b) => a.due - b.due)
+const testsOf = (c) => courseItems(c).filter((it) => it.test)
+const isFinal = (t) => /final/i.test(t.title)
+function unitOf(t) {
+  const tests = testsOf(t.course)
+  const prev = tests[tests.indexOf(t) - 1]
+  const cumulative = isFinal(t)
+  const from = cumulative || !prev ? 1 : prev.week + 1
+  const to = Math.max(from, t.week - 1)
+  return { test: t, prev, from, to, cumulative, list: courseItems(t.course).filter((it) => !it.test && it.week >= from && it.week <= to) }
+}
+function daysUntil(d) {
+  const mid = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate())
+  const n = Math.round((mid(d) - mid(TODAY)) / DAY)
+  return n === 0 ? 'today' : n === 1 ? 'tomorrow' : n > 0 ? `in ${n} days` : `${-n} days ago`
+}
+/** Topics for a study set: the section/topic text of each covered assignment, de-duplicated. */
+function topicsFor(u) {
+  const seen = new Set(), out = []
+  for (const it of u.list) {
+    const t = it.desc.replace(/^(Sections|Covers|Practice)\s+/i, '').replace(/ in Python$/, '').trim()
+    const key = t.toLowerCase()
+    if (!seen.has(key)) { seen.add(key); out.push(t) }
+  }
+  return out
+}
+const reviewed = new Set()
+const apps = {}
+
+/* ================= Shared shell and panel ================= */
+const ICONS = {
+  logo: '<svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path d="M6.5 24C6.5 13 19.5 13 19.5 24S32.5 35 32.5 24" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"/><circle cx="40.5" cy="24" r="3.9" fill="currentColor"/></svg>',
+  cal: '<svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>',
+  list: '<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>',
+  graph: '<svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="7" r="2"/><circle cx="12" cy="17" r="3"/><path d="M8.2 7.3 10.6 14.4M16.4 8.4 13.5 14.6M8.4 6.2l7.6.6"/></svg>',
+  check: '<svg viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.6l4.5-5"/></svg>',
+  spark: '<svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>',
+}
+
+function panelHtml(st) {
+  const c = courseById(st.course)
+  const ts = testsOf(c.id), up = ts.filter((t) => t.due >= TODAY), past = ts.filter((t) => t.due < TODAY).reverse()
+  const row = (t) => {
+    const u = unitOf(t), isPast = t.due < TODAY
+    return `<button class="trow${isPast ? ' past' : ''}${st.test === t.id ? ' on' : ''}" data-test="${t.id}" aria-pressed="${st.test === t.id}">
+      <b>${t.title}</b><span class="when">${fmtShort(t.due)}${isPast ? '' : `<br><span class="soon">${daysUntil(t.due)}</span>`}</span>
+      <span class="cov">${u.cumulative ? 'Covers the whole semester' : `Covers weeks ${u.from}–${u.to}`}</span></button>`
+  }
+  let h = `<div><h2 class="p-title">Upcoming tests</h2><p class="p-sub">${c.code}. Pick a test to see the weeks it covers.</p></div>`
+  if (!ts.length) return h + `<p class="empty">${c.code} has no tests: essays and reading responses only.</p>`
+  h += `<div class="tests">${up.length ? up.map(row).join('') : '<p class="empty">No more tests this term.</p>'}</div>`
+  if (st.test) h += detailHtml(st)
+  if (past.length) h += `<p class="sec-h">Past tests</p><div class="tests">${past.map(row).join('')}</div>`
+  return h
+}
+
+function detailHtml(st) {
+  const u = unitOf(items.find((i) => i.id === st.test))
+  const n = u.list.length, d = u.list.filter((i) => reviewed.has(i.id)).length
+  if (st.sheet) {
+    const topics = st.topics
+    return `<div class="sheet" aria-label="Study set">
+      <h3>Study set for ${u.test.title}</h3>
+      <p>These topics come from the ${n} assignments in weeks ${u.from}–${u.to}. Remove anything that won't be on the test, or add your own.</p>
+      <div class="topics">${topics.map((t, i) => `<span class="topic">${t}<button data-rmtopic="${i}" aria-label="Remove ${t}">×</button></span>`).join('')}</div>
+      <form class="addt" data-addtopic><input placeholder="Add a topic" aria-label="Add a topic"><button>Add</button></form>
+      <button class="cta" disabled>${ICONS.spark}Create study set</button>
+      <p class="premium">AI study sets are coming with Premium.</p>
+      <button class="ghost" data-closesheet>Back</button></div>`
+  }
+  let groups = ''
+  for (let w = u.from; w <= u.to; w++) {
+    const its = u.list.filter((i) => i.week === w)
+    if (!its.length) continue
+    groups += `<div class="wgroup"><h4>Week ${w}</h4>${its.map((it) => `<label class="check"><input type="checkbox" data-rev="${it.id}"${reviewed.has(it.id) ? ' checked' : ''}><span class="box">${ICONS.check}</span>
+      <span><span class="t">${it.title}</span>${it.late ? '<span class="flag">Not turned in</span>' : ''}</span></label>`).join('')}</div>`
+  }
+  return `<div class="detail">
+    ${u.test.due >= TODAY ? `<button class="cta fadein" data-sheet>${ICONS.spark}Make a study set</button>` : ''}
+    <div><div class="meter-row"><span><b>${d}</b> of ${n} reviewed</span><span>${n ? Math.round((d / n) * 100) : 0}%</span></div><div class="bar"><i style="width:${n ? (d / n) * 100 : 0}%"></i></div></div>
+    <div>${groups}</div></div>`
+}
+
+/* ================= The week card ================= */
+const R_OUT = 262
+const wkDay = (d) => d.toLocaleDateString('en-US', { weekday: 'short' })
+function weekRows(c, w, max = Infinity) {
+  const its = courseItems(c.id).filter((i) => i.week === w)
+  if (!its.length) return '<p class="wk-empty">Nothing was due this week.</p>'
+  const row = (it) => {
+    const r = reviewed.has(it.id)
+    const st = it.test ? 'test' : r ? 'rev' : it.late ? 'late' : it.done ? 'done' : 'todo'
+    const note = it.test ? 'Test' : r ? 'Reviewed' : it.late ? 'Not turned in' : it.done ? 'Done' : ''
+    return `<li class="wk-row ${st}"><i class="wk-st" style="--c:${muted(c.color)}"></i>
+      <button class="wk-t" data-open="${it.id}"><b>${it.title}</b><span>${it.desc}</span></button>
+      <span class="wk-when">${wkDay(it.due)}${note ? `<em>${note}</em>` : ''}</span></li>`
+  }
+  return `<ul class="wk-list">${its.slice(0, max).map(row).join('')}</ul>${its.length > max ? `<p class="wk-more">${its.length - max} more in the panel</p>` : ''}`
+}
+function weekHead(c, st) {
+  const w = st.week, u = st.test ? unitOf(items.find((i) => i.id === st.test)) : null
+  const covered = u && w >= u.from && w <= u.to
+  return `<header class="wk-head"><div><h3>Week ${w}</h3><p>${fmtShort(dayOf(w, 0))} to ${fmtShort(dayOf(w, 6))}</p></div>
+    <div class="wk-tags">${w === NOW_WEEK ? '<span class="wk-tag now">This week</span>' : ''}${covered ? `<span class="wk-tag cov" style="--c:${muted(c.color, 62)}">On ${u.test.title}</span>` : ''}</div>
+    <button class="wk-x" data-close aria-label="Close week">×</button></header>`
+}
+/** Puts the card in the chart corner nearest the week that doesn't cover it, joined to the week by a thin line. */
+function placeBeside(el, chart, svg, w) {
+  const a0 = ang(w) + GAP, a1 = ang(w + 1) - GAP, am = (a0 + a1) / 2
+  const cr = chart.getBoundingClientRect(), m = svg.getScreenCTM()
+  const px = (r) => { const pt = svg.createSVGPoint(); [pt.x, pt.y] = P(am, r); const q = pt.matrixTransform(m); return [q.x - cr.left, q.y - cr.top] }
+  const S = px(R_OUT + 3), M = px(190), I = px(130)
+  const W = el.offsetWidth, H = el.offsetHeight, g = 12
+  const spots = [[g, g], [cr.width - W - g, g], [g, cr.height - H - g], [cr.width - W - g, cr.height - H - g]]
+  const inside = ([x, y], [l, t]) => x > l - 8 && x < l + W + 8 && y > t - 8 && y < t + H + 8
+  const ok = spots.filter((s) => !inside(S, s) && !inside(M, s) && !inside(I, s))
+  const near = (s) => Math.hypot(s[0] + W / 2 - S[0], s[1] + H / 2 - S[1])
+  const [l, t] = (ok.length ? ok : spots).sort((p, q) => near(p) - near(q))[0]
+  el.style.left = l + 'px'; el.style.top = t + 'px'
+  const ex = Math.max(l, Math.min(l + W, S[0])), ey = Math.max(t, Math.min(t + H, S[1]))
+  const line = el.parentElement.querySelector('.wk-line')
+  line.setAttribute('viewBox', `0 0 ${cr.width} ${cr.height}`)
+  line.innerHTML = `<line x1="${S[0]}" y1="${S[1]}" x2="${ex}" y2="${ey}"/><circle cx="${S[0]}" cy="${S[1]}" r="3"/>`
+}
+function mount(key, render, legend) {
+  const el = document.getElementById('app-' + key)
+  const st = { course: 'math', test: null, sheet: false, topics: [], fresh: false, week: null, variant: key }
+  const firstUp = (c) => testsOf(c).find((t) => t.due >= TODAY)
+  st.test = firstUp('math')?.id ?? null
+  el.innerHTML = `<nav class="side" aria-label="App"><div class="brand">${ICONS.logo}praedus</div>
+      <span class="nav">${ICONS.cal}Calendar</span><span class="nav">${ICONS.list}Assignments</span><span class="nav on">${ICONS.graph}Study map</span></nav>
+    <div class="main"><div class="head">
+        <label class="pickr"><i></i><select aria-label="Class">${COURSES.map((c) => `<option value="${c.id}"${c.id === st.course ? ' selected' : ''}>${c.code} · ${c.name}</option>`).join('')}</select></label>
+        <span class="meta">Week ${NOW_WEEK} of ${WEEKS}</span>
+        <div class="legend">${legend}</div></div>
+      <div class="chart"><svg role="img" aria-label="Semester chart"></svg><div class="wk-layer"></div><div class="peek" hidden></div><p class="toast" hidden></p></div></div>
+    <aside class="panel" aria-label="Tests"></aside>`
+  const svg = el.querySelector('.chart svg'), chart = el.querySelector('.chart'), layer = el.querySelector('.wk-layer')
+  const dot = el.querySelector('.pickr i'), peek = el.querySelector('.peek'), toast = el.querySelector('.toast')
+  let prevWeek = null
+  const draw = () => {
+    const c = courseById(st.course)
+    dot.style.background = c.color
+    render(svg, st)
+    el.querySelector('.panel').innerHTML = panelHtml(st)
+    const opened = st.week !== prevWeek
+    if (!st.week) layer.innerHTML = ''
+    else if (key === 'a' || key === 'd') {
+      layer.innerHTML = `<svg class="wk-line" aria-hidden="true"></svg><section class="wk-card${opened ? ' pop' : ''}" aria-label="Week ${st.week}">${weekHead(c, st)}${weekRows(c, st.week)}</section>`
+      placeBeside(layer.querySelector('.wk-card'), chart, svg, st.week)
+    } else if (key === 'b') {
+      const d = (118 - 6) * 2 * svg.getScreenCTM().a
+      layer.innerHTML = `<section class="wk-center${opened ? ' pop' : ''}" style="width:${d}px;height:${d}px" aria-label="Week ${st.week}">
+        <h3>Week ${st.week}</h3><p>${fmtShort(dayOf(st.week, 0))} to ${fmtShort(dayOf(st.week, 6))}</p>${weekRows(c, st.week, 3)}</section>`
+    } else {
+      layer.innerHTML = `<section class="wk-drawer${opened ? ' pop' : ''}" aria-label="Week ${st.week}">${weekHead(c, st)}${weekRows(c, st.week)}</section>`
+    }
+    prevWeek = st.week
+    st.fresh = false
+    if (window.afterDraw) afterDraw(key, el, st)
+  }
+  el.querySelector('select').addEventListener('change', (e) => { st.course = e.target.value; st.test = firstUp(st.course)?.id ?? null; st.sheet = false; st.week = null; st.fresh = true; draw() })
+  el.addEventListener('click', (e) => {
+    const o = e.target.closest('[data-open]')
+    if (o) {
+      const it = items.find((i) => i.id === o.dataset.open)
+      toast.textContent = `In the app this opens ${it.title}.`
+      toast.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (toast.hidden = true), 1800)
+      return
+    }
+    const wk = e.target.closest('[data-week]')
+    if (wk) { const w = +wk.dataset.week; st.week = st.week === w ? null : w; peek.hidden = true; draw(); return }
+    if (e.target.closest('[data-close]')) { st.week = null; draw(); return }
+    const t = e.target.closest('[data-test],[data-sheet],[data-closesheet],[data-rmtopic]')
+    if (!t) {
+      if (st.week && e.target.closest('.chart') && !e.target.closest('.wk-card,.wk-center,.wk-drawer')) { st.week = null; draw() }
+      return
+    }
+    if (t.dataset.test) { st.test = st.test === t.dataset.test ? null : t.dataset.test; st.sheet = false; st.week = null; st.fresh = true }
+    else if (t.dataset.sheet !== undefined) { st.sheet = true; st.topics = topicsFor(unitOf(items.find((i) => i.id === st.test))) }
+    else if (t.dataset.closesheet !== undefined) st.sheet = false
+    else if (t.dataset.rmtopic !== undefined) st.topics.splice(+t.dataset.rmtopic, 1)
+    draw()
+  })
+  el.addEventListener('keydown', (e) => { if (e.key === 'Escape' && st.week) { st.week = null; draw() } })
+  if (key === 'd') {
+    svg.addEventListener('pointermove', (e) => {
+      const wk = e.target.closest('[data-week]')
+      if (!wk || +wk.dataset.week === st.week) { peek.hidden = true; return }
+      const w = +wk.dataset.week, its = courseItems(st.course).filter((i) => i.week === w)
+      peek.innerHTML = `<b>Week ${w}</b>${its.length ? its.map((i) => `<span>${i.title}</span>`).join('') : '<span>Nothing due</span>'}`
+      const cr = chart.getBoundingClientRect()
+      peek.style.left = Math.min(cr.width - 200, e.clientX - cr.left + 14) + 'px'
+      peek.style.top = e.clientY - cr.top + 14 + 'px'
+      peek.hidden = false
+    })
+    svg.addEventListener('pointerleave', () => (peek.hidden = true))
+  }
+  el.addEventListener('submit', (e) => {
+    e.preventDefault()
+    const input = e.target.querySelector('input')
+    if (input.value.trim()) st.topics.push(input.value.trim())
+    draw()
+  })
+  el.addEventListener('change', (e) => {
+    const id = e.target.dataset.rev
+    if (!id) return
+    e.target.checked ? reviewed.add(id) : reviewed.delete(id)
+    for (const k in apps) apps[k]()
+  })
+  apps[key] = draw
+  draw()
+}
+document.querySelectorAll('[data-theme-for]').forEach((b) => b.addEventListener('click', () => document.getElementById('app-' + b.dataset.themeFor).classList.toggle('light')))
+
+/* ================= Geometry helpers ================= */
+const ang = (w) => -Math.PI / 2 + ((w - 1) / WEEKS) * 2 * Math.PI   // start angle of week w
+const P = (a, r) => [Math.cos(a) * r, Math.sin(a) * r]
+function slicePath(a0, a1, r0, r1) {
+  const big = a1 - a0 > Math.PI ? 1 : 0
+  const [x0, y0] = P(a0, r1), [x1, y1] = P(a1, r1), [x2, y2] = P(a1, r0), [x3, y3] = P(a0, r0)
+  return `M${x0},${y0} A${r1},${r1} 0 ${big} 1 ${x1},${y1} L${x2},${y2} A${r0},${r0} 0 ${big} 0 ${x3},${y3}Z`
+}
+const GAP = 0.012
+function ctx(st) {
+  const c = courseById(st.course), u = st.test ? unitOf(items.find((i) => i.id === st.test)) : null
+  const inU = (w) => u && w >= u.from && w <= u.to
+  return { c, u, inU }
+}
+function centerHtml(c, r) {
+  return `<circle r="${r}" fill="var(--bg)"/><text class="center-code" text-anchor="middle" y="-6">${c.code}</text>
+    <text class="center-name" text-anchor="middle" y="14">${c.name}</text><text class="center-wk" text-anchor="middle" y="34">Week ${NOW_WEEK} of ${WEEKS}</text>`
+}
+/** Test labels outside the rim, with a short tick. */
+function testFlags(c, st, rIn, rOut) {
+  return testsOf(c.id).map((t) => {
+    const a = ang(1) + (weekFrac(t.due) / WEEKS) * 2 * Math.PI
+    const [x0, y0] = P(a, rIn), [x1, y1] = P(a, rOut), [tx, ty] = P(a, rOut + 8)
+    const left = Math.cos(a) < -0.15, right = Math.cos(a) > 0.15
+    const anchor = left ? 'end' : right ? 'start' : 'middle'
+    const dy = Math.sin(a) > 0.6 ? 10 : Math.sin(a) < -0.6 ? -4 : 4
+    return `<g class="tflag${st.test === t.id ? ' on' : ''}" data-test="${t.id}" role="button" aria-label="${t.title}">
+      <line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}"/><text x="${tx}" y="${ty + dy}" text-anchor="${anchor}">${t.title}</text>
+      <rect x="${tx - 40}" y="${ty - 12}" width="80" height="24"/></g>`
+  }).join('')
+}
+
+/* ================= A. Donut ================= */
+function renderDonut(svg, st) {
+  const { c, u, inU } = ctx(st)
+  const R0 = 118, R1 = 262
+  let h = ''
+  for (let w = 1; w <= WEEKS; w++) {
+    const a0 = ang(w) + GAP, a1 = ang(w + 1) - GAP, am = (a0 + a1) / 2
+    const fill = inU(w) ? muted(c.color, 62) : null
+    h += `<path class="sl${w % 2 ? '' : ' alt'}${w === NOW_WEEK ? ' now' : ''}${inU(w) && st.fresh ? ' fadein' : ''}" data-week="${w}" d="${slicePath(a0, a1, R0, R1)}" ${fill ? `style="fill:${fill}"` : ''}></path>`
+    const [nx, ny] = P(am, R1 - 18)
+    h += `<text class="wnum${inU(w) ? ' in' : ''}${w === NOW_WEEK ? ' now' : ''}" x="${nx}" y="${ny}" text-anchor="middle" dominant-baseline="central">${w}</text>`
+    courseItems(c.id).filter((i) => i.week === w && !i.test).forEach((it, j) => {
+      const [x, y] = P(am, R0 + 26 + j * 22)
+      const col = inU(w) ? '#fff' : muted(c.color)
+      h += `<circle data-week="${w}" class="mk${it.done ? ' done' : ''}${it.late ? ' late' : ''}${reviewed.has(it.id) ? ' rev' : ''}" cx="${x}" cy="${y}" r="5.5" style="fill:${inU(w) ? 'var(--bg)' : col}"></circle>`
+    })
+  }
+  if (st.week) {
+    const a0 = ang(st.week) + GAP, a1 = ang(st.week + 1) - GAP
+    h += `<path class="sel" d="${slicePath(a0, a1, R0, R1)}"/>`
+  }
+  h += testFlags(c, st, R1 + 4, R1 + 18) + (st.variant === 'b' && st.week ? `<circle r="${R0 - 6}" fill="var(--bg)"/>` : centerHtml(c, R0 - 6))
+  svg.setAttribute('viewBox', '-340 -320 680 640')
+  svg.innerHTML = h
+}
+
+const DONUT_LEGEND = '<span><i style="background:var(--text)"></i>Covered weeks</span><span><i class="lg-dot" style="background:var(--muted)"></i>Assignment</span><span><i class="lg-dot" style="background:var(--accent)"></i>Reviewed</span>'
+/* ================= Notes ================= */
+const seedNotes = () => ({
+  math: [
+    { id: 'n1', name: 'Lecture 2.4 slides.pdf', kind: 'pdf', week: 9 },
+    { id: 'n2', name: 'Related rates notes.jpg', kind: 'photo', week: 10 },
+    { id: 'n3', name: 'Notes: mean value theorem', kind: 'text', week: 11 },
+  ],
+  cs: [], eng: [],
+})
+/** Each option keeps its own notes, so trying one doesn't change the others. */
+const NOTES = { a: seedNotes(), b: seedNotes(), c: seedNotes() }
+let noteId = 10
+const KIND_ICON = {
+  pdf: '<svg viewBox="0 0 16 16"><path d="M4 1.5h5.5L13 5v9.5H4z"/><path d="M9.5 1.5V5H13"/></svg>',
+  photo: '<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="6.5" r="1.2"/><path d="m3 12 3.5-3.5 2.5 2.5 2-2L14 12"/></svg>',
+  text: '<svg viewBox="0 0 16 16"><path d="M3 3.5h10M3 6.5h10M3 9.5h10M3 12.5h6"/></svg>',
+}
+const noteChip = (n) => `<span class="note" title="${n.name}">${KIND_ICON[n.kind]}<span>${n.name}</span></span>`
+let curKey = 'a'
+const notesOf = (c) => NOTES[curKey][c] ?? []
+const weekOfDate = (d) => Math.min(WEEKS, Math.max(1, Math.floor(weekFrac(d)) + 1))
+const kindOf = (f) => (f.type === 'application/pdf' || /\.pdf$/i.test(f.name) ? 'pdf' : f.type.startsWith('image/') ? 'photo' : 'text')
+
+/** Adds files (or pasted text) to a class and says where they went. */
+function addNotes(key, list) {
+  const el = document.getElementById('app-' + key)
+  const st = states[key]
+  const added = list.map((x) => {
+    // Real files: their date picks the week (outside this demo semester, they land in this week).
+    const d = x.lastModified ? new Date(x.lastModified) : TODAY
+    const week = x.week ?? (d >= SEM_START && d <= TODAY ? weekOfDate(d) : NOW_WEEK)
+    return { id: 'n' + noteId++, name: x.name, kind: x.kind ?? kindOf(x), week }
+  })
+  NOTES[key][st.course].push(...added)
+  const weeks = [...new Set(added.map((n) => n.week))].sort((a, b) => a - b)
+  apps[key]()
+  pulseWeeks(el, weeks)
+  say(el, `${added.length === 1 ? `Added ${added[0].name}` : `Added ${added.length} notes`}, sorted into week${weeks.length > 1 ? 's' : ''} ${weeks.join(', ')}.`)
+}
+function say(el, text) {
+  const t = el.querySelector('.toast')
+  t.textContent = text; t.hidden = false
+  clearTimeout(t.t); t.t = setTimeout(() => (t.hidden = true), 2600)
+}
+function pulseWeeks(el, weeks) {
+  for (const w of weeks) {
+    const p = el.querySelector(`.sl[data-week="${w}"]`)
+    if (p) { p.classList.remove('pulse'); void p.getBBox(); p.classList.add('pulse') }
+  }
+}
+const SAMPLES = [
+  { name: 'Lecture 3.3 curve sketching.pdf', kind: 'pdf', week: 13 },
+  { name: 'Whiteboard photo.jpg', kind: 'photo', week: 12 },
+  { name: 'Test 3 study guide.pdf', kind: 'pdf', week: 13 },
+]
+
+/** Wire a drop target: drag files in, or click to choose. */
+function dropTarget(key, target, overlayHost) {
+  let depth = 0
+  target.addEventListener('dragenter', (e) => { if (![...e.dataTransfer.types].includes('Files')) return; e.preventDefault(); depth++; overlayHost.classList.add('dragging') })
+  target.addEventListener('dragover', (e) => { if ([...e.dataTransfer.types].includes('Files')) e.preventDefault() })
+  target.addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; overlayHost.classList.remove('dragging') } })
+  target.addEventListener('drop', (e) => {
+    e.preventDefault(); depth = 0; overlayHost.classList.remove('dragging')
+    const files = [...e.dataTransfer.files]
+    if (files.length) addNotes(key, files)
+  })
+}
+function picker(key) {
+  const i = document.createElement('input')
+  i.type = 'file'; i.multiple = true; i.accept = '.pdf,image/*,.txt'
+  i.onchange = () => i.files.length && addNotes(key, [...i.files])
+  i.click()
+}
+
+/** Notes for the open week card and the study set step (same in every option). */
+function decorateShared(key, el, st) {
+  const c = st.course
+  const card = el.querySelector('.wk-card, .wk-drawer')
+  if (card && st.week) {
+    const ns = notesOf(c).filter((n) => n.week === st.week)
+    card.insertAdjacentHTML('beforeend', `<div class="wk-notes"><b>Your notes</b>${ns.length ? ns.map(noteChip).join('') : '<span class="wk-none">None for this week yet.</span>'}</div>`)
+  }
+  for (const w of new Set(notesOf(c).map((n) => n.week))) {
+    const a = ang(w) + GAP, b = ang(w + 1) - GAP, [x, y] = P((a + b) / 2, R_OUT - 18)
+    el.querySelector('.chart svg').insertAdjacentHTML('beforeend', `<g class="nmark" transform="translate(${x + 9} ${y - 7})"><path d="M0 0h6l3 3v8H0z"/></g>`)
+  }
+  const sheet = el.querySelector('.sheet')
+  if (sheet) {
+    const u = unitOf(items.find((i) => i.id === st.test))
+    const ns = notesOf(c).filter((n) => n.week >= u.from && n.week <= u.to)
+    sheet.querySelector('.topics').insertAdjacentHTML('afterend', `<div class="sheet-notes"><p>${ns.length ? `Also uses your ${ns.length === 1 ? 'note' : `${ns.length} notes`} from weeks ${u.from}–${u.to}:` : 'No notes for these weeks yet. Cards will come from the topics alone.'}</p>
+      <div class="note-row">${ns.map(noteChip).join('')}</div><button class="addmore" data-pick>＋ Add notes for this test</button></div>`)
+  }
+}
+
+const states = {}
+function afterDraw(key, el, st) {
+  states[key] = st
+  curKey = key
+  const c = courseById(st.course), ns = notesOf(st.course)
+  const weeks = [...new Set(ns.map((n) => n.week))].sort((a, b) => a - b)
+  const summary = ns.length ? `${ns.length} note${ns.length > 1 ? 's' : ''}, in week${weeks.length > 1 ? 's' : ''} ${weeks.join(', ')}` : ''
+  if (key === 'a') {
+    const panel = el.querySelector('.panel')
+    panel.insertAdjacentHTML('afterbegin', `<section class="nz${ns.length ? ' has' : ''}" tabindex="0" aria-label="Notes for ${c.code}">
+      <div class="nz-zone">${KIND_ICON.pdf}<div><b>Drop notes for ${c.code}</b><span>Slides, study guides, photos of notes. Or paste with ⌘V. They sort into weeks on their own.</span></div><button data-pick>Choose files</button></div>
+      ${ns.length ? `<p class="nz-sum">${summary}</p>` : ''}</section>`)
+    dropTarget(key, panel.querySelector('.nz'), panel.querySelector('.nz'))
+  }
+  if (key === 'b') {
+    const head = el.querySelector('.head')
+    head.querySelector('.nbtn')?.remove()
+    head.querySelector('.legend').insertAdjacentHTML('beforebegin', `<button class="nbtn" data-notes-list>${KIND_ICON.text}Notes${ns.length ? ` (${ns.length})` : ''}</button>`)
+    const chart = el.querySelector('.chart')
+    chart.querySelectorAll('.nhint, .ndrop, .nlist').forEach((x) => x.remove())
+    chart.insertAdjacentHTML('beforeend', `<p class="nhint">Drop notes anywhere on the map. They sort into weeks on their own.</p>
+      <div class="ndrop" aria-hidden="true"><div>${KIND_ICON.pdf}<b>Drop to add to ${c.code} notes</b><span>Praedus puts each one in the right week.</span></div></div>
+      ${st.notesOpen ? `<section class="nlist"><header><b>${c.code} notes</b><button data-notes-list aria-label="Close">×</button></header>${ns.length ? ns.slice().sort((a, b) => a.week - b.week).map((n) => `<div class="nrow">${noteChip(n)}<span>Week ${n.week}</span></div>`).join('') : '<p class="wk-none">No notes yet.</p>'}<button class="addmore" data-pick>＋ Choose files</button></section>` : ''}`)
+    if (!el.dataset.wired) { dropTarget(key, el.querySelector('.main'), el.querySelector('.main')); el.dataset.wired = 1 }
+  }
+  if (key === 'c') {
+    const main = el.querySelector('.main')
+    main.querySelector('.nstrip')?.remove()
+    main.insertAdjacentHTML('beforeend', `<section class="nstrip" tabindex="0" aria-label="Notes for ${c.code}"><b>Notes</b>
+      <div class="note-row">${ns.slice(-4).map(noteChip).join('')}${ns.length > 4 ? `<span class="more">+${ns.length - 4}</span>` : ''}</div>
+      <button class="nadd" data-pick>＋ Drop or paste notes</button></section>`)
+    dropTarget(key, main.querySelector('.nstrip'), main.querySelector('.nstrip'))
+  }
+  decorateShared(key, el, st)
+}
+
+document.addEventListener('click', (e) => {
+  const app = e.target.closest('.app')
+  if (!app) return
+  const key = app.id.slice(4)
+  if (e.target.closest('[data-pick]')) { e.stopPropagation(); picker(key) }
+  else if (e.target.closest('[data-notes-list]')) { states[key].notesOpen = !states[key].notesOpen; apps[key]() }
+}, true)
+window.wireSamples = () => document.querySelectorAll('[data-sample-for]').forEach((b) => b.addEventListener('click', () => addNotes(b.dataset.sampleFor, SAMPLES.map((s) => ({ ...s })))))
+// Paste goes to the option nearest the middle of the screen.
+document.addEventListener('paste', (e) => {
+  const mid = innerHeight / 2
+  const app = [...document.querySelectorAll('.app')].sort((a, b) => Math.abs(a.getBoundingClientRect().top + 370 - mid) - Math.abs(b.getBoundingClientRect().top + 370 - mid))[0]
+  const key = app.id.slice(4)
+  const files = [...e.clipboardData.files]
+  const text = e.clipboardData.getData('text').trim()
+  if (files.length) addNotes(key, files)
+  else if (text) addNotes(key, [{ name: `Pasted: ${text.slice(0, 28)}${text.length > 28 ? '…' : ''}`, kind: 'text' }])
+})
+
+for (const k of ['a', 'b', 'c']) mount(k, renderDonut, DONUT_LEGEND)
+wireSamples()
+addEventListener('resize', () => { for (const k in apps) apps[k]() })
+</script>
+</body>
+</html>
