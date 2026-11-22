@@ -47,9 +47,14 @@ describe('friendlySyncError', () => {
     expect(friendlySyncError("Canvas didn't send back a calendar. Check that the link is current.")).toBe(GONE)
   })
 
-  it('explains when the sync service or the school server cannot be reached', () => {
+  it('explains when Praedus\'s sync service cannot be reached', () => {
     expect(friendlySyncError("Couldn't reach the feed helper. Is `npm run dev` running?")).toBe(OFFLINE)
-    expect(friendlySyncError("Couldn't find the server s.edu.")).toBe(OFFLINE)
+  })
+
+  it('explains when the school\'s Canvas address cannot be found, without blaming Praedus', () => {
+    expect(friendlySyncError("Couldn't find the server s.edu.")).toBe(
+      "Couldn't find your school's Canvas at that address. Check the link, or we'll try again shortly.",
+    )
   })
 
   it('falls back to a calm retry message for anything else', () => {

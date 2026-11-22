@@ -26,13 +26,15 @@ export function isCanvasFeed(feed: Feed): boolean {
 const INVALID = "That doesn't look like a Canvas calendar link. In Canvas, open Calendar → Calendar Feed and copy the link."
 const GONE = 'This Canvas link stopped working. Paste a new one from Canvas.'
 const OFFLINE = "Couldn't reach Praedus's sync service. Check your connection; we'll try again shortly."
+const NO_SCHOOL = "Couldn't find your school's Canvas at that address. Check the link, or we'll try again shortly."
 const OTHER = "Canvas didn't respond. We'll try again shortly."
 
 /** Turns the feed helper's (and the browser's) messages into plain guidance for students. */
 export function friendlySyncError(message: string): string {
   if (/isn't a Canvas calendar|isn't allowed/.test(message)) return INVALID
   if (/answered with an error|didn't send back a calendar/.test(message)) return GONE
-  if (/feed helper|Couldn't find the server/.test(message)) return OFFLINE
+  if (/Couldn't find the server/.test(message)) return NO_SCHOOL
+  if (/feed helper/.test(message)) return OFFLINE
   return OTHER
 }
 

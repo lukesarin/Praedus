@@ -1884,7 +1884,8 @@ a {
   }
 }
 
-.canvas-card-host {
+/* Beats the sidebar's generic `.side-section p` spacing. */
+.canvas-card .canvas-card-host {
   margin: 2px 0 0 16px;
   padding: 0;
   font-size: 12px;
@@ -1894,20 +1895,16 @@ a {
   white-space: nowrap;
 }
 
-.side-section .canvas-card-meta,
-.side-section .canvas-card-host,
-.side-section .canvas-card-error {
+.canvas-card .canvas-card-meta {
   padding: 0;
-}
-
-.canvas-card-meta {
   margin: 8px 0 0 16px;
   font-size: 12px;
   line-height: 1.5;
   color: var(--text-muted);
 }
 
-.canvas-card-error {
+.canvas-card .canvas-card-error {
+  padding: 0;
   margin: 8px 0 0 16px;
   font-size: 12px;
   line-height: 1.45;

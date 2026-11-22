@@ -84,7 +84,9 @@ No changes to `db/`, `importFeed`, `syncFeed` logic, `server/`, the calendar, th
   dot plus the friendly error, and Sync now stays available).
 - **Friendly errors**: an invalid link → "That doesn't look like a Canvas calendar link. In Canvas,
   open Calendar → Calendar Feed and copy the link." The server can't be reached → "Couldn't reach
-  Praedus's sync service. Check your connection; we'll try again shortly." Canvas says the link is
+  Praedus's sync service. Check your connection; we'll try again shortly." The school's address
+  can't be found → "Couldn't find your school's Canvas at that address. Check the link, or we'll try
+  again shortly." Canvas says the link is
   gone → "This Canvas link stopped working. Paste a new one from Canvas." Anything else → "Canvas
   didn't respond. We'll try again shortly."
 

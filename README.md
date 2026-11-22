@@ -24,8 +24,10 @@ No Canvas account? Click **Try sample data** on the start screen. To see conflic
 click **Load test work shift** in the sidebar's Commitments section. Then press
 **Plan my study time**.
 
-To import your real calendar: in Canvas open **Calendar → Calendar Feed**, copy the link,
-and paste it into **Import Canvas calendar**. You can also upload any `.ics` file.
+To bring in your real Canvas: click **Connect Canvas**, then in Canvas open
+**Calendar → Calendar Feed**, copy the link and paste it in. It works at any school with no
+approval needed. Praedus re-syncs on its own while it's open: on launch, every 30 minutes, and
+when you return to the tab. You can also upload any `.ics` file with the **+** next to Calendars.
 
 ## How it works
 
@@ -120,7 +122,8 @@ Dexie · d3-force/d3-zoom · Hono · Vitest. Planned: Tauri as an optional deskt
 
 ## Known limits
 
-- Re-syncing is manual (there's a button per calendar). Auto-sync comes with milestone 5.
+- Canvas syncs only while Praedus is open. Grades and submission status aren't available: the
+  calendar link doesn't include them, and the Canvas API needs school approval.
 - Uploaded `.ics` files can't re-sync. Upload the newer file instead.
 - Recurring events in non-Canvas calendars are expanded from 1 year back to 1 year ahead
   (max 500 occurrences each).

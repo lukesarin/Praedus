@@ -64,9 +64,9 @@ export function ConnectCanvasDialog({ onClose }: Props) {
               saved only in this browser, and Praedus can't change anything in Canvas.
             </p>
             <ol className="connect-steps">
-              <li>Open Canvas and go to <strong>Calendar</strong></li>
-              <li>Click <strong>Calendar Feed</strong> at the bottom right</li>
-              <li>Copy the link and paste it below</li>
+              <li><span>Open Canvas and go to <strong>Calendar</strong></span></li>
+              <li><span>Click <strong>Calendar Feed</strong> at the bottom right</span></li>
+              <li><span>Copy the link and paste it below</span></li>
             </ol>
             <label className="field">
               <span>Canvas calendar link</span>
