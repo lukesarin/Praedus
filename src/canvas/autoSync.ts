@@ -29,7 +29,11 @@ export function useAutoSync(feeds: Feed[] | undefined) {
   const feedsRef = useRef(feeds)
   const queue = useRef<Promise<void>>(Promise.resolve())
   const launched = useRef(false)
-  feedsRef.current = feeds
+
+  // Runs before the launch effect below, so `run` always sees the latest feeds.
+  useEffect(() => {
+    feedsRef.current = feeds
+  }, [feeds])
 
   const syncNow = useCallback((feed: Feed): Promise<void> => {
     if (syncingRef.current.has(feed.id)) return queue.current
