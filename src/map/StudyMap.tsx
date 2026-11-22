@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Course } from '../db/db'
 import { dueInstant } from '../study/plan'
 import { courseCode, type buildClassGraph, type MapNode } from './graph'
+import { LABEL_GAP, placeLabels, type Box } from './labels'
 import { weekHeading } from './panelText'
 
 type Graph = ReturnType<typeof buildClassGraph>
@@ -352,6 +353,30 @@ export function StudyMap({
   const hoverWeek = hoveredNode ? graph?.weeks.find((w) => w.start === hoveredNode.week) : undefined
   const showLabel = (n: MapNode) => n.kind === 'assignment' && (n.inUnit || hovered === n.id)
 
+  // Each shown label goes on the side of its dot (or nudged a little) where it runs into nothing,
+  // so labels stay readable after a drag or in a crowded week. The hovered one is placed first.
+  const placements = (() => {
+    const obstacles: (Box & { id?: string })[] = []
+    const shown = []
+    for (const s of simNodes) {
+      const n = nodeById.get(s.id)
+      if (!n) continue
+      const { x, y } = pos(s.id)
+      const [hw, hh] =
+        n.kind === 'course'
+          ? [pillWidth(n.label) / 2, PILL_HEIGHT / 2]
+          : n.kind === 'test'
+            ? [tagWidth(n.label) / 2, TAG_HEIGHT / 2]
+            : n.kind === 'week'
+              ? /\d$/.test(n.label) && n.label.length <= 2 ? [WEEK_RADIUS, WEEK_RADIUS] : [weekPillWidth(n.label) / 2, 10]
+              : [DOT_RADIUS, DOT_RADIUS]
+      obstacles.push({ id: s.id, x0: x - hw, x1: x + hw, y0: y - hh, y1: y + hh })
+      if (showLabel(n)) shown.push({ id: s.id, x, y, text: labelText(n.label) })
+    }
+    shown.sort((a, b) => Number(b.id === hovered) - Number(a.id === hovered))
+    return placeLabels(shown, obstacles)
+  })()
+
   const tests = graph?.tests ?? []
   const nowMs = now.getTime()
   const color = course ? muted(course.color) : 'var(--text-faint)'
@@ -512,10 +537,11 @@ export function StudyMap({
                   const n = nodeById.get(s.id)
                   if (!n || !showLabel(n)) return null
                   const { x, y } = pos(s.id)
-                  const left = x < 0
+                  const place = placements.get(s.id) ?? { side: x < 0 ? 'left' : 'right', dy: 0 }
+                  const left = place.side === 'left'
                   const cls = ['label', n.reviewed ? 'reviewed' : n.status === 'late' ? 'late' : '', isDim(n) ? 'dim' : '']
                   return (
-                    <text key={s.id} x={x + (left ? -9 : 9)} y={y} textAnchor={left ? 'end' : 'start'}
+                    <text key={s.id} x={x + (left ? -LABEL_GAP : LABEL_GAP)} y={y + place.dy} textAnchor={left ? 'end' : 'start'}
                       dominantBaseline="central" className={cls.filter(Boolean).join(' ')}>
                       {labelText(n.label)}
                     </text>
