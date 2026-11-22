@@ -23,6 +23,7 @@
     "@fullcalendar/react": "^6.1.22",
     "@fullcalendar/timegrid": "^6.1.22",
     "@hono/node-server": "^2.1.11",
+    "@supabase/supabase-js": "^2.119.2",
     "d3-force": "^3.0.1",
     "d3-selection": "^3.0.1",
     "d3-zoom": "^3.0.1",
