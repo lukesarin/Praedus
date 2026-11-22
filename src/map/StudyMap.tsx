@@ -366,7 +366,7 @@ export function StudyMap({
               Your classes show up here once Canvas is connected.
             </div>
           )}
-          <svg ref={svgRef} width={size.w} height={size.h} role="img"
+          <svg ref={svgRef} width={size.w} height={size.h} role="group"
             aria-label={course ? `Study map of ${course.name}` : 'Study map'}
             onPointerMove={onNodeMove} onPointerUp={onNodeUp} onPointerCancel={onNodeUp}>
             <g transform={transform.toString()}>

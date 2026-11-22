@@ -88,6 +88,12 @@ export function unitFor(given: CalendarItem, classItems: CalendarItem[], weeks: 
   return { test, previous, weeks: unitWeeks, items, cumulative, ...(earliestKnown ? { earliestKnown } : {}) }
 }
 
+/** A class's test to start on: its next upcoming test, else its latest. Undefined when it has none. */
+export function defaultTestFor(classItems: CalendarItem[], now: Date): CalendarItem | undefined {
+  const tests = testsOf(classItems)
+  return tests.find((t) => dueInstant(t) > now.getTime()) ?? tests[tests.length - 1]
+}
+
 export function defaultPick(
   courses: Course[],
   items: CalendarItem[],
@@ -99,7 +105,8 @@ export function defaultPick(
   for (const i of mine) byCourse.set(i.courseId!, [...(byCourse.get(i.courseId!) ?? []), i])
   let upcoming: CalendarItem | undefined
   for (const classItems of byCourse.values()) {
-    const next = testsOf(classItems).find((t) => dueInstant(t) > now.getTime())
+    const t = defaultTestFor(classItems, now)
+    const next = t && dueInstant(t) > now.getTime() ? t : undefined
     if (next && (!upcoming || dueInstant(next) < dueInstant(upcoming))) upcoming = next
   }
   if (upcoming) return { courseId: upcoming.courseId!, testId: upcoming.id }
@@ -107,7 +114,7 @@ export function defaultPick(
     .sort((a, b) => a.name.localeCompare(b.name))
     .find((c) => byCourse.has(c.id))
   if (!first) return null
-  const tests = testsOf(byCourse.get(first.id)!)
-  const latest = tests[tests.length - 1]
+  // No class has an upcoming test, so this is the class's latest.
+  const latest = defaultTestFor(byCourse.get(first.id)!, now)
   return latest ? { courseId: first.id, testId: latest.id } : { courseId: first.id }
 }

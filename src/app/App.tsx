@@ -11,15 +11,14 @@ import { expandCommitments } from '../commitments/expand'
 import { ScopePrompt } from '../commitments/ScopePrompt'
 import { buildTestShift } from '../commitments/testShift'
 import type { Commitment } from '../commitments/types'
-import { db, type CalendarItem } from '../db/db'
+import { db } from '../db/db'
 import { getMinGap, getStudySettings, getTermStart } from '../db/settings'
 import { planMyStudyTime, summarize } from '../study/applyPlan'
 import { coverage } from '../study/coverage'
 import { buildClassGraph } from '../map/graph'
 import { StudyMap } from '../map/StudyMap'
 import { TestPrepPanel } from '../map/TestPrepPanel'
-import { defaultPick, testsOf } from '../map/units'
-import { dueInstant } from '../study/plan'
+import { defaultPick, defaultTestFor } from '../map/units'
 import { StudyBlockDialog } from '../study/StudyBlockDialog'
 import { ImportDialog } from '../import/ImportDialog'
 import { useAutoSync } from '../canvas/autoSync'
@@ -41,12 +40,6 @@ const hhmm = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`
 async function saveCommitment(c: Commitment | null, id: string) {
   if (c) await db.commitments.put(c)
   else await db.commitments.delete(id)
-}
-
-/** A class's own test to start on: its next upcoming test, else its latest. */
-function classDefaultTest(items: CalendarItem[], courseId: string, now: Date): string | undefined {
-  const tests = testsOf(items.filter((i) => i.courseId === courseId))
-  return (tests.find((t) => dueInstant(t) > now.getTime()) ?? tests[tests.length - 1])?.id
 }
 
 export default function App() {
@@ -124,7 +117,7 @@ export default function App() {
     const g = buildClassGraph({ ...input, testId: pick?.testId })
     // The picked test is gone (removed from Canvas): fall back to the class's own default.
     if (g.unit || g.tests.length === 0) return g
-    return buildClassGraph({ ...input, testId: classDefaultTest(items, mapCourse.id, now) })
+    return buildClassGraph({ ...input, testId: defaultTestFor(items.filter((i) => i.courseId === mapCourse.id), now)?.id })
   }, [mapCourse, items, termStart, pick?.testId, now])
 
   if (!feeds || !courses || !items || !commitments || minGap === undefined || !studyBlocks || !studySettings) {
@@ -197,7 +190,7 @@ export default function App() {
   }
 
   function pickCourse(courseId: string) {
-    const testId = classDefaultTest(items!, courseId, now)
+    const testId = defaultTestFor(items!.filter((i) => i.courseId === courseId), now)?.id
     setMapPick({ courseId, ...(testId ? { testId } : {}) })
   }
 
@@ -294,7 +287,7 @@ export default function App() {
                 unit={graph.unit}
                 weeks={graph.weeks}
                 blocks={studyBlocks}
-                items={items}
+                short={short.find((c) => c.item.id === graph.unit?.test.id)?.short ?? 0}
                 now={now}
                 planning={planning}
                 onPlan={() => void plan()}

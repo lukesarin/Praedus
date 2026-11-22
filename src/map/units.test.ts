@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CalendarItem, Course } from '../db/db'
 import { addDays } from '../calendar/dates'
-import { classWeeks, defaultPick, mondayOf, testsOf, unitFor } from './units'
+import { classWeeks, defaultPick, defaultTestFor, mondayOf, testsOf, unitFor } from './units'
 
 const TERM = '2026-08-24'
 let n = 0
@@ -151,4 +151,20 @@ describe('defaultPick', () => {
     expect(defaultPick(courses, [dup, ev], new Date(2026, 10, 21))).toEqual({ courseId: 'math', testId: ev.id })
   })
   it('is null with no items', () => expect(defaultPick(courses, [], new Date())).toBeNull())
+})
+
+describe('defaultTestFor', () => {
+  const t1 = mk('assignment', 'Test 1', '2026-09-20')
+  const t2 = mk('assignment', 'Test 2', '2026-10-20')
+  const t3 = mk('assignment', 'Test 3', '2026-11-24')
+  const hw = mk('assignment', 'Homework 4', '2026-11-01')
+  it('picks the next upcoming test', () => {
+    expect(defaultTestFor([t3, hw, t1, t2], new Date(2026, 9, 1))?.id).toBe(t2.id)
+  })
+  it('picks the latest test when all are past', () => {
+    expect(defaultTestFor([t3, hw, t1, t2], new Date(2027, 0, 5))?.id).toBe(t3.id)
+  })
+  it('is undefined with no tests', () => {
+    expect(defaultTestFor([hw], new Date(2026, 9, 1))).toBeUndefined()
+  })
 })

@@ -1,7 +1,6 @@
 import { itemDateKey } from '../calendar/dates'
 import type { CalendarItem, Course } from '../db/db'
 import { formatMinutes } from '../study/applyPlan'
-import { coverage } from '../study/coverage'
 import { dueInstant } from '../study/plan'
 import type { StudyBlock } from '../study/types'
 import { courseCode } from './graph'
@@ -13,8 +12,8 @@ type Props = {
   unit?: Unit
   weeks: Week[]
   blocks: StudyBlock[]
-  /** Every item, for working out how much review time the test still needs. */
-  items: CalendarItem[]
+  /** Minutes of review time the test still needs (its coverage `short`). */
+  short: number
   now: Date
   planning: boolean
   onPlan: () => void
@@ -43,7 +42,7 @@ function blockWhen(b: StudyBlock): { day: string; time: string } {
 }
 
 const shortDate = (key: string) =>
-  new Date(key + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+  new Date(key + 'T00:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })
 
 function CheckIcon() {
   return (
@@ -53,7 +52,7 @@ function CheckIcon() {
   )
 }
 
-export function TestPrepPanel({ course, unit, weeks, blocks, items, now, planning, onPlan, onToggleReviewed, onOpenItem }: Props) {
+export function TestPrepPanel({ course, unit, weeks, blocks, short: missing, now, planning, onPlan, onToggleReviewed, onOpenItem }: Props) {
   if (!course) return <aside className="prep" aria-label="Test prep" />
   const code = courseCode(course.name)
 
@@ -75,8 +74,7 @@ export function TestPrepPanel({ course, unit, weeks, blocks, items, now, plannin
   const total = unit.items.length
   const reviewed = unit.items.filter((i) => i.reviewed).length
   const share = total ? reviewed / total : 0
-  const cover = coverage(items, blocks, now).find((c) => c.item.id === test.id)
-  const short = upcoming ? (cover?.short ?? 0) : 0
+  const short = upcoming ? missing : 0
   const mine = blocks
     .filter((b) => b.itemId === test.id && Date.parse(b.end) > nowMs)
     .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
@@ -142,6 +140,8 @@ export function TestPrepPanel({ course, unit, weeks, blocks, items, now, plannin
           Praedus has this class's work from {shortDate(unit.earliestKnown)} on. Earlier weeks came before you connected Canvas.
         </p>
       )}
+
+      {total === 0 && <p className="prep-note">Nothing to review in these weeks.</p>}
 
       {groups.length > 0 && (
         <div className="prep-weeks">
