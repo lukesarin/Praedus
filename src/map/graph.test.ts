@@ -4,7 +4,7 @@ import { localInstant } from '../commitments/expand'
 import type { Commitment } from '../commitments/types'
 import type { CalendarItem, Course } from '../db/db'
 import type { StudyBlock } from '../study/types'
-import { buildGraph, DEFAULT_MAP_FILTERS, type MapFilters } from './graph'
+import { buildGraph, courseCode, DEFAULT_MAP_FILTERS, ringDistance, type MapFilters } from './graph'
 
 const now = localInstant('2026-11-21', '12:00')
 const iso = (d: string, t: string) => localInstant(d, t).toISOString()
@@ -106,5 +106,54 @@ describe('buildGraph', () => {
   it('is empty when there is nothing coming up', () => {
     const g = buildGraph({ items: [], courses, blocks: [], commitments: [], now, filters: DEFAULT_MAP_FILTERS })
     expect(g).toEqual({ nodes: [], links: [], availableCourses: [] })
+  })
+})
+
+describe('ringDistance', () => {
+  it('places overdue work right next to its course', () => {
+    expect(ringDistance(-2)).toBe(34)
+  })
+
+  it('marks the week rings at 7 and 14 days', () => {
+    expect(ringDistance(0)).toBe(46)
+    expect(ringDistance(7)).toBe(109)
+    expect(ringDistance(14)).toBe(172)
+  })
+
+  it('squeezes later work into a narrow outer band, capped at 8 weeks', () => {
+    expect(ringDistance(56)).toBeCloseTo(239.2, 5)
+    expect(ringDistance(120)).toBe(ringDistance(56))
+  })
+
+  it('keeps sooner work closer, day by day', () => {
+    for (let d = 0; d < 56; d += 0.5) expect(ringDistance(d + 0.5)).toBeGreaterThan(ringDistance(d))
+  })
+})
+
+describe('courseCode', () => {
+  it('shortens a Canvas course name to its subject and number', () => {
+    expect(courseCode('CS 210 Intro to Programming')).toBe('CS 210')
+    expect(courseCode('ENGL 101A Composition')).toBe('ENGL 101A')
+    expect(courseCode('MATH 120')).toBe('MATH 120')
+  })
+
+  it('keeps short names without a code, and shortens long ones', () => {
+    expect(courseCode('Biology')).toBe('Biology')
+    expect(courseCode('Introduction to Modern Philosophy')).toBe('Introduction to…')
+    expect(courseCode('Introduction to Modern Philosophy')).toHaveLength(16)
+  })
+})
+
+describe('buildGraph due distance', () => {
+  const g = buildGraph({ items, courses, blocks, commitments: [], now, filters: DEFAULT_MAP_FILTERS })
+  const node = (id: string) => g.nodes.find((n) => n.id === id)
+
+  it('gives assignments their days until due, negative when overdue', () => {
+    expect(node('item:late')?.dueInDays).toBeLessThan(0)
+    expect(node('item:lab')?.dueInDays).toBeCloseTo(4.5, 1)
+  })
+
+  it('leaves study blocks without a due distance', () => {
+    expect(node('block:b2')?.dueInDays).toBeUndefined()
   })
 })

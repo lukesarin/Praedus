@@ -29,6 +29,8 @@ export type MapNode = {
   needMinutes?: number
   /** Shown on hover, e.g. "Due Wed, Nov 25 · 11:59 PM". */
   detail?: string
+  /** Assignments only: days from now until due (negative when overdue). Sets distance from the course. */
+  dueInDays?: number
 }
 
 export type MapLink = { source: string; target: string }
@@ -39,6 +41,27 @@ export const MAP_WINDOW_DAYS = 56
 export const OVERDUE_DAYS = 14
 
 const RADIUS = { course: 8, class: 4, block: 2.5 }
+
+/** Distance of the "This week" and "Next week" guide rings from a course's center. */
+export const RING_THIS_WEEK = 109
+export const RING_NEXT_WEEK = 172
+
+/**
+ * How far an assignment sits from its course: sooner is closer. The first two weeks are
+ * spread evenly (one ring each); later work, up to 8 weeks out, is squeezed into a narrow band.
+ */
+export function ringDistance(days: number): number {
+  if (days < 0) return 34
+  if (days <= 14) return 46 + 9 * days
+  return RING_NEXT_WEEK + 1.6 * (Math.min(days, MAP_WINDOW_DAYS) - 14)
+}
+
+/** "CS 210 Intro to Programming" → "CS 210". Names without a code are kept, shortened to 16 characters. */
+export function courseCode(name: string): string {
+  const m = /^([A-Za-z]{2,6})[\s-]*(\d{2,4}[A-Za-z]?)\b/.exec(name.trim())
+  if (m) return `${m[1]} ${m[2]}`
+  return name.length > 16 ? `${name.slice(0, 15).trimEnd()}…` : name
+}
 
 export function assignmentRadius(estimateMinutes: number): number {
   return Math.min(6, Math.max(4, 4 + 0.9 * Math.sqrt(estimateMinutes / 60)))
@@ -118,6 +141,7 @@ export function buildGraph({ items, courses, blocks, commitments, now, filters }
       ...(status ? { status } : {}),
       ...(status === 'short' ? { needMinutes: short.get(i.id) } : {}),
       detail: `Due ${formatDue(i)}`,
+      dueInDays: (dueInstant(i) - nowMs) / 86_400_000,
     })
     if (i.courseId && courseById.has(i.courseId)) {
       links.push({ source: `item:${i.id}`, target: `course:${i.courseId}` })
