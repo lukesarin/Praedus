@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Map Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --ink: #171717; --ink-2: #737373; --ink-3: #a3a3a3; --line: #ececec; --mint: #0b7f58; color-scheme: light; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #fff; color: var(--ink); font: 15px/1.55 "Figtree", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+.hero { background: #0e0e0e; color: #f2f2f2; }
+.hero .wrap { padding-top: 72px; padding-bottom: 56px; }
+.hero h1 { margin: 0 0 14px; font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -0.04em; font-weight: 700; max-width: 18ch; }
+.hero p { margin: 0 0 8px; color: #a3a3a3; max-width: 64ch; }
+.hero nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 26px; font-size: 14px; }
+.hero nav a { color: #d4d4d4; text-decoration: none; }
+.hero nav a:hover { color: #5ed3a8; }
+
+.opt { padding: 72px 0; border-bottom: 1px solid var(--line); }
+.opt-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; margin-bottom: 26px; }
+@media (max-width: 900px) { .opt-head { grid-template-columns: 1fr; gap: 16px; } }
+.opt h2 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.03em; line-height: 1.1; }
+.opt .tag { margin: 0 0 14px; color: var(--ink-2); }
+.opt p { margin: 0 0 10px; color: var(--ink-2); max-width: 60ch; }
+.opt ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+.opt li { margin: 4px 0; }
+.opt li b { color: var(--ink); }
+.pick { display: inline-block; margin-left: 10px; font-size: 13px; font-weight: 700; color: var(--mint); vertical-align: middle; }
+
+.frame { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.frame-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fafafa; font-size: 12.5px; color: var(--ink-2); }
+.frame-bar .dots { display: flex; gap: 6px; }
+.frame-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: #e2e2e2; display: block; }
+.frame-bar button { margin-left: auto; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 12px; font: inherit; font-size: 12px; cursor: pointer; color: var(--ink); }
+.frame-bar button:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+.scroller { overflow-x: auto; }
+
+/* ---------- Map canvas (the app's real tokens) ---------- */
+.map {
+  --bg: #0e0e0e; --surface: #181818; --raised: #161616; --border: #222; --text: #f2f2f2; --muted: #a3a3a3; --faint: #6e6e6e;
+  --accent: #5ed3a8; --on-accent: #06140f; --accent-soft: rgba(94,211,168,.12); --link: #2c2c2c; --red: #f26666; --amber: #e0a84f;
+  background: var(--bg); color: var(--text); font-family: "Figtree", sans-serif; min-width: 980px; position: relative;
+}
+.map.light {
+  --bg: #fff; --surface: #f7f7f5; --raised: #fff; --border: #ececec; --text: #171717; --muted: #737373; --faint: #a3a3a3;
+  --accent: #0b7f58; --on-accent: #fff; --accent-soft: rgba(11,127,88,.08); --link: #dcdcdc; --red: #c9302c; --amber: #b7791f;
+}
+.map .toolbar { display: flex; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+.map .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; }
+.map .chip i { width: 7px; height: 7px; border-radius: 50%; display: block; }
+.map .toolbar .sp { flex: 1; }
+.map svg { display: block; width: 100%; height: auto; }
+.map svg text { font-family: "Figtree", sans-serif; }
+.map .legend { display: flex; gap: 16px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); flex-wrap: wrap; }
+.map .legend span { display: inline-flex; align-items: center; gap: 6px; }
+.map .tip { position: absolute; background: var(--raised); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.4; box-shadow: 0 12px 32px rgba(0,0,0,.35); pointer-events: none; min-width: 160px; }
+.map .tip b { display: block; font-size: 12.5px; }
+.map .tip span { color: var(--muted); }
+.map .tip em { font-style: normal; color: var(--accent); font-weight: 600; }
+.map g.node { cursor: pointer; }
+.map g.node:hover .lbl { fill: var(--text); }
+
+.compare { padding: 72px 0; }
+.compare h2 { margin: 0 0 8px; font-size: 30px; letter-spacing: -0.025em; }
+.compare .lede { margin: 0 0 28px; color: var(--ink-2); max-width: 64ch; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 720px; }
+th, td { text-align: left; padding: 12px 16px 12px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 600; font-size: 13px; }
+td:first-child { font-weight: 600; width: 15%; }
+.rec { margin-top: 40px; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 40px; }
+@media (max-width: 900px) { .rec { grid-template-columns: 1fr; } }
+.rec p, .rec li { color: var(--ink-2); font-size: 14.5px; }
+.rec b { color: var(--ink); }
+footer { padding: 32px 0 72px; color: var(--ink-3); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Study map: four directions</h1>
+    <p>Each option is drawn from the same real structure as the app: courses, upcoming assignments (sized by estimated time), their study blocks, and the "Overdue" and "Needs time" flags. The data is the app's sample semester.</p>
+    <p>These are static mockups. In the app the map stays springy and draggable, with hover highlighting, click-to-open and the same filters. Hover a node here to see the tooltip style.</p>
+    <nav>
+      <a href="#a">A. Mint pills</a>
+      <a href="#b">B. Course cards</a>
+      <a href="#c">C. Coverage rings</a>
+      <a href="#d">D. Due-date rings</a>
+      <a href="#compare">Compare</a>
+    </nav>
+  </div>
+</header>
+
+<main id="opts"></main>
+
+<section class="compare" id="compare">
+  <div class="wrap">
+    <h2>Compare</h2>
+    <p class="lede">All four keep the map's behavior: filters, hover focus, click to open an assignment or its week, and drag to rearrange. They differ in what the map tells you at a glance, and in how much of its drawing code changes.</p>
+    <div class="scroller">
+    <table>
+      <thead><tr><th></th><th>A. Mint pills</th><th>B. Course cards</th><th>C. Coverage rings</th><th>D. Due-date rings</th></tr></thead>
+      <tbody>
+        <tr><td>At a glance</td><td>Which course owns what</td><td>Per-course workload</td><td>How prepared you are</td><td>What's coming up soonest</td></tr>
+        <tr><td>Course node</td><td>Mint outlined pill</td><td>Card with name and counts</td><td>Neutral pill with course color</td><td>Solid mint pill</td></tr>
+        <tr><td>Assignments</td><td>Dots plus labels (as today)</td><td>Labeled pills with due day</td><td>Rings filling with mint as study is planned</td><td>Dots placed by due date</td></tr>
+        <tr><td>Study blocks</td><td>Tiny mint dots</td><td>Tiny mint squares</td><td>Folded into the ring (shown on hover)</td><td>Tiny mint dots</td></tr>
+        <tr><td>Clutter</td><td>Low</td><td>Medium-high</td><td>Lowest</td><td>Low-medium</td></tr>
+        <tr><td>Build size</td><td>Small: node shape and CSS</td><td>Medium: new node shapes, collision sizes</td><td>Small-medium: ring arcs, coverage already computed</td><td>Medium: a new radial force for layout</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="rec">
+      <div>
+        <h3>My pick: A, with C's rings</h3>
+        <p><b>A's mint pills</b> are exactly what you described and make courses unmistakable. Adding <b>C's coverage rings</b> to the assignment dots gives the map a job the calendar can't do as well: showing at a glance which work is ready and which still needs time. Study-block dots can then be hidden by default, which removes most of the clutter.</p>
+        <p>The app already calculates coverage for the "Needs more study time" list, so the rings reuse existing logic.</p>
+      </div>
+      <div>
+        <h3>Worth knowing</h3>
+        <ul>
+          <li><b>Mint means "yours"</b> elsewhere in the app (study blocks, today). Mint course pills stretch that rule a little. If that bothers you, C's neutral pills keep mint for study time only.</li>
+          <li><b>Long course names</b> like "CS 210 Intro to Programming" make wide pills. The pills shorten them to the course code ("CS 210"), with the full name on hover.</li>
+          <li><b>B carries the most text</b>, so it gets crowded with 6+ courses. The others scale better.</li>
+          <li><b>D changes the layout itself.</b> Distance from the course means time, so dragging a node would fight that rule.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap">Design exploration only. Lives in <code>design-exploration/</code> and is not loaded by the app.</div></footer>
+
+<script>
+/* ---------- Sample semester (matches the app's built-in sample) ---------- */
+const COURSES = [
+  { id: 'cs', code: 'CS 210', name: 'CS 210 Intro to Programming', color: '#8b7cf6', x: 260, y: 300 },
+  { id: 'engl', code: 'ENGL 101', name: 'ENGL 101 Composition', color: '#f08bb4', x: 560, y: 160 },
+  { id: 'math', code: 'MATH 120', name: 'MATH 120 Calculus I', color: '#4fa3d1', x: 770, y: 380 },
+];
+// days = days until due (negative = overdue); cov = share of needed study time planned
+const ITEMS = [
+  { c: 'cs', t: 'Lab 8: Files', x: 140, y: 420, r: 4.5, days: -2, cov: 0, blocks: 0, due: 'Thu, Nov 19', status: 'overdue' },
+  { c: 'cs', t: 'Lab 9: Recursion', x: 340, y: 450, r: 4.5, days: 1, cov: 1, blocks: 2, due: 'Sun, Nov 22' },
+  { c: 'cs', t: 'Project 10: Final project', x: 205, y: 175, r: 6, days: 9, cov: 0.6, blocks: 5, due: 'Mon, Nov 30', status: 'short', need: '2 h' },
+  { c: 'engl', t: 'Peer review', x: 430, y: 70, r: 4.5, days: 11, cov: 1, blocks: 1, due: 'Wed, Dec 2' },
+  { c: 'engl', t: 'Essay draft: Argument', x: 690, y: 240, r: 5.5, days: 4, cov: 0.5, blocks: 2, due: 'Wed, Nov 25', status: 'short', need: '1 h' },
+  { c: 'math', t: 'Problem Set 7', x: 845, y: 270, r: 5, days: 2, cov: 1, blocks: 2, due: 'Mon, Nov 23' },
+  { c: 'math', t: 'Quiz 5', x: 640, y: 490, r: 4.5, days: 5, cov: 1, blocks: 1, due: 'Thu, Nov 26' },
+  { c: 'math', t: 'Problem Set 8', x: 855, y: 490, r: 5, days: 13, cov: 0.4, blocks: 1, due: 'Fri, Dec 4' },
+];
+const W = 1000, H = 560;
+const byId = Object.fromEntries(COURSES.map(c => [c.id, c]));
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const textW = (s, px) => s.length * px * 0.56;
+
+/** Study-block positions: fanned out on the far side of the assignment from its course. */
+function blockSpots(it, n, dist = 20) {
+  const c = byId[it.c];
+  const base = Math.atan2(it.y - c.y, it.x - c.x);
+  return Array.from({ length: n }, (_, i) => {
+    const a = base + (i - (n - 1) / 2) * 0.5;
+    return { x: it.x + Math.cos(a) * dist, y: it.y + Math.sin(a) * dist };
+  });
+}
+const labelSide = it => (it.x < byId[it.c].x ? 'end' : 'start');
+function tagSvg(it, x, y, anchor) {
+  if (!it.status) return '';
+  const txt = it.status === 'overdue' ? 'Overdue' : `Needs ${it.need}`;
+  const col = it.status === 'overdue' ? 'var(--red)' : 'var(--amber)';
+  return `<text x="${x}" y="${y + 15}" text-anchor="${anchor}" font-size="10.5" font-weight="600" fill="${col}">${txt}</text>`;
+}
+const tipData = it => `data-tip="${esc(it.t)}|Due ${it.due}|${Math.round(it.cov * 100)}% of study time planned|${it.status === 'overdue' ? 'Overdue' : it.status === 'short' ? 'Needs ' + it.need + ' more' : ''}"`;
+
+/* ---------- A. Mint pills ---------- */
+function drawA() {
+  let s = '';
+  for (const it of ITEMS) {
+    const c = byId[it.c];
+    s += `<line x1="${c.x}" y1="${c.y}" x2="${it.x}" y2="${it.y}" stroke="var(--link)" stroke-width="1"/>`;
+    for (const b of blockSpots(it, it.blocks)) s += `<line x1="${it.x}" y1="${it.y}" x2="${b.x}" y2="${b.y}" stroke="var(--link)" stroke-width="1"/>`;
+  }
+  for (const it of ITEMS) {
+    for (const b of blockSpots(it, it.blocks)) s += `<circle cx="${b.x}" cy="${b.y}" r="2.4" fill="var(--accent)" opacity=".75"/>`;
+    const side = labelSide(it), lx = it.x + (side === 'end' ? -it.r - 8 : it.r + 8);
+    s += `<g class="node" ${tipData(it)}><circle cx="${it.x}" cy="${it.y}" r="${it.r}" fill="${byId[it.c].color}"/>`
+      + `<text class="lbl" x="${lx}" y="${it.y + 4}" text-anchor="${side}" font-size="12" fill="var(--muted)">${esc(it.t)}</text>${tagSvg(it, lx, it.y + 2, side)}</g>`;
+  }
+  for (const c of COURSES) {
+    const w = textW(c.code, 13) + 30, h = 30;
+    s += `<g class="node" data-tip="${esc(c.name)}|${ITEMS.filter(i => i.c === c.id).length} upcoming assignments||">`
+      + `<rect x="${c.x - w / 2}" y="${c.y - h / 2}" width="${w}" height="${h}" rx="15" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>`
+      + `<text x="${c.x}" y="${c.y + 4.5}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent)">${c.code}</text></g>`;
+  }
+  return s;
+}
+
+/* ---------- B. Course cards ---------- */
+function drawB() {
+  let s = '';
+  for (const it of ITEMS) {
+    const c = byId[it.c];
+    s += `<line x1="${c.x}" y1="${c.y}" x2="${it.x}" y2="${it.y}" stroke="var(--link)" stroke-width="1"/>`;
+    for (const b of blockSpots(it, it.blocks, 26)) s += `<line x1="${it.x}" y1="${it.y}" x2="${b.x}" y2="${b.y}" stroke="var(--link)"/>`;
+  }
+  for (const it of ITEMS) {
+    for (const b of blockSpots(it, it.blocks, 26)) s += `<rect x="${b.x - 2.5}" y="${b.y - 2.5}" width="5" height="5" rx="1.5" fill="var(--accent)" opacity=".8"/>`;
+    const day = it.due.split(',')[0];
+    const label = it.t.length > 18 ? it.t.slice(0, 17) + '…' : it.t;
+    const w = textW(label, 12) + textW(day, 11) + 40, h = 26;
+    const stroke = it.status === 'overdue' ? 'var(--red)' : it.status === 'short' ? 'var(--amber)' : 'var(--border)';
+    s += `<g class="node" ${tipData(it)}><rect x="${it.x - w / 2}" y="${it.y - h / 2}" width="${w}" height="${h}" rx="13" fill="var(--surface)" stroke="${stroke}"/>`
+      + `<circle cx="${it.x - w / 2 + 13}" cy="${it.y}" r="3.5" fill="${byId[it.c].color}"/>`
+      + `<text class="lbl" x="${it.x - w / 2 + 22}" y="${it.y + 4}" font-size="12" font-weight="500" fill="var(--text)">${esc(label)}</text>`
+      + `<text x="${it.x + w / 2 - 11}" y="${it.y + 4}" text-anchor="end" font-size="11" fill="${it.status === 'overdue' ? 'var(--red)' : 'var(--faint)'}">${day}</text></g>`;
+  }
+  for (const c of COURSES) {
+    const items = ITEMS.filter(i => i.c === c.id);
+    const w = 172, h = 54;
+    s += `<g class="node" data-tip="${esc(c.name)}|${items.length} upcoming assignments||">`
+      + `<rect x="${c.x - w / 2}" y="${c.y - h / 2}" width="${w}" height="${h}" rx="12" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>`
+      + `<circle cx="${c.x - w / 2 + 16}" cy="${c.y - 7}" r="4" fill="${c.color}"/>`
+      + `<text x="${c.x - w / 2 + 27}" y="${c.y - 3}" font-size="13.5" font-weight="700" fill="var(--text)">${c.code}</text>`
+      + `<text x="${c.x - w / 2 + 16}" y="${c.y + 15}" font-size="11" fill="var(--muted)">${items.length} due · ${items.reduce((n, i) => n + i.blocks, 0)} study blocks</text></g>`;
+  }
+  return s;
+}
+
+/* ---------- C. Coverage rings ---------- */
+function arc(cx, cy, r, frac) {
+  if (frac <= 0) return '';
+  if (frac >= 1) return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--accent)" stroke-width="3"/>`;
+  const a = frac * Math.PI * 2 - Math.PI / 2;
+  const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+  return `<path d="M${cx} ${cy - r}A${r} ${r} 0 ${frac > 0.5 ? 1 : 0} 1 ${x} ${y}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>`;
+}
+function drawC() {
+  let s = '';
+  for (const it of ITEMS) { const c = byId[it.c]; s += `<line x1="${c.x}" y1="${c.y}" x2="${it.x}" y2="${it.y}" stroke="var(--link)" stroke-width="1"/>`; }
+  for (const it of ITEMS) {
+    const R = it.r + 6, side = labelSide(it), lx = it.x + (side === 'end' ? -R - 8 : R + 8);
+    const track = it.status === 'overdue' ? 'var(--red)' : 'var(--border)';
+    s += `<g class="node" ${tipData(it)}><circle cx="${it.x}" cy="${it.y}" r="${R}" fill="var(--bg)" stroke="${track}" stroke-width="3"/>${arc(it.x, it.y, R, it.cov)}`
+      + `<circle cx="${it.x}" cy="${it.y}" r="${Math.max(3, it.r - 1.5)}" fill="${byId[it.c].color}"/>`
+      + `<text class="lbl" x="${lx}" y="${it.y + 4}" text-anchor="${side}" font-size="12" fill="var(--muted)">${esc(it.t)}</text>${tagSvg(it, lx, it.y + 2, side)}</g>`;
+  }
+  for (const c of COURSES) {
+    const w = textW(c.code, 13) + 40, h = 30;
+    s += `<g class="node" data-tip="${esc(c.name)}|${ITEMS.filter(i => i.c === c.id).length} upcoming assignments||">`
+      + `<rect x="${c.x - w / 2}" y="${c.y - h / 2}" width="${w}" height="${h}" rx="15" fill="var(--surface)" stroke="var(--border)"/>`
+      + `<circle cx="${c.x - w / 2 + 15}" cy="${c.y}" r="4" fill="${c.color}"/>`
+      + `<text x="${c.x + 6}" y="${c.y + 4.5}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">${c.code}</text></g>`;
+  }
+  return s;
+}
+
+/* ---------- D. Due-date rings ---------- */
+function drawD() {
+  const R0 = 46, PER_DAY = 8.5;
+  const pos = it => {
+    const c = byId[it.c], a = Math.atan2(it.y - c.y, it.x - c.x);
+    const r = it.days < 0 ? 30 : R0 + it.days * PER_DAY;
+    return { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r };
+  };
+  let s = '';
+  for (const c of COURSES) {
+    for (const [days, name] of [[7, 'This week'], [14, 'Next week']]) {
+      const r = R0 + days * PER_DAY;
+      s += `<circle cx="${c.x}" cy="${c.y}" r="${r}" fill="none" stroke="var(--border)" stroke-dasharray="3 5"/>`;
+      if (c.id === 'cs') s += `<text x="${c.x}" y="${c.y - r - 6}" text-anchor="middle" font-size="10.5" fill="var(--faint)">${name}</text>`;
+    }
+  }
+  for (const it of ITEMS) { const c = byId[it.c], p = pos(it); s += `<line x1="${c.x}" y1="${c.y}" x2="${p.x}" y2="${p.y}" stroke="var(--link)"/>`; }
+  for (const it of ITEMS) {
+    const p = pos(it), side = labelSide(it), lx = p.x + (side === 'end' ? -it.r - 8 : it.r + 8);
+    for (const b of blockSpots({ ...it, ...p }, it.blocks, 16)) s += `<circle cx="${b.x}" cy="${b.y}" r="2.2" fill="var(--accent)" opacity=".75"/>`;
+    s += `<g class="node" ${tipData(it)}><circle cx="${p.x}" cy="${p.y}" r="${it.r}" fill="${it.status === 'overdue' ? 'var(--red)' : byId[it.c].color}"/>`
+      + `<text class="lbl" x="${lx}" y="${p.y + 4}" text-anchor="${side}" font-size="12" fill="var(--muted)">${esc(it.t)}</text>${tagSvg(it, lx, p.y + 2, side)}</g>`;
+  }
+  for (const c of COURSES) {
+    const w = textW(c.code, 13) + 30, h = 30;
+    s += `<g class="node" data-tip="${esc(c.name)}|${ITEMS.filter(i => i.c === c.id).length} upcoming assignments||">`
+      + `<rect x="${c.x - w / 2}" y="${c.y - h / 2}" width="${w}" height="${h}" rx="15" fill="var(--accent)"/>`
+      + `<text x="${c.x}" y="${c.y + 4.5}" text-anchor="middle" font-size="13" font-weight="800" fill="var(--on-accent)">${c.code}</text></g>`;
+  }
+  return s;
+}
+
+const OPTS = [
+  { id: 'a', title: 'A. Mint pills', tag: 'Closest to what you described: the smallest change', draw: drawA,
+    text: 'Each course becomes a rounded mint pill with its code. Assignments stay as dots in their course color, sized by how long they take, with labels beside them. Study blocks become tiny mint dots, keeping mint for "yours".',
+    pts: ['<b>Strength:</b> instantly readable hubs, and the map keeps its current calm.', '<b>Trade-off:</b> course color appears only on the assignment dots, not on the pill.', '<b>Build:</b> change the course node shape, label placement and a few styles.'],
+    legend: '<span><i style="width:18px;height:10px;border:1.5px solid var(--accent);border-radius:6px;display:inline-block"></i>Course</span><span><i style="width:8px;height:8px;border-radius:50%;background:#8b7cf6;display:inline-block"></i>Assignment (size = time)</span><span><i style="width:5px;height:5px;border-radius:50%;background:var(--accent);display:inline-block"></i>Study block</span><span style="color:var(--red)">Overdue</span><span style="color:var(--amber)">Needs time</span>' },
+  { id: 'b', title: 'B. Course cards', tag: 'More information on the map itself', draw: drawB,
+    text: 'Courses become small cards with a mint outline, the course code and a summary line ("3 due · 8 study blocks"). Assignments become labeled pills showing their due day, and the pill edge turns red or amber when something needs attention.',
+    pts: ['<b>Strength:</b> you can read the map without hovering anything.', '<b>Trade-off:</b> the busiest option; it gets crowded with many courses or assignments.', '<b>Build:</b> new shapes for both node types, and larger collision sizes so pills don\'t overlap.'],
+    legend: '<span><i style="width:18px;height:12px;border:1.5px solid var(--accent);border-radius:4px;display:inline-block"></i>Course card</span><span><i style="width:22px;height:10px;border:1px solid var(--border);border-radius:6px;display:inline-block"></i>Assignment</span><span><i style="width:5px;height:5px;border-radius:1px;background:var(--accent);display:inline-block"></i>Study block</span><span style="color:var(--red)">Red edge: overdue</span><span style="color:var(--amber)">Amber edge: needs time</span>' },
+  { id: 'c', title: 'C. Coverage rings', tag: 'Shows how prepared you are', draw: drawC,
+    text: 'Each assignment gets a ring that fills with mint as study time is planned, so a full ring means "covered". Courses are neutral pills with a course-color dot, which keeps mint strictly for study time. Study-block dots are folded into the ring, so the map is the cleanest of the four.',
+    pts: ['<b>Strength:</b> turns the map into a readiness view that the calendar can\'t give you at a glance.', '<b>Trade-off:</b> courses are less loud than in A; there are no individual block dots (they show on hover).', '<b>Build:</b> ring arcs on assignment nodes. Coverage is already calculated for the Schedule page.'],
+    legend: '<span><i style="width:18px;height:10px;border:1px solid var(--border);border-radius:6px;display:inline-block"></i>Course</span><span><i style="width:10px;height:10px;border:2.5px solid var(--accent);border-radius:50%;display:inline-block"></i>Full ring = study time covered</span><span><i style="width:10px;height:10px;border:2.5px solid var(--red);border-radius:50%;display:inline-block"></i>Overdue</span><span style="color:var(--amber)">Needs time</span>' },
+  { id: 'd', title: 'D. Due-date rings', tag: 'The boldest: distance shows time', draw: drawD,
+    text: 'Courses become solid mint pills. Around each, faint rings mark "this week" and "next week", and each assignment sits at a distance matching how soon it\'s due. Closer to the course means sooner, and overdue work sits right against it in red.',
+    pts: ['<b>Strength:</b> the map finally says when, not just what.', '<b>Trade-off:</b> the layout follows dates, so dragging nodes around is limited. Rings from neighboring courses can overlap.', '<b>Build:</b> a new radial layout force, plus the ring guides.'],
+    legend: '<span><i style="width:18px;height:10px;background:var(--accent);border-radius:6px;display:inline-block"></i>Course</span><span><i style="width:14px;height:14px;border:1px dashed var(--faint);border-radius:50%;display:inline-block"></i>This week / next week</span><span><i style="width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block"></i>Overdue</span><span><i style="width:5px;height:5px;border-radius:50%;background:var(--accent);display:inline-block"></i>Study block</span>' },
+];
+
+document.getElementById('opts').innerHTML = OPTS.map(o => `<section class="opt" id="${o.id}"><div class="wrap">
+  <div class="opt-head">
+    <div><h2>${o.title}${o.id === 'a' ? '<span class="pick">My pick, with C\'s rings</span>' : ''}</h2><p class="tag">${o.tag}</p><p>${o.text}</p></div>
+    <ul>${o.pts.map(p => `<li>${p}</li>`).join('')}</ul>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>Study map, sample semester<button data-t="${o.id}">Show light theme</button></div>
+    <div class="scroller"><div class="map" id="map-${o.id}">
+      <div class="toolbar">${COURSES.map(c => `<span class="chip"><i style="background:${c.color}"></i>${c.name}</span>`).join('')}<span class="sp"></span><span class="chip">Hide finished work</span><span class="chip">Show classes</span></div>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.title} study map mockup">${o.draw()}</svg>
+      <div class="legend">${o.legend}</div>
+    </div></div>
+  </div>
+</div></section>`).join('');
+
+/* Theme toggles */
+document.querySelectorAll('.frame-bar button').forEach(b => b.addEventListener('click', () => {
+  const m = document.getElementById('map-' + b.dataset.t);
+  b.textContent = m.classList.toggle('light') ? 'Show dark theme' : 'Show light theme';
+}));
+
+/* Hover tooltips */
+document.querySelectorAll('.map').forEach(map => {
+  const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; map.appendChild(tip);
+  map.querySelectorAll('g.node').forEach(g => {
+    g.addEventListener('mouseenter', () => {
+      const [t, a, b, c] = g.dataset.tip.split('|');
+      tip.innerHTML = `<b>${t}</b><span>${a}</span>${b ? `<br><em>${b}</em>` : ''}${c ? `<br><span>${c}</span>` : ''}`;
+      const r = g.getBoundingClientRect(), mr = map.getBoundingClientRect();
+      tip.style.left = (r.right - mr.left + 10) + 'px'; tip.style.top = (r.top - mr.top - 6) + 'px'; tip.hidden = false;
+    });
+    g.addEventListener('mouseleave', () => { tip.hidden = true; });
+  });
+});
+</script>
+</body>
+</html>
