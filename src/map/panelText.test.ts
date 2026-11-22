@@ -72,4 +72,19 @@ describe('plainDescription', () => {
   it('handles undefined', () => {
     expect(plainDescription(undefined)).toBe('')
   })
+  it('decodes numeric entities', () => {
+    expect(plainDescription('It&#8217;s due &#x2019;soon&#X2019;')).toBe('It\u2019s due \u2019soon\u2019')
+  })
+  it('decodes common named entities', () => {
+    expect(plainDescription('Q1&ndash;3 &mdash; &lsquo;a&rsquo; &ldquo;b&rdquo; wait&hellip;')).toBe(
+      'Q1\u20133 \u2014 \u2018a\u2019 \u201cb\u201d wait\u2026',
+    )
+  })
+  it('does not double-decode', () => {
+    expect(plainDescription('&amp;ndash; &amp;#8217;')).toBe('&ndash; &#8217;')
+  })
+  it('keeps the last whole word when the cut lands on a space', () => {
+    // 'aaaa bbbb ' — max 9 cuts right before the space after bbbb
+    expect(plainDescription('aaaa bbbb cccc', 9)).toBe('aaaa bbbb…')
+  })
 })

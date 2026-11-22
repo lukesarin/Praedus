@@ -45,21 +45,41 @@ export function weekHeading(week: Week): string {
   return week.number !== undefined ? `Week ${week.number}` : `Week of ${shortDate(week.start)}`
 }
 
+const NAMED_ENTITIES: Record<string, string> = {
+  nbsp: ' ',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  amp: '&',
+  ndash: '\u2013',
+  mdash: '\u2014',
+  lsquo: '\u2018',
+  rsquo: '\u2019',
+  ldquo: '\u201C',
+  rdquo: '\u201D',
+  hellip: '\u2026',
+}
+
+/** Decodes numeric and common named HTML entities in one pass (so `&amp;ndash;` stays `&ndash;`). */
+function decodeEntities(text: string): string {
+  return text.replace(/&(#[xX][0-9a-fA-F]+|#[0-9]+|[a-zA-Z]+);/g, (match, body: string) => {
+    if (body[0] === '#') {
+      const code = body[1] === 'x' || body[1] === 'X' ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10)
+      return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : match
+    }
+    return NAMED_ENTITIES[body] ?? match
+  })
+}
+
 /** A Canvas description as plain text, cut at a word boundary. */
 export function plainDescription(text: string | undefined, max = 140): string {
   if (!text) return ''
-  const plain = text
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&')
+  const plain = decodeEntities(text.replace(/<[^>]*>/g, ' '))
     .replace(/\s+/g, ' ')
     .trim()
   if (plain.length <= max) return plain
   const cut = plain.slice(0, max)
-  const space = cut.lastIndexOf(' ')
-  return (space > 0 ? cut.slice(0, space) : cut).replace(/[\s.,;:]+$/, '') + '…'
+  // If the next character is a space, the cut already ends on a whole word.
+  const space = plain[max] === ' ' ? max : cut.lastIndexOf(' ')
+  return (space > 0 ? cut.slice(0, space) : cut).replace(/[\s.,;:]+$/, '') + '\u2026'
 }
