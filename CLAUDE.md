@@ -18,7 +18,7 @@ README.md covers running, setup and how features behave. `docs/superpowers/specs
   - Not yet done: **Google sign-in setup** (Google Cloud OAuth client plus the Supabase provider;
     steps in the README) and a full test of log out/in, password reset and two accounts. Merge
     after that, with the user's OK.
-  - **Intro fix (commit `39c67e5`):** the app's main area had no background, so the intro showed
+  - **Intro fix (on `auth/accounts`):** the app's main area had no background, so the intro showed
     through it. The logo lingered over the revealed app and the circle reveal was invisible until
     a hard cut. Now `.app-root` has `background: var(--bg)`, guarded by a test in
     `src/app/theme.test.ts`. **Keep `.app-root` opaque.**
