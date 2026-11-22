@@ -19,6 +19,7 @@ import { buildDonut } from '../map/donut'
 import { coverLine } from '../map/panelText'
 import { StudyMap } from '../map/StudyMap'
 import { TestPrepPanel, type PanelTest } from '../map/TestPrepPanel'
+import { addNotes, deleteNote, moveNote, notesMessage, type NoteInput } from '../notes/notes'
 import { defaultPick, defaultTestFor, mapCourses as courseList, classWeeks, mapItems, unitFor } from '../map/units'
 import { StudyBlockDialog } from '../study/StudyBlockDialog'
 import { ImportDialog } from '../import/ImportDialog'
@@ -115,6 +116,11 @@ export default function App({ account }: { account?: Account } = {}) {
   )
   const pick = pickValid ? mapPick : fallbackPick
   const mapCourse = pick ? mapCourses.find((c) => c.id === pick.courseId) : undefined
+  const mapNotes = useLiveQuery(
+    () => (mapCourse ? db.notes.where('courseId').equals(mapCourse.id).toArray() : []),
+    [mapCourse?.id],
+  ) ?? []
+  const [noteFlash, setNoteFlash] = useState<{ weeks: string[]; key: number }>()
   const donut = useMemo(() => {
     if (!mapCourse || !items) return null
     const input = { course: mapCourse, items, termStart: termStart ?? undefined, now }
@@ -204,6 +210,14 @@ export default function App({ account }: { account?: Account } = {}) {
   function pickCourse(courseId: string) {
     const testId = defaultTestFor(items!.filter((i) => i.courseId === courseId), now, termStart ?? undefined)?.id
     setMapPick({ courseId, testId: testId ?? null })
+  }
+
+  async function dropNotes(inputs: NoteInput[]) {
+    if (!mapCourse || !donut) return
+    const weeks = donut.weeks.map((w) => w.week)
+    const { added, rejected } = await addNotes(db, mapCourse.id, inputs, weeks, new Date())
+    setNotice(notesMessage(added, rejected, weeks))
+    if (added.length) setNoteFlash({ weeks: [...new Set(added.map((n) => n.week))], key: Date.now() })
   }
 
   function pickTest(testId: string | undefined) {
@@ -297,6 +311,10 @@ export default function App({ account }: { account?: Account } = {}) {
               onOpenItem={setSelected}
               hasTermStart={Boolean(termStart)}
               onSetTermStart={() => go('conflicts')}
+              notes={mapNotes}
+              flash={noteFlash}
+              onMoveNote={(id, week) => void moveNote(db, id, week)}
+              onDeleteNote={(id) => void deleteNote(db, id)}
             />
             {donut && (
               <TestPrepPanel
@@ -312,6 +330,8 @@ export default function App({ account }: { account?: Account } = {}) {
                 onPickTest={pickTest}
                 onToggleReviewed={(id, reviewed) => void db.items.update(id, { reviewed })}
                 onOpenItem={setSelected}
+                notes={mapNotes}
+                onFiles={(inputs) => void dropNotes(inputs)}
               />
             )}
           </div>

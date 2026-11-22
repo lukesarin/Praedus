@@ -2534,6 +2534,184 @@ a {
   text-align: center;
 }
 
+/* ---------- notes (per class, sorted into weeks) ---------- */
+
+.notes-drop {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1.5px dashed var(--text-faint);
+  border-radius: 10px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.notes-drop.over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.notes-drop > svg {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+.notes-drop b {
+  display: block;
+  font-size: 13.5px;
+}
+
+.notes-drop span {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.notes-drop button {
+  margin-top: 8px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.notes-drop button:hover {
+  border-color: var(--text-faint);
+}
+
+.prep .notes-sum {
+  margin-top: 8px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.note-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.note-chip {
+  display: inline-block;
+  max-width: 220px;
+  padding: 3px 9px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prep-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.prep-link {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.map-nmark {
+  fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+/* Weeks that just got notes flash mint once, then fade back. */
+.map-flash {
+  fill: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  animation: map-note-flash 1.2s ease-out;
+}
+
+@keyframes map-note-flash {
+  0%,
+  30% {
+    opacity: 0.75;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-flash {
+    animation: none;
+  }
+}
+
+.map-card-notes {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.map-card-notes h4 {
+  margin: 0 0 6px;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.map-card-notes ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-card-notes li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.note-menu {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.note-menu:hover,
+.note-menu:focus-visible {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
 /* ---------- Connect Canvas ---------- */
 
 .connect-row {

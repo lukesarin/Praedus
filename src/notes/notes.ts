@@ -68,3 +68,33 @@ export async function notesForWeeks(database: StudyBlocksDB, courseId: string, w
   const all = await database.notes.where('courseId').equals(courseId).toArray()
   return all.filter((n) => wanted.has(n.week)).sort((a, b) => a.addedAt.localeCompare(b.addedAt))
 }
+
+/** "12", or "Oct 19" when the term's weeks aren't numbered. */
+export function weekLabel(start: string, weeks: Week[]): string {
+  const n = weeks.find((w) => w.start === start)?.number
+  if (n !== undefined) return String(n)
+  const [y, m, d] = start.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+}
+
+function weekList(notes: Pick<Note, 'week'>[], weeks: Week[]): string {
+  const starts = [...new Set(notes.map((n) => n.week))].sort()
+  return `${starts.length === 1 ? 'week' : 'weeks'} ${starts.map((s) => weekLabel(s, weeks)).join(', ')}`
+}
+
+/** The toast after adding notes: where they went, then why any were skipped. */
+export function notesMessage(added: Note[], rejected: { name: string; reason: string }[], weeks: Week[]): string {
+  const parts: string[] = []
+  if (added.length) {
+    const what = added.length === 1 ? added[0].name : `${added.length} notes`
+    parts.push(`Added ${what}, sorted into ${weekList(added, weeks)}.`)
+  }
+  for (const r of rejected) parts.push(`${r.name}: ${r.reason}`)
+  return parts.join(' ')
+}
+
+/** "6 notes, in weeks 9, 10, 11", or '' when there are none. */
+export function notesSummary(notes: Note[], weeks: Week[]): string {
+  if (!notes.length) return ''
+  return `${notes.length === 1 ? '1 note' : `${notes.length} notes`}, in ${weekList(notes, weeks)}`
+}

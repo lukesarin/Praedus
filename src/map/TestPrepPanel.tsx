@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { itemDateKey } from '../calendar/dates'
-import type { CalendarItem, Course } from '../db/db'
+import type { CalendarItem, Course, Note } from '../db/db'
+import { NotesDrop, useFilePicker } from '../notes/NotesDrop'
+import { notesSummary, weekLabel, type NoteInput } from '../notes/notes'
 import { formatMinutes } from '../study/applyPlan'
 import { dueInstant } from '../study/plan'
 import type { StudyBlock } from '../study/types'
@@ -26,6 +28,9 @@ type Props = {
   onPickTest: (testId: string | undefined) => void
   onToggleReviewed: (itemId: string, reviewed: boolean) => void
   onOpenItem: (itemId: string) => void
+  /** The class's notes, all weeks. */
+  notes: Note[]
+  onFiles: (inputs: NoteInput[]) => void
 }
 
 function testDate(item: CalendarItem): string {
@@ -68,9 +73,17 @@ function SparkIcon() {
 }
 
 /** Picks topics for a study set. Nothing is saved yet: saving comes with the AI. */
-function StudySetStep({ test, unit, onBack }: { test: CalendarItem; unit: Unit; onBack: () => void }) {
+type StepProps = { test: CalendarItem; unit: Unit; weeks: Week[]; notes: Note[]; onFiles: (inputs: NoteInput[]) => void; onBack: () => void }
+
+function StudySetStep({ test, unit, weeks, notes, onFiles, onBack }: StepProps) {
   const [topics, setTopics] = useState<StudySetTopic[]>(() => studySetTopics(unit))
   const [draft, setDraft] = useState('')
+  const picker = useFilePicker(onFiles)
+  const covered = new Set(unit.weeks.map((w) => w.start))
+  const used = notes.filter((x) => covered.has(x.week))
+  const span = unit.weeks.length
+    ? `${weekLabel(unit.weeks[0].start, weeks)}–${weekLabel(unit.weeks[unit.weeks.length - 1].start, weeks)}`
+    : ''
   const n = unit.items.length
   const add = (e: FormEvent) => {
     e.preventDefault()
@@ -96,6 +109,20 @@ function StudySetStep({ test, unit, onBack }: { test: CalendarItem; unit: Unit; 
           ))}
         </ul>
       )}
+      <div className="prep-notes">
+        <p>
+          {used.length
+            ? `Also uses your ${used.length === 1 ? 'note' : `${used.length} notes`} from weeks ${span}:`
+            : 'No notes for these weeks yet. Cards will come from the topics alone.'}
+        </p>
+        {used.length > 0 && (
+          <ul className="note-chips">
+            {used.map((x) => <li key={x.id} className="note-chip" title={x.name}>{x.name}</li>)}
+          </ul>
+        )}
+        <button type="button" className="prep-link" onClick={picker.open}>+ Add notes for this test</button>
+        {picker.input}
+      </div>
       <form className="prep-add" onSubmit={add}>
         <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Add a topic" aria-label="Add a topic" />
         <button type="submit">Add</button>
@@ -107,7 +134,7 @@ function StudySetStep({ test, unit, onBack }: { test: CalendarItem; unit: Unit; 
   )
 }
 
-export function TestPrepPanel({ course, tests, unit, weeks, blocks, short: missing, now, planning, onPlan, onPickTest, onToggleReviewed, onOpenItem }: Props) {
+export function TestPrepPanel({ course, tests, unit, weeks, blocks, short: missing, now, planning, onPlan, onPickTest, onToggleReviewed, onOpenItem, notes, onFiles }: Props) {
   // The study set step is open for this test id; picking another test closes it.
   const [sheetFor, setSheetFor] = useState<string>()
   if (!course) return <aside className="prep" aria-label="Upcoming tests" />
@@ -135,6 +162,7 @@ export function TestPrepPanel({ course, tests, unit, weeks, blocks, short: missi
 
   return (
     <aside className="prep" aria-label="Upcoming tests">
+      <NotesDrop courseCode={code} summary={notesSummary(notes, weeks)} onFiles={onFiles} />
       <header>
         <h2 className="prep-title">Upcoming tests</h2>
         <p className="prep-sub">{tests.length > 0 ? `${code}. Pick a test to see the weeks it covers.` : code}</p>
@@ -152,7 +180,8 @@ export function TestPrepPanel({ course, tests, unit, weeks, blocks, short: missi
       )}
 
       {unit && (sheetFor === unit.test.id ? (
-        <StudySetStep key={unit.test.id} test={unit.test} unit={unit} onBack={() => setSheetFor(undefined)} />
+        <StudySetStep key={unit.test.id} test={unit.test} unit={unit} weeks={weeks} notes={notes} onFiles={onFiles}
+          onBack={() => setSheetFor(undefined)} />
       ) : (
         detail()
       ))}

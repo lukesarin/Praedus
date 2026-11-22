@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { localInstant } from '../commitments/expand'
 import { StudyBlocksDB } from '../db/db'
 import type { Week } from '../map/units'
-import { addNotes, deleteNote, MAX_NOTE_BYTES, moveNote, noteKind, notesForWeeks, weekForDate } from './notes'
+import { addNotes, deleteNote, MAX_NOTE_BYTES, moveNote, noteKind, notesForWeeks, notesMessage, notesSummary, weekForDate, weekLabel } from './notes'
 
 const database = new StudyBlocksDB('notes-test')
 afterEach(async () => {
@@ -76,5 +76,25 @@ describe('moving, deleting and finding notes', () => {
     expect((await notesForWeeks(database, 'math', [wk(10), wk(12)])).map((n) => n.name)).toEqual(['a', 'b'])
     await deleteNote(database, added[1].id)
     expect((await notesForWeeks(database, 'math', [wk(10), wk(12)])).map((n) => n.name)).toEqual(['a'])
+  })
+})
+
+describe('notes copy', () => {
+  const note = (name: string, n: number) => ({ id: name, courseId: 'math', week: wk(n), name, kind: 'pdf' as const, mime: 'application/pdf', addedAt: '' })
+  it('says where added notes went and why others were skipped', () => {
+    expect(notesMessage([note('Lecture.pdf', 12)], [], weeks)).toBe('Added Lecture.pdf, sorted into week 12.')
+    expect(notesMessage([note('a', 13), note('b', 12), note('c', 13)], [], weeks)).toBe('Added 3 notes, sorted into weeks 12, 13.')
+    expect(notesMessage([note('a', 12)], [{ name: 'slides.pptx', reason: 'Export it as PDF first.' }], weeks)).toBe(
+      'Added a, sorted into week 12. slides.pptx: Export it as PDF first.',
+    )
+    expect(notesMessage([], [{ name: 'x.heic', reason: 'Export it as JPEG or PDF first.' }], weeks)).toBe('x.heic: Export it as JPEG or PDF first.')
+  })
+  it('sums up a class’s notes', () => {
+    expect(notesSummary([], weeks)).toBe('')
+    expect(notesSummary([note('a', 9)], weeks)).toBe('1 note, in week 9')
+    expect(notesSummary([note('a', 11), note('b', 9), note('c', 9)], weeks)).toBe('3 notes, in weeks 9, 11')
+  })
+  it('labels unnumbered weeks by date', () => {
+    expect(weekLabel(wk(2), [{ start: wk(2) }])).toBe('Aug 31')
   })
 })

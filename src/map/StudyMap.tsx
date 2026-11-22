@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
-import type { Course } from '../db/db'
+import type { Course, Note } from '../db/db'
 import { dueInstant } from '../study/plan'
 import { cardSpot, courseCode, type Donut, type DonutWeek, type WeekItem } from './donut'
 import { plainDescription, weekHeading } from './panelText'
@@ -16,6 +16,12 @@ type Props = {
   hasTermStart: boolean
   onSetTermStart: () => void
   now: Date
+  /** The class's notes, all weeks. */
+  notes: Note[]
+  /** Weeks to flash once because notes just landed in them; `key` changes each time. */
+  flash?: { weeks: string[]; key: number }
+  onMoveNote: (id: string, week: string) => void
+  onDeleteNote: (id: string) => void
 }
 
 /** Inner and outer radius of the ring, in viewBox units. */
@@ -68,7 +74,8 @@ function itemNote(x: WeekItem): string {
   return ''
 }
 
-export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, onOpenItem, hasTermStart, onSetTermStart }: Props) {
+export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, onOpenItem, hasTermStart, onSetTermStart, notes, flash, onMoveNote, onDeleteNote }: Props) {
+  const noteWeeks = new Set(notes.map((n) => n.week))
   const course = courses.find((c) => c.id === courseId)
   const pickedId = donut?.tests.find((t) => t.picked)?.item.id
   const line = donut ? weekLine(donut.weeks) : ''
@@ -79,6 +86,8 @@ export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, o
   const openWeek = donut?.weeks.find((w) => keyFor(w.week.start) === openKey)
   const toggleWeek = (start: string) => setOpenKey((k) => (k === keyFor(start) ? undefined : keyFor(start)))
   const close = () => setOpenKey(undefined)
+  const weekNotes = openWeek ? notes.filter((n) => n.week === openWeek.week.start) : []
+  const flashing = (w: DonutWeek) => Boolean(flash?.weeks.includes(w.week.start))
 
   const canvasRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -181,6 +190,10 @@ export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, o
                   />
                   <text className={`map-wnum${w.inUnit ? ' in' : ''}${w.now ? ' now' : ''}`} x={nx} y={ny}
                     textAnchor="middle" dominantBaseline="central">{w.label}</text>
+                  {noteWeeks.has(w.week.start) && (
+                    <path className="map-nmark" aria-hidden="true" transform={`translate(${nx + 8 + w.label.length * 3} ${ny - 6})`}
+                      d="M0 0h6l3 3v8H0z" />
+                  )}
                   {w.dots.map((d, j) => {
                     const [x, y] = pt(am, R0 + 26 + j * step)
                     const cls = `map-dot${d.status ? ` ${d.status}` : ''}${d.reviewed ? ' rev' : ''}`
@@ -201,6 +214,9 @@ export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, o
 
             {donut.weeks.filter((w) => w.now).map((w) => (
               <path key="now" className="map-now" d={slicePath(w.a0, w.a1, R0, R1)} />
+            ))}
+            {flash && donut.weeks.filter(flashing).map((w) => (
+              <path key={`flash-${w.week.start}-${flash.key}`} className="map-flash" d={slicePath(w.a0, w.a1, R0, R1)} />
             ))}
             {openWeek && <path className="map-sel" d={slicePath(openWeek.a0, openWeek.a1, R0, R1)} />}
 
@@ -277,6 +293,34 @@ export function StudyMap({ courses, courseId, donut, onPickCourse, onPickTest, o
                   })}
                 </ul>
               )}
+              <div className="map-card-notes">
+                <h4>Your notes</h4>
+                {weekNotes.length === 0 ? (
+                  <p className="map-card-empty">None for this week yet.</p>
+                ) : (
+                  <ul>
+                    {weekNotes.map((n) => (
+                      <li key={n.id}>
+                        <span className="note-chip" title={n.name}>{n.name}</span>
+                        <select className="note-menu" aria-label={`Move or delete ${n.name}`} value=""
+                          onChange={(e) => {
+                            const v = e.target.value
+                            if (v === 'delete') onDeleteNote(n.id)
+                            else if (v) onMoveNote(n.id, v)
+                          }}>
+                          <option value="">⋯</option>
+                          <optgroup label="Move to">
+                            {donut?.weeks.filter((x) => x.week.start !== n.week).map((x) => (
+                              <option key={x.week.start} value={x.week.start}>{weekHeading(x.week)}</option>
+                            ))}
+                          </optgroup>
+                          <option value="delete">Delete</option>
+                        </select>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </section>
           </>
         )}
