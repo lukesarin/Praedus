@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome and Intro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --ink: #171717; --ink-2: #737373; --ink-3: #a3a3a3; --line: #ececec; --mint-ink: #0b7f58; color-scheme: light; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #fff; color: var(--ink); font: 15px/1.55 "Figtree", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+button { font: inherit; }
+
+.hero { background: #0e0e0e; color: #f2f2f2; }
+.hero .wrap { padding-top: 72px; padding-bottom: 52px; }
+.hero h1 { margin: 0 0 14px; font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -0.04em; font-weight: 700; max-width: 16ch; }
+.hero p { margin: 0 0 8px; color: #a3a3a3; max-width: 64ch; }
+.flow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; font-size: 13px; color: #d4d4d4; }
+.flow span { border: 1px solid #2a2a2a; border-radius: 999px; padding: 4px 12px; }
+.flow span.arrow { border: 0; padding: 4px 0; color: #6e6e6e; }
+.hero nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 22px; font-size: 14px; }
+.hero nav a { color: #d4d4d4; text-decoration: none; }
+.hero nav a:hover { color: #5ed3a8; }
+
+section.block { padding: 72px 0; border-bottom: 1px solid var(--line); }
+section.block > .wrap > h2 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.03em; }
+.lede { margin: 0 0 32px; color: var(--ink-2); max-width: 66ch; }
+.head2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; margin-bottom: 24px; }
+@media (max-width: 900px) { .head2 { grid-template-columns: 1fr; gap: 14px; } }
+.head2 h3 { margin: 0 0 4px; font-size: 24px; letter-spacing: -0.02em; }
+.head2 .tag { margin: 0 0 10px; color: var(--ink-2); }
+.head2 p { margin: 0; color: var(--ink-2); }
+.head2 ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+.head2 li { margin: 3px 0; }
+.head2 li b { color: var(--ink); }
+.pick { margin-left: 10px; font-size: 13px; font-weight: 700; color: var(--mint-ink); vertical-align: middle; }
+
+.frame { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.frame-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fafafa; font-size: 12.5px; color: var(--ink-2); flex-wrap: wrap; }
+.frame-bar .dots { display: flex; gap: 6px; }
+.frame-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: #e2e2e2; display: block; }
+.frame-bar .sp { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: #fff; }
+.seg button { border: 0; background: none; border-radius: 999px; padding: 3px 12px; font-size: 12px; cursor: pointer; color: var(--ink-2); }
+.seg button.on { background: var(--ink); color: #fff; }
+.frame-bar .btn { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 12px; font-size: 12px; cursor: pointer; color: var(--ink); }
+.frame-bar button:focus-visible { outline: 2px solid var(--mint-ink); outline-offset: 2px; }
+.scroller { overflow-x: auto; }
+
+/* ================================================================
+   Brand tokens shared by every screen (the app's real values)
+   ================================================================ */
+.screen {
+  --bg: #0e0e0e; --surface: #161616; --field: #121212; --border: #262626; --text: #f2f2f2; --muted: #a3a3a3; --faint: #6e6e6e;
+  --accent: #5ed3a8; --on-accent: #06140f; --accent-soft: rgba(94,211,168,.12); --danger: #f26666;
+  background: var(--bg); color: var(--text); font-family: "Figtree", sans-serif; position: relative; overflow: hidden;
+  min-width: 1000px; height: 620px;
+}
+.screen.light {
+  --bg: #ffffff; --surface: #f7f7f5; --field: #ffffff; --border: #e5e5e3; --text: #171717; --muted: #737373; --faint: #a3a3a3;
+  --accent: #0b7f58; --on-accent: #ffffff; --accent-soft: rgba(11,127,88,.08); --danger: #c9302c;
+}
+
+/* ---------- Shared auth form ---------- */
+.auth { width: 340px; }
+.auth h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: -0.03em; font-weight: 700; }
+.auth .sub { margin: 0 0 22px; color: var(--muted); font-size: 14px; }
+.g-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; }
+.g-btn:hover { border-color: var(--faint); }
+.g-btn svg { width: 18px; height: 18px; }
+.or { display: flex; align-items: center; gap: 12px; margin: 18px 0; color: var(--faint); font-size: 12px; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.fld { display: block; margin-bottom: 12px; }
+.fld span { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+.fld span a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.fld input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--field); color: var(--text); font: inherit; font-size: 14px; }
+.fld input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.fld small { display: block; margin-top: 6px; color: var(--faint); font-size: 12px; }
+.primary { width: 100%; margin-top: 6px; padding: 11px 14px; border: 0; border-radius: 8px; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 14px; cursor: pointer; }
+.primary:hover { filter: brightness(1.06); }
+.switch { margin: 18px 0 0; text-align: center; color: var(--muted); font-size: 13.5px; }
+.switch button { border: 0; background: none; padding: 0; color: var(--accent); font-weight: 700; cursor: pointer; font-size: 13.5px; }
+.fine { margin: 14px 0 0; text-align: center; color: var(--faint); font-size: 12px; }
+.brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; font-size: 20px; letter-spacing: -0.035em; color: var(--text); }
+.brand svg { width: 26px; height: 26px; color: var(--accent); }
+
+/* ---------- A. Centered ---------- */
+.A { display: grid; place-items: center; }
+.A .col { display: flex; flex-direction: column; align-items: center; }
+.A .brand { margin-bottom: 30px; }
+.A .auth { text-align: left; }
+.A .auth h2, .A .auth .sub { text-align: center; }
+.A .foot { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; color: var(--faint); font-size: 12px; }
+
+/* ---------- B. Split with a living study map ---------- */
+.B { display: grid; grid-template-columns: 1fr 1.15fr; }
+.B .left { display: flex; flex-direction: column; justify-content: space-between; gap: 28px; padding: 36px 56px; }
+.B .left .auth { margin: 0 auto; }
+.B .left .note { color: var(--faint); font-size: 12px; }
+.B .right { position: relative; border-left: 1px solid var(--border); background: radial-gradient(circle at 60% 45%, var(--accent-soft), transparent 60%), var(--surface); overflow: hidden; }
+.B .right svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.B .caption { position: absolute; left: 40px; bottom: 36px; right: 40px; }
+.B .caption b { display: block; font-size: 22px; letter-spacing: -0.03em; margin-bottom: 4px; }
+.B .caption span { color: var(--muted); font-size: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .B .float { animation: drift 7s ease-in-out infinite alternate; }
+  .B .float.f2 { animation-duration: 9s; animation-delay: -3s; }
+  .B .float.f3 { animation-duration: 8s; animation-delay: -5s; }
+}
+@keyframes drift { to { transform: translate(6px, -8px); } }
+
+/* ---------- C. Statement ---------- */
+.C { display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; padding: 0 72px; gap: 56px; }
+.C .giant { position: absolute; left: -60px; top: 40px; width: 760px; height: 760px; color: var(--accent); opacity: .07; pointer-events: none; }
+.C .statement { position: relative; }
+.C .statement .brand { margin-bottom: 36px; }
+.C .statement h1 { margin: 0 0 18px; font-size: 64px; line-height: .98; letter-spacing: -0.05em; font-weight: 800; }
+.C .statement p { margin: 0; color: var(--muted); font-size: 16px; max-width: 36ch; line-height: 1.55; }
+.C .card { position: relative; justify-self: end; padding: 32px 30px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+
+/* ---------- Intro (cutscene) ---------- */
+.intro-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 980px) { .intro-grid { grid-template-columns: 1fr; } }
+.intro-card h3 { margin: 14px 0 4px; font-size: 18px; letter-spacing: -0.015em; }
+.intro-card p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.stage-wrap { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); aspect-ratio: 16 / 10; background: #0e0e0e; }
+.stage-wrap .replay { position: absolute; right: 10px; bottom: 10px; z-index: 5; border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.55); color: #fff; border-radius: 999px; padding: 4px 12px; font-size: 12px; cursor: pointer; backdrop-filter: blur(6px); }
+.stage-wrap .replay:focus-visible { outline: 2px solid #5ed3a8; outline-offset: 2px; }
+.appmock { position: absolute; inset: 0; background: #0e0e0e; display: grid; grid-template-columns: 22% 1fr; }
+.appmock .sb { border-right: 1px solid #222; padding: 9% 7%; }
+.appmock .sb i { display: block; height: 6px; border-radius: 3px; background: #262626; margin-bottom: 9%; }
+.appmock .sb i.logo { width: 60%; background: #5ed3a8; opacity: .8; height: 7px; margin-bottom: 18%; }
+.appmock .sb i.plan { background: #5ed3a8; height: 12px; border-radius: 4px; margin: 14% 0; }
+.appmock .cal { padding: 5% 5% 0; display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: auto 1fr; column-gap: 0; }
+.appmock .cal .hd { font-size: 9px; color: #6e6e6e; text-align: center; padding-bottom: 8px; border-bottom: 1px solid #222; }
+.appmock .cal .hd b { display: block; color: #f2f2f2; font-size: 12px; }
+.appmock .cal .hd.today { color: #5ed3a8; }
+.appmock .cal .hd.today b { display: grid; place-items: center; width: 18px; height: 18px; margin: 1px auto 0; border-radius: 50%; background: #5ed3a8; color: #06140f; }
+.appmock .cal .col { border-left: 1px solid #1c1c1c; position: relative; background-image: linear-gradient(#1c1c1c 1px, transparent 1px); background-size: 100% 22px; }
+.appmock .ev { position: absolute; left: 3px; right: 3px; border-radius: 3px; background: #181818; box-shadow: inset 2px 0 0 var(--c, #8b7cf6); }
+.appmock .ev.s { background: rgba(94,211,168,.15); box-shadow: inset 2px 0 0 #5ed3a8; }
+.stage { position: absolute; inset: 0; background: #0e0e0e; display: grid; place-items: center; z-index: 2; }
+.stage svg { width: 34%; max-width: 180px; overflow: visible; color: #5ed3a8; }
+.stage .word { position: absolute; left: 0; right: 0; bottom: 22%; text-align: center; color: #f2f2f2; font-weight: 700; font-size: 20px; letter-spacing: -0.035em; opacity: 0; }
+
+.compare { padding: 72px 0 32px; }
+.compare h2 { margin: 0 0 8px; font-size: 30px; letter-spacing: -0.025em; }
+.rec { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 40px; margin-top: 12px; }
+@media (max-width: 900px) { .rec { grid-template-columns: 1fr; } }
+.rec p, .rec li { color: var(--ink-2); font-size: 14.5px; }
+.rec b { color: var(--ink); }
+footer { padding: 24px 0 72px; color: var(--ink-3); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="mark" viewBox="0 0 48 48">
+      <path fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" d="M6.5 24C6.5 13 19.5 13 19.5 24S32.5 35 32.5 24"/>
+      <circle fill="currentColor" cx="40.5" cy="24" r="3.9"/>
+    </symbol>
+    <symbol id="g" viewBox="0 0 48 48">
+      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/>
+      <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Welcome, sign-in and the intro</h1>
+    <p>The front door to Praedus. Returning students log in and land straight in the app. New students sign up, see a short intro once, then land in the app.</p>
+    <div class="flow"><span>Welcome / log in</span><span class="arrow">→</span><span>Sign up (new students)</span><span class="arrow">→</span><span>Intro, once</span><span class="arrow">→</span><span>The app</span></div>
+    <nav>
+      <a href="#intro">The intro</a>
+      <a href="#a">A. Centered</a>
+      <a href="#b">B. Split with live map</a>
+      <a href="#c">C. Statement</a>
+      <a href="#compare">My pick</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<section class="block" id="intro">
+  <div class="wrap">
+    <h2>The intro</h2>
+    <p class="lede">Your idea, playing: the S draws itself, a short pause, the dot lands like a beat, then it cuts to the app. All three versions share the same opening and differ only in the cut. Each runs about 2.5 seconds, can be skipped with a click or any key, and becomes a simple fade for anyone whose device is set to reduce motion.</p>
+    <div class="intro-grid">
+      <div class="intro-card" data-end="cut">
+        <div class="stage-wrap"></div>
+        <h3>1. Hard cut</h3>
+        <p>The dot lands, a beat, then the app is simply there. Crisp and confident, like a film cut.</p>
+      </div>
+      <div class="intro-card" data-end="reveal">
+        <div class="stage-wrap"></div>
+        <h3>2. The dot opens the app <span class="pick">My pick</span></h3>
+        <p>After landing, the dot expands into a circle that reveals the app from where it sits. The logo literally becomes the doorway.</p>
+      </div>
+      <div class="intro-card" data-end="fade">
+        <div class="stage-wrap"></div>
+        <h3>3. Fade up</h3>
+        <p>The mark fades away as the app settles in from slightly below. The softest and calmest of the three.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="block" id="screens">
+  <div class="wrap">
+    <h2>Welcome and log in</h2>
+    <p class="lede">Three designs for the first screen. Each has a <b>Log in / Sign up</b> switch and a theme switch. Sign-in is email and password, or Continue with Google. The text is close to final.</p>
+    <div id="screenList"></div>
+  </div>
+</section>
+
+<section class="compare" id="compare">
+  <div class="wrap">
+    <h2>My pick</h2>
+    <div class="rec">
+      <div>
+        <p><b>Intro: 2, the dot opens the app.</b> It completes your idea. The S draws, the dot lands, and that dot becomes the doorway into the app. It's memorable without being flashy, and it reads as one continuous motion.</p>
+        <p><b>Welcome: B, split with the live study map.</b> It shows what Praedus does before anyone signs up: courses, due-date rings and mint study time drifting gently on the right. It's also the screen most likely to make a student curious enough to create an account.</p>
+      </div>
+      <div>
+        <ul>
+          <li><b>A</b> is the quickest to read and the most familiar, and works best on phones. B collapses to A on narrow screens anyway.</li>
+          <li><b>C</b> has the most personality, but the big headline needs copy you're happy with long term.</li>
+          <li>Whichever you choose: "Forgot password?" sends a reset email, new accounts confirm their email address, and errors are plain ("That email and password don't match").</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap">Design exploration only. Lives in <code>design-exploration/</code> and is not loaded by the app. Buttons here don't sign anyone in.</div></footer>
+
+<script>
+const mark = (cls = '') => `<svg class="${cls}" aria-hidden="true"><use href="#mark"/></svg>`
+const brand = () => `<span class="brand">${mark()}praedus</span>`
+
+function authForm(mode) {
+  const login = mode === 'login'
+  return `<form class="auth" onsubmit="return false">
+    <h2>${login ? 'Welcome back' : 'Create your account'}</h2>
+    <p class="sub">${login ? 'Log in to pick up where you left off.' : 'Your calendar, deadlines and study plan, on every device.'}</p>
+    <button type="button" class="g-btn"><svg><use href="#g"/></svg>Continue with Google</button>
+    <div class="or">or</div>
+    <label class="fld"><span>Email</span><input type="email" placeholder="you@school.edu" autocomplete="email"></label>
+    <label class="fld"><span>Password ${login ? '<a href="#" onclick="return false">Forgot password?</a>' : ''}</span>
+      <input type="password" placeholder="${login ? 'Your password' : 'At least 8 characters'}" autocomplete="${login ? 'current-password' : 'new-password'}">
+      ${login ? '' : '<small>Use 8 or more characters.</small>'}</label>
+    <button type="button" class="primary">${login ? 'Log in' : 'Create account'}</button>
+    <p class="switch">${login ? 'New to Praedus? <button type="button" data-go="signup">Create an account</button>' : 'Already have an account? <button type="button" data-go="login">Log in</button>'}</p>
+    ${login ? '' : '<p class="fine">We\'ll send a link to confirm your email.</p>'}
+  </form>`
+}
+
+/* A drifting mini study map for design B: pills, due-date rings, mint study dots. */
+function liveMap() {
+  const C = [
+    { x: 300, y: 230, code: 'CS 210', items: [[230, 150, '#8b7cf6', 'Project 10'], [395, 285, '#8b7cf6', 'Lab 9'], [235, 300, '#8b7cf6', 'Lab 8']] },
+    { x: 470, y: 420, code: 'MATH 120', items: [[505, 330, '#4fa3d1', 'Problem Set 7'], [400, 505, '#4fa3d1', 'Quiz 5']] },
+  ]
+  let s = ''
+  for (const c of C) {
+    s += `<g class="float ${c.code === 'CS 210' ? 'f2' : 'f3'}">`
+    for (const r of [80, 125]) s += `<circle cx="${c.x}" cy="${c.y}" r="${r}" fill="none" stroke="var(--border)" stroke-dasharray="3 5"/>`
+    for (const [x, y] of c.items) s += `<line x1="${c.x}" y1="${c.y}" x2="${x}" y2="${y}" stroke="var(--border)"/>`
+    for (const [x, y, col, t] of c.items) {
+      s += `<circle cx="${x + 14}" cy="${y - 10}" r="2.6" fill="var(--accent)"/><circle cx="${x - 12}" cy="${y + 12}" r="2.6" fill="var(--accent)"/>`
+      s += `<circle cx="${x}" cy="${y}" r="5.5" fill="${col}"/><text x="${x + 11}" y="${y + 4}" font-size="12" fill="var(--muted)" font-family="Figtree">${t}</text>`
+    }
+    const w = c.code.length * 7.6 + 28
+    s += `<rect x="${c.x - w / 2}" y="${c.y - 14}" width="${w}" height="28" rx="14" fill="color-mix(in srgb, var(--accent) 12%, var(--surface))" stroke="var(--accent)" stroke-width="1.5"/>`
+    s += `<text x="${c.x}" y="${c.y + 4.5}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent)" font-family="Figtree">${c.code}</text></g>`
+  }
+  return `<svg viewBox="0 0 620 620" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${s}</svg>`
+}
+
+const SCREENS = [
+  { id: 'a', cls: 'A', title: 'A. Centered', tag: 'Calm, familiar, fastest to read',
+    text: 'One centered column on black: the logo, then the form. Nothing competes with signing in.',
+    pts: ['<b>Strength:</b> instantly understood, and identical on phone and laptop.', '<b>Trade-off:</b> says little about what Praedus is before signing up.'],
+    render: (m) => `<div class="col">${brand()}${authForm(m)}</div><div class="foot">Your semester, planned a little each day.</div>` },
+  { id: 'b', cls: 'B', title: 'B. Split with a live study map', tag: 'Shows the product before sign-up', pick: true,
+    text: 'The form on the left, and on the right a gently drifting study map: course pills, due-date rings and mint study time. It explains Praedus without a word of marketing copy.',
+    pts: ['<b>Strength:</b> the most "real product" feel; it teases the best feature.', '<b>Trade-off:</b> the most to build; on phones the map hides and it becomes A.'],
+    render: (m) => `<div class="left">${brand()}${authForm(m)}<span class="note">Your data stays private to your account.</span></div>
+      <div class="right">${liveMap()}<div class="caption"><b>Plan a little each day.</b><span>Canvas deadlines, your classes and shifts, and study time that fits around them.</span></div></div>` },
+  { id: 'c', cls: 'C', title: 'C. Statement', tag: 'Big type, most personality',
+    text: 'A large headline on the left over a faint, oversized S mark, with the form in a quiet card on the right. Confident and editorial.',
+    pts: ['<b>Strength:</b> the most memorable first impression.', '<b>Trade-off:</b> it relies on a headline you\'ll keep for a long time; the giant mark needs restraint.'],
+    render: (m) => `<svg class="giant" aria-hidden="true"><use href="#mark"/></svg>
+      <div class="statement">${brand()}<h1>Your semester,<br>in rhythm.</h1><p>Praedus brings in your Canvas deadlines, works around your classes and shifts, and plans a little study time each day.</p></div>
+      <div class="card">${authForm(m)}</div>` },
+]
+
+document.getElementById('screenList').innerHTML = SCREENS.map(s => `<div style="margin-bottom:64px" id="${s.id}">
+  <div class="head2">
+    <div><h3>${s.title}${s.pick ? '<span class="pick">My pick</span>' : ''}</h3><p class="tag">${s.tag}</p><p>${s.text}</p></div>
+    <ul>${s.pts.map(p => `<li>${p}</li>`).join('')}</ul>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus.com
+      <span class="sp"></span>
+      <span class="seg" data-for="${s.id}" data-kind="mode"><button class="on" data-v="login">Log in</button><button data-v="signup">Sign up</button></span>
+      <span class="seg" data-for="${s.id}" data-kind="theme"><button class="on" data-v="dark">Dark</button><button data-v="light">Light</button></span>
+    </div>
+    <div class="scroller"><div class="screen ${s.cls}" id="screen-${s.id}" data-mode="login"></div></div>
+  </div>
+</div>`).join('')
+
+function paint(id) {
+  const s = SCREENS.find(x => x.id === id), el = document.getElementById('screen-' + id)
+  el.innerHTML = s.render(el.dataset.mode)
+  el.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => setMode(id, b.dataset.go)))
+}
+function setMode(id, mode) {
+  document.getElementById('screen-' + id).dataset.mode = mode
+  document.querySelectorAll(`.seg[data-for="${id}"][data-kind="mode"] button`).forEach(b => b.classList.toggle('on', b.dataset.v === mode))
+  paint(id)
+}
+SCREENS.forEach(s => paint(s.id))
+document.querySelectorAll('.seg').forEach(seg => seg.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return
+  const id = seg.dataset.for
+  if (seg.dataset.kind === 'mode') return setMode(id, b.dataset.v)
+  seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b))
+  document.getElementById('screen-' + id).classList.toggle('light', b.dataset.v === 'light')
+}))
+
+/* ---------- The intro ---------- */
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+function appMock() {
+  const days = [['Mon', 23], ['Tue', 24], ['Wed', 25], ['Thu', 26], ['Fri', 27], ['Sat', 28], ['Sun', 29]]
+  const ev = { 0: [[18, 14, '#8b7cf6'], [52, 12, 's']], 1: [[10, 14, '#4fa3d1'], [60, 30, '#a3a3a3']], 2: [[18, 14, '#8b7cf6'], [38, 16, 's']], 3: [[10, 14, '#4fa3d1'], [60, 30, '#a3a3a3']], 4: [[18, 14, '#8b7cf6'], [42, 14, 's']], 5: [[20, 36, '#a3a3a3']], 6: [[24, 18, 's']] }
+  return `<div class="appmock" aria-hidden="true"><div class="sb"><i class="logo"></i><i></i><i style="width:80%"></i><i style="width:70%"></i><i class="plan"></i><i style="width:60%"></i><i style="width:75%"></i></div>
+    <div class="cal">${days.map(([d, n], i) => `<div class="hd${i === 1 ? ' today' : ''}">${d}<b>${n}</b></div>`).join('')}
+    ${days.map((_, i) => `<div class="col">${(ev[i] || []).map(([t, h, c]) => `<div class="ev${c === 's' ? ' s' : ''}" style="top:${t}%;height:${h}%;--c:${c}"></div>`).join('')}</div>`).join('')}</div></div>`
+}
+
+function setupIntro(card) {
+  const wrap = card.querySelector('.stage-wrap'), end = card.dataset.end
+  async function play() {
+    wrap.innerHTML = appMock() + `<div class="stage"><svg viewBox="0 0 48 48"><path class="w" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" d="M6.5 24C6.5 13 19.5 13 19.5 24S32.5 35 32.5 24"/><circle class="d" fill="currentColor" cx="40.5" cy="24" r="3.9"/></svg></div><button class="replay">Replay</button>`
+    wrap.querySelector('.replay').addEventListener('click', play)
+    const stage = wrap.querySelector('.stage'), app = wrap.querySelector('.appmock')
+    const wave = wrap.querySelector('.w'), dot = wrap.querySelector('.d')
+    if (reduce) {
+      await stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500, delay: 600, fill: 'forwards' }).finished
+      return
+    }
+    const len = wave.getTotalLength()
+    wave.style.strokeDasharray = len; wave.style.strokeDashoffset = len
+    dot.style.transformBox = 'fill-box'; dot.style.transformOrigin = 'center'; dot.style.transform = 'scale(0)'
+    app.style.clipPath = 'none'
+    // 1. Draw the S.
+    await wave.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 950, delay: 250, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' }).finished
+    // 2. A held breath, then 3. the dot lands like a beat.
+    await dot.animate([{ transform: 'scale(0)' }, { transform: 'scale(1.35)', offset: .6 }, { transform: 'scale(1)' }], { duration: 380, delay: 380, easing: 'cubic-bezier(.3,1.4,.5,1)', fill: 'forwards' }).finished
+    await new Promise(r => setTimeout(r, 300))
+    // 4. Cut to the app.
+    if (end === 'cut') { stage.style.display = 'none'; return }
+    if (end === 'fade') {
+      stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, easing: 'ease-out', fill: 'forwards' })
+      await app.animate([{ transform: 'translateY(10px)', opacity: .4 }, { transform: 'none', opacity: 1 }], { duration: 500, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' }).finished
+      return
+    }
+    // reveal: the app opens out of the dot.
+    const d = dot.getBoundingClientRect(), w = wrap.getBoundingClientRect()
+    const cx = d.left + d.width / 2 - w.left, cy = d.top + d.height / 2 - w.top
+    const far = Math.hypot(Math.max(cx, w.width - cx), Math.max(cy, w.height - cy))
+    stage.style.zIndex = 1; app.style.zIndex = 3; app.style.position = 'absolute'
+    await app.animate([{ clipPath: `circle(${d.width / 2}px at ${cx}px ${cy}px)` }, { clipPath: `circle(${far}px at ${cx}px ${cy}px)` }],
+      { duration: 650, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'forwards' }).finished
+  }
+  wrap.addEventListener('click', e => { if (!e.target.closest('.replay')) { wrap.querySelector('.stage')?.remove() } })
+  play()
+}
+document.querySelectorAll('.intro-card').forEach(setupIntro)
+</script>
+</body>
+</html>
