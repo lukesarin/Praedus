@@ -66,3 +66,11 @@ describe('Praedus theme tokens', () => {
     })
   }
 })
+
+describe('intro layering', () => {
+  it('keeps the app container opaque, so the intro behind it never shows through the revealed app', () => {
+    const css = readFileSync(new URL('./theme.css', import.meta.url), 'utf8')
+    const block = /\.app-root\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
+    expect(block).toMatch(/background:\s*var\(--bg\)/)
+  })
+})

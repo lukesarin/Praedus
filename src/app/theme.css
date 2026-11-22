@@ -2331,8 +2331,10 @@ a {
 
 /* ---------- Intro ---------- */
 
+/* Opaque, so the intro behind it never shows through as the dot opens the app. */
 .app-root {
   height: 100%;
+  background: var(--bg);
 }
 
 .intro {
