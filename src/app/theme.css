@@ -1792,3 +1792,219 @@ a {
     display: none;
   }
 }
+
+/* ---------- Connect Canvas ---------- */
+
+.connect-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 2px 0 4px;
+  padding: 7px 8px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.connect-row:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.connect-row svg {
+  color: var(--accent);
+}
+
+.canvas-card {
+  margin: 2px 0 6px;
+  padding: 10px 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.canvas-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.canvas-card-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.canvas-card-state {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.canvas-card.is-attention .canvas-card-state {
+  color: var(--warn);
+}
+
+.canvas-card.is-syncing .canvas-card-state {
+  color: var(--text-muted);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  flex: none;
+}
+
+.canvas-card.is-attention .status-dot {
+  background: var(--warn);
+  box-shadow: 0 0 0 3px var(--warn-soft);
+}
+
+.canvas-card.is-syncing .status-dot {
+  background: var(--text-muted);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .canvas-card.is-syncing .status-dot {
+    animation: status-pulse 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes status-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.canvas-card-host {
+  margin: 2px 0 0 16px;
+  padding: 0;
+  font-size: 12px;
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-section .canvas-card-meta,
+.side-section .canvas-card-host,
+.side-section .canvas-card-error {
+  padding: 0;
+}
+
+.canvas-card-meta {
+  margin: 8px 0 0 16px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.canvas-card-error {
+  margin: 8px 0 0 16px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.canvas-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 0 16px;
+}
+
+.canvas-card-actions .ghost-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.canvas-card-actions .link-btn {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.canvas-card-actions .link-btn:hover {
+  color: var(--danger);
+}
+
+.connect-canvas {
+  width: min(480px, calc(100vw - 32px));
+}
+
+.connect-lede {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.connect-steps {
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.connect-steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  counter-increment: step;
+}
+
+.connect-steps li::before {
+  content: counter(step);
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  flex: none;
+}
+
+.connect-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.connect-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 12px 8px 4px;
+}
+
+.connect-success-mark {
+  display: inline-flex;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.connect-success-title {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.connect-success .muted {
+  margin: 0 0 18px;
+  max-width: 34ch;
+}

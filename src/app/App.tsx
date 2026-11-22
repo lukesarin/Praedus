@@ -20,6 +20,8 @@ import { StudyMap } from '../map/StudyMap'
 import { useMapFilters } from '../map/useMapFilters'
 import { StudyBlockDialog } from '../study/StudyBlockDialog'
 import { ImportDialog } from '../import/ImportDialog'
+import { useAutoSync } from '../canvas/autoSync'
+import { ConnectCanvasDialog } from '../canvas/ConnectCanvasDialog'
 import { loadSample } from '../import/syncFeed'
 import { LogoIcon, MenuIcon } from './icons'
 import { ItemDetail } from './ItemDetail'
@@ -44,6 +46,7 @@ export default function App() {
   const now = useNow()
   const [view, setView] = useState<View>('calendar')
   const [importing, setImporting] = useState(false)
+  const [connecting, setConnecting] = useState(false)
   const [selected, setSelected] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [form, setForm] = useState<FormState | null>(null)
@@ -61,6 +64,7 @@ export default function App() {
   const minGap = useLiveQuery(() => getMinGap(db), [])
   const studyBlocks = useLiveQuery(() => db.studyBlocks.toArray(), [])
   const studySettings = useLiveQuery(() => getStudySettings(db), [])
+  const { syncing, syncNow } = useAutoSync(feeds)
 
   useEffect(() => {
     if (!notice) return
@@ -75,6 +79,16 @@ export default function App() {
     return findConflicts(occs, items, { now, minGapMinutes: minGap })
   }, [items, commitments, minGap, now])
   const marks = useMemo(() => conflictMarks(conflicts), [conflicts])
+  const feedStats = useMemo(() => {
+    const stats = new Map<string, { assignments: number; courses: Set<string> }>()
+    for (const i of items ?? []) {
+      const s = stats.get(i.feedId) ?? { assignments: 0, courses: new Set<string>() }
+      if (i.kind === 'assignment') s.assignments++
+      if (i.courseId) s.courses.add(i.courseId)
+      stats.set(i.feedId, s)
+    }
+    return new Map([...stats].map(([id, s]) => [id, { assignments: s.assignments, courses: s.courses.size }]))
+  }, [items])
   const short = useMemo(
     () => (items && studyBlocks ? coverage(items, studyBlocks, now).filter((c) => c.short > 0) : []),
     [items, studyBlocks, now],
@@ -194,6 +208,10 @@ export default function App() {
         onToggleTheme={toggleTheme}
         onImport={() => { setImporting(true); setMenuOpen(false) }}
         open={menuOpen}
+        syncing={syncing}
+        onSyncFeed={(f) => void syncNow(f)}
+        onConnectCanvas={() => { setConnecting(true); setMenuOpen(false) }}
+        feedStats={feedStats}
       />
       {menuOpen && <div className="scrim" onClick={() => setMenuOpen(false)} />}
 
@@ -213,7 +231,7 @@ export default function App() {
               Bring in your Canvas calendar to see every assignment and class event on one calendar.
             </p>
             <div className="empty-actions">
-              <button className="primary-btn" onClick={() => setImporting(true)}>Import Canvas calendar</button>
+              <button className="primary-btn" onClick={() => setConnecting(true)}>Connect Canvas</button>
               <button className="ghost-btn" onClick={() => loadSample()}>Try sample data</button>
             </div>
           </div>
@@ -263,6 +281,7 @@ export default function App() {
 
       {notice && <div className="toast" role="status">{notice}</div>}
       {importing && <ImportDialog onClose={() => setImporting(false)} />}
+      {connecting && <ConnectCanvasDialog onClose={() => setConnecting(false)} />}
       {selectedItem && (
         <ItemDetail
           item={selectedItem}

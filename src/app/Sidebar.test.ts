@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar'
 
 const noop = () => {}
 
-function renderSidebar(): string {
+function renderSidebar(overrides: Record<string, unknown> = {}): string {
   return renderToStaticMarkup(
     createElement(Sidebar, {
       view: 'calendar',
@@ -25,6 +25,11 @@ function renderSidebar(): string {
       onToggleTheme: noop,
       onImport: noop,
       open: false,
+      syncing: new Set<string>(),
+      onSyncFeed: noop,
+      onConnectCanvas: noop,
+      feedStats: new Map(),
+      ...overrides,
     }),
   )
 }
@@ -40,5 +45,22 @@ describe('Sidebar brand', () => {
     const html = renderSidebar()
     expect(html).toContain('d="M6.5 24C6.5 13 19.5 13 19.5 24S32.5 35 32.5 24"')
     expect(html).toContain('cx="40.5" cy="24" r="3.9"')
+  })
+})
+
+describe('Sidebar Canvas connection', () => {
+  const canvasFeed = { id: 'url-abc', label: 'Canvas', url: 'https://s.instructure.com/feeds/calendars/user_ab.ics' }
+
+  it('offers Connect Canvas when no Canvas link is connected', () => {
+    const html = renderSidebar({ feeds: [{ id: 'sample', label: 'Sample data' }] })
+    expect(html).toContain('Connect Canvas')
+    expect(html).toContain('Sample data')
+  })
+
+  it('shows the connection card instead of the offer once Canvas is connected', () => {
+    const html = renderSidebar({ feeds: [canvasFeed], feedStats: new Map([['url-abc', { assignments: 3, courses: 2 }]]) })
+    expect(html).toContain('canvas-card')
+    expect(html).toContain('3 assignments · 2 courses')
+    expect(html).not.toContain('Connect Canvas')
   })
 })

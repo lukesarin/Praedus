@@ -6,6 +6,8 @@ import type { Commitment } from '../commitments/types'
 import type { Course, Feed } from '../db/db'
 import { db } from '../db/db'
 import { removeFeed, resyncFeed } from '../import/syncFeed'
+import { CanvasCard } from '../canvas/CanvasCard'
+import { isCanvasFeed } from '../canvas/canvasLink'
 import { AlertIcon, CalendarIcon, GraphIcon, ListIcon, LogoIcon, MoonIcon, PlusIcon, RefreshIcon, SparkIcon, SunIcon, XIcon } from './icons'
 import { relativeTime } from './relativeTime'
 import type { Theme } from './useTheme'
@@ -30,6 +32,12 @@ type Props = {
   onToggleTheme: () => void
   onImport: () => void
   open: boolean
+  /** Feeds being synced by auto-sync or Sync now. */
+  syncing: ReadonlySet<string>
+  onSyncFeed: (feed: Feed) => void
+  onConnectCanvas: () => void
+  /** Assignment and course counts per feed id. */
+  feedStats: Map<string, { assignments: number; courses: number }>
 }
 
 export function Sidebar(props: Props) {
@@ -48,6 +56,14 @@ export function Sidebar(props: Props) {
     } finally {
       setSyncing(null)
     }
+  }
+
+  async function disconnect(feed: Feed) {
+    const ok = confirm(
+      'Disconnect Canvas? Its assignments and their planned study blocks will be removed from Praedus. '
+      + 'Your other calendars and commitments stay.',
+    )
+    if (ok) await removeFeed(feed.id)
   }
 
   async function remove(feed: Feed) {
@@ -118,9 +134,20 @@ export function Sidebar(props: Props) {
             <PlusIcon size={14} />
           </button>
         </header>
-        {feeds.length === 0 && <p className="muted small">Nothing imported yet.</p>}
+        {!feeds.some(isCanvasFeed) && (
+          <button className="connect-row" onClick={props.onConnectCanvas}>
+            <PlusIcon size={14} /> Connect Canvas
+          </button>
+        )}
         <ul>
-          {feeds.map((f) => (
+          {feeds.map((f) => isCanvasFeed(f) ? (
+            <li key={f.id}>
+              <CanvasCard feed={f} now={now.getTime()} syncing={props.syncing.has(f.id)}
+                itemCount={props.feedStats.get(f.id)?.assignments ?? 0}
+                courseCount={props.feedStats.get(f.id)?.courses ?? 0}
+                onSyncNow={() => props.onSyncFeed(f)} onDisconnect={() => void disconnect(f)} />
+            </li>
+          ) : (
             <li key={f.id} className="feed">
               <div className="feed-row">
                 <span className="feed-label" title={f.label}>{f.label}</span>
