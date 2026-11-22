@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CalendarItem } from '../db/db'
-import { coverLine, countdown, plainDescription, weekHeading } from './panelText'
+import { coverLine, countdown, plainDescription, studySetTopics, weekHeading } from './panelText'
 import type { Unit } from './units'
 
 const item = (title: string) => ({ title }) as CalendarItem
@@ -86,5 +86,22 @@ describe('plainDescription', () => {
   it('keeps the last whole word when the cut lands on a space', () => {
     // 'aaaa bbbb ' — max 9 cuts right before the space after bbbb
     expect(plainDescription('aaaa bbbb cccc', 9)).toBe('aaaa bbbb…')
+  })
+})
+
+describe('studySetTopics', () => {
+  const work = (id: string, title: string, due: string, description?: string) =>
+    ({ id, title, start: due, allDay: true, kind: 'assignment', description }) as unknown as CalendarItem
+  it('one topic per covered assignment, in due order, with a short plain hint', () => {
+    const long = '<p>Read <b>chapter 4</b> &amp; answer ' + 'every question carefully '.repeat(8) + '</p>'
+    const topics = studySetTopics(unit({ items: [work('b', 'Lab 5', '2026-11-12'), work('a', 'PS 7', '2026-11-10', long)] }))
+    expect(topics.map((t) => t.title)).toEqual(['PS 7', 'Lab 5'])
+    expect(topics[0].id).toBe('a')
+    expect(topics[0].hint.startsWith('Read chapter 4 & answer')).toBe(true)
+    expect(topics[0].hint.length).toBeLessThanOrEqual(81)
+    expect(topics[1].hint).toBe('')
+  })
+  it('empty unit gives no topics', () => {
+    expect(studySetTopics(unit({ items: [] }))).toEqual([])
   })
 })

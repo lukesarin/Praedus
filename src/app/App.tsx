@@ -15,10 +15,11 @@ import { db } from '../db/db'
 import { getMinGap, getStudySettings, getTermStart } from '../db/settings'
 import { planMyStudyTime, summarize } from '../study/applyPlan'
 import { coverage } from '../study/coverage'
-import { buildClassGraph } from '../map/graph'
+import { buildDonut } from '../map/donut'
+import { coverLine } from '../map/panelText'
 import { StudyMap } from '../map/StudyMap'
-import { TestPrepPanel } from '../map/TestPrepPanel'
-import { defaultPick, defaultTestFor, mapCourses as courseList } from '../map/units'
+import { TestPrepPanel, type PanelTest } from '../map/TestPrepPanel'
+import { defaultPick, defaultTestFor, mapCourses as courseList, classWeeks, mapItems, unitFor } from '../map/units'
 import { StudyBlockDialog } from '../study/StudyBlockDialog'
 import { ImportDialog } from '../import/ImportDialog'
 import { useAutoSync } from '../canvas/autoSync'
@@ -57,7 +58,8 @@ export default function App() {
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null)
   const [planning, setPlanning] = useState(false)
   // The study map's class and test. Kept while switching tabs; picked fresh each time the app opens.
-  const [mapPick, setMapPick] = useState<{ courseId: string; testId?: string } | null>(null)
+  // `testId: null` means the student unpicked the test.
+  const [mapPick, setMapPick] = useState<{ courseId: string; testId?: string | null } | null>(null)
 
   const feeds = useLiveQuery(() => db.feeds.toArray(), [])
   const courses = useLiveQuery(() => db.courses.orderBy('name').toArray(), [])
@@ -111,14 +113,22 @@ export default function App() {
   )
   const pick = pickValid ? mapPick : fallbackPick
   const mapCourse = pick ? mapCourses.find((c) => c.id === pick.courseId) : undefined
-  const graph = useMemo(() => {
+  const donut = useMemo(() => {
     if (!mapCourse || !items) return null
     const input = { course: mapCourse, items, termStart: termStart ?? undefined, now }
-    const g = buildClassGraph({ ...input, testId: pick?.testId })
+    const d = buildDonut({ ...input, testId: pick?.testId ?? undefined })
+    // Unpicked on purpose, or the picked test still there: keep it.
+    if (pick?.testId === null || d.unit || d.tests.length === 0) return d
     // The picked test is gone (removed from Canvas): fall back to the class's own default.
-    if (g.unit || g.tests.length === 0) return g
-    return buildClassGraph({ ...input, testId: defaultTestFor(items.filter((i) => i.courseId === mapCourse.id), now, termStart ?? undefined)?.id })
+    return buildDonut({ ...input, testId: defaultTestFor(items.filter((i) => i.courseId === mapCourse.id), now, termStart ?? undefined)?.id })
   }, [mapCourse, items, termStart, pick?.testId, now])
+  // Each test on the map with the line saying what it covers.
+  const panelTests = useMemo<PanelTest[]>(() => {
+    if (!donut || !mapCourse || !items) return []
+    const classItems = mapItems(items.filter((i) => i.courseId === mapCourse.id))
+    const weeks = classWeeks(classItems, termStart ?? undefined)
+    return donut.tests.map((t) => ({ item: t.item, cover: coverLine(unitFor(t.item, classItems, weeks, termStart ?? undefined)) }))
+  }, [donut, mapCourse, items, termStart])
 
   if (!feeds || !courses || !items || !commitments || minGap === undefined || !studyBlocks || !studySettings) {
     return <div className="loading" />
@@ -191,7 +201,11 @@ export default function App() {
 
   function pickCourse(courseId: string) {
     const testId = defaultTestFor(items!.filter((i) => i.courseId === courseId), now, termStart ?? undefined)?.id
-    setMapPick({ courseId, ...(testId ? { testId } : {}) })
+    setMapPick({ courseId, testId: testId ?? null })
+  }
+
+  function pickTest(testId: string | undefined) {
+    if (mapCourse) setMapPick({ courseId: mapCourse.id, testId: testId ?? null })
   }
 
   async function loadTestShift() {
@@ -273,24 +287,26 @@ export default function App() {
             <StudyMap
               courses={mapCourses}
               courseId={mapCourse?.id}
-              graph={graph}
+              donut={donut}
               now={now}
               onPickCourse={pickCourse}
-              onPickTest={(testId) => mapCourse && setMapPick({ courseId: mapCourse.id, testId })}
+              onPickTest={pickTest}
               onOpenItem={setSelected}
               hasTermStart={Boolean(termStart)}
               onSetTermStart={() => go('conflicts')}
             />
-            {graph && (
+            {donut && (
               <TestPrepPanel
                 course={mapCourse}
-                unit={graph.unit}
-                weeks={graph.weeks}
+                tests={panelTests}
+                unit={donut.unit}
+                weeks={donut.weeks.map((w) => w.week)}
                 blocks={studyBlocks}
-                short={short.find((c) => c.item.id === graph.unit?.test.id)?.short ?? 0}
+                short={short.find((c) => c.item.id === donut.unit?.test.id)?.short ?? 0}
                 now={now}
                 planning={planning}
                 onPlan={() => void plan()}
+                onPickTest={pickTest}
                 onToggleReviewed={(id, reviewed) => void db.items.update(id, { reviewed })}
                 onOpenItem={setSelected}
               />

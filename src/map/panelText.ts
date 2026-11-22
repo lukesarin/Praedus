@@ -1,4 +1,6 @@
 import { addDays, localDateKey } from '../calendar/dates'
+import type { CalendarItem } from '../db/db'
+import { dueInstant } from '../study/plan'
 import type { Unit, Week } from './units'
 
 const DAY_MS = 86_400_000
@@ -82,4 +84,13 @@ export function plainDescription(text: string | undefined, max = 140): string {
   // If the next character is a space, the cut already ends on a whole word.
   const space = plain[max] === ' ' ? max : cut.lastIndexOf(' ')
   return (space > 0 ? cut.slice(0, space) : cut).replace(/[\s.,;:]+$/, '') + '\u2026'
+}
+
+export type StudySetTopic = { id: string; title: string; hint: string }
+
+/** The starting topics for a study set: each covered assignment, in due order, with a short plain hint. */
+export function studySetTopics(unit: Unit): StudySetTopic[] {
+  return [...unit.items]
+    .sort((a: CalendarItem, b: CalendarItem) => dueInstant(a) - dueInstant(b))
+    .map((i) => ({ id: i.id, title: i.title, hint: plainDescription(i.description, 80) }))
 }

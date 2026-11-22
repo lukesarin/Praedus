@@ -1,14 +1,19 @@
+import { useState, type FormEvent } from 'react'
 import { itemDateKey } from '../calendar/dates'
 import type { CalendarItem, Course } from '../db/db'
 import { formatMinutes } from '../study/applyPlan'
 import { dueInstant } from '../study/plan'
 import type { StudyBlock } from '../study/types'
-import { courseCode, isLate } from './graph'
-import { countdown, coverLine, plainDescription, weekHeading } from './panelText'
+import { courseCode, isLate } from './donut'
+import { countdown, plainDescription, studySetTopics, weekHeading, type StudySetTopic } from './panelText'
 import { mondayOf, type Unit, type Week } from './units'
+
+export type PanelTest = { item: CalendarItem; cover: string }
 
 type Props = {
   course?: Course
+  /** The class's tests on the map, in date order, each with its cover line. */
+  tests: PanelTest[]
   unit?: Unit
   weeks: Week[]
   blocks: StudyBlock[]
@@ -17,6 +22,8 @@ type Props = {
   now: Date
   planning: boolean
   onPlan: () => void
+  /** `undefined` unpicks the test. */
+  onPickTest: (testId: string | undefined) => void
   onToggleReviewed: (itemId: string, reviewed: boolean) => void
   onOpenItem: (itemId: string) => void
 }
@@ -52,48 +59,137 @@ function CheckIcon() {
   )
 }
 
-export function TestPrepPanel({ course, unit, weeks, blocks, short: missing, now, planning, onPlan, onToggleReviewed, onOpenItem }: Props) {
-  if (!course) return <aside className="prep" aria-label="Test prep" />
-  const code = courseCode(course.name)
+function SparkIcon() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M8 1.8 9.4 6.6 14.2 8 9.4 9.4 8 14.2 6.6 9.4 1.8 8 6.6 6.6Z" />
+    </svg>
+  )
+}
 
-  if (!unit) {
+/** Picks topics for a study set. Nothing is saved yet: saving comes with the AI. */
+function StudySetStep({ test, unit, onBack }: { test: CalendarItem; unit: Unit; onBack: () => void }) {
+  const [topics, setTopics] = useState<StudySetTopic[]>(() => studySetTopics(unit))
+  const [draft, setDraft] = useState('')
+  const n = unit.items.length
+  const add = (e: FormEvent) => {
+    e.preventDefault()
+    const title = draft.trim()
+    if (!title) return
+    setTopics((t) => [...t, { id: `own-${Date.now()}-${t.length}`, title, hint: '' }])
+    setDraft('')
+  }
+  return (
+    <section className="prep-sheet" aria-label="Study set">
+      <h3>Study set for {test.title}</h3>
+      <p>
+        These topics come from the {n === 1 ? 'assignment' : `${n} assignments`} in the weeks this test covers. Remove anything
+        that won't be on the test, or add your own.
+      </p>
+      {topics.length > 0 && (
+        <ul className="prep-topics">
+          {topics.map((t) => (
+            <li key={t.id} className="prep-topic" title={t.hint || undefined}>
+              <span>{t.title}</span>
+              <button aria-label={`Remove ${t.title}`} onClick={() => setTopics((all) => all.filter((x) => x.id !== t.id))}>×</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <form className="prep-add" onSubmit={add}>
+        <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Add a topic" aria-label="Add a topic" />
+        <button type="submit">Add</button>
+      </form>
+      <button className="primary-btn prep-cta prep-spark" disabled><SparkIcon />Create study set</button>
+      <p className="prep-premium">AI study sets are coming with Premium.</p>
+      <button className="prep-ghost" onClick={onBack}>Back</button>
+    </section>
+  )
+}
+
+export function TestPrepPanel({ course, tests, unit, weeks, blocks, short: missing, now, planning, onPlan, onPickTest, onToggleReviewed, onOpenItem }: Props) {
+  // The study set step is open for this test id; picking another test closes it.
+  const [sheetFor, setSheetFor] = useState<string>()
+  if (!course) return <aside className="prep" aria-label="Upcoming tests" />
+  const code = courseCode(course.name)
+  const nowMs = now.getTime()
+  const upcomingTests = tests.filter((t) => dueInstant(t.item) > nowMs)
+  const pastTests = tests.filter((t) => dueInstant(t.item) <= nowMs).reverse()
+
+  const row = (t: PanelTest) => {
+    const due = dueInstant(t.item)
+    const past = due <= nowMs
+    const on = unit?.test.id === t.item.id
     return (
-      <aside className="prep" aria-label="Test prep">
-        <div className="prep-empty">
-          <h2>No tests in {code}</h2>
-          <p>Nothing in {course.name} is named like a test, so there's no test to prep for. Pick another class above.</p>
-        </div>
-        <p className="prep-note">Tests are found by name: “test”, “exam” or “midterm”.</p>
-      </aside>
+      <button key={t.item.id} className={`prep-test${past ? ' past' : ''}${on ? ' on' : ''}`} aria-pressed={on}
+        onClick={() => onPickTest(on ? undefined : t.item.id)}>
+        <b>{t.item.title}</b>
+        <span className="prep-test-when">
+          {testDate(t.item)}
+          {!past && <span className="soon">{countdown(due, now)}</span>}
+        </span>
+        <span className="prep-test-cover">{t.cover}</span>
+      </button>
     )
   }
 
-  const { test } = unit
-  const nowMs = now.getTime()
-  const upcoming = dueInstant(test) > nowMs
-  const total = unit.items.length
-  const reviewed = unit.items.filter((i) => i.reviewed).length
-  const share = total ? reviewed / total : 0
-  const short = upcoming ? missing : 0
-  const mine = blocks
-    .filter((b) => b.itemId === test.id && Date.parse(b.end) > nowMs)
-    .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
-  const plannedMinutes = mine.reduce((s, b) => s + (Date.parse(b.end) - Date.parse(b.start)) / 60000, 0)
-
-  const groups = weeks
-    .filter((w) => unit.weeks.some((u) => u.start === w.start))
-    .map((w) => ({ week: w, items: unit.items.filter((i) => mondayOf(itemDateKey(i)) === w.start) }))
-    .filter((g) => g.items.length > 0)
-
   return (
-    <aside className="prep" aria-label="Test prep">
+    <aside className="prep" aria-label="Upcoming tests">
       <header>
-        <h2 className="prep-title">{test.title}</h2>
-        <p className="prep-when">
-          <b>{code}</b>, {testDate(test)}, <span className={upcoming ? 'soon' : ''}>{countdown(dueInstant(test), now)}</span>
-        </p>
-        <p className="prep-cover">{coverLine(unit)}</p>
+        <h2 className="prep-title">Upcoming tests</h2>
+        <p className="prep-sub">{tests.length > 0 ? `${code}. Pick a test to see the weeks it covers.` : code}</p>
       </header>
+
+      {tests.length === 0 ? (
+        <div className="prep-empty">
+          <p>Nothing in {course.name} is named like a test, so there's no test to prep for. Pick another class above.</p>
+          <p className="prep-note">Tests are found by name: “test”, “exam” or “midterm”.</p>
+        </div>
+      ) : (
+        <div className="prep-tests">
+          {upcomingTests.length > 0 ? upcomingTests.map(row) : <p className="prep-note">No more tests this term.</p>}
+        </div>
+      )}
+
+      {unit && (sheetFor === unit.test.id ? (
+        <StudySetStep key={unit.test.id} test={unit.test} unit={unit} onBack={() => setSheetFor(undefined)} />
+      ) : (
+        detail()
+      ))}
+
+      {pastTests.length > 0 && (
+        <>
+          <p className="prep-sec">Past tests</p>
+          <div className="prep-tests">{pastTests.map(row)}</div>
+        </>
+      )}
+    </aside>
+  )
+
+  function detail() {
+    if (!unit) return null
+    const { test } = unit
+    const upcoming = dueInstant(test) > nowMs
+    const total = unit.items.length
+    const reviewed = unit.items.filter((i) => i.reviewed).length
+    const share = total ? reviewed / total : 0
+    const short = upcoming ? missing : 0
+    const mine = blocks
+      .filter((b) => b.itemId === test.id && Date.parse(b.end) > nowMs)
+      .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
+    const plannedMinutes = mine.reduce((s, b) => s + (Date.parse(b.end) - Date.parse(b.start)) / 60000, 0)
+    const groups = weeks
+      .filter((w) => unit.weeks.some((u) => u.start === w.start))
+      .map((w) => ({ week: w, items: unit.items.filter((i) => mondayOf(itemDateKey(i)) === w.start) }))
+      .filter((g) => g.items.length > 0)
+
+    return (
+      <div className="prep-detail">
+        {upcoming && total > 0 && (
+          <button className="primary-btn prep-cta prep-spark fadein" onClick={() => setSheetFor(test.id)}>
+            <SparkIcon />Make a study set
+          </button>
+        )}
 
       {total > 0 && (
         <div className="prep-meter">
@@ -173,7 +269,7 @@ export function TestPrepPanel({ course, unit, weeks, blocks, short: missing, now
         </div>
       )}
 
-      <p className="prep-later">Study guide, coming with Premium.</p>
-    </aside>
-  )
+      </div>
+    )
+  }
 }

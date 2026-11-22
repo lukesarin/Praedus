@@ -1477,20 +1477,20 @@ a {
   }
 }
 
-/* ---------- study map (test prep: one class as weeks and assignments) ---------- */
+/* ---------- study map (one class's semester as a donut of weeks) ---------- */
 
 :root,
 :root[data-theme='dark'] {
-  --map-link: #3d3d3d;
-  --map-label-strong: #e4e4e4;
+  --map-slice: #1c1c1c;
+  --map-slice-2: #232323;
 }
 
 :root[data-theme='light'] {
-  --map-link: #d6d6da;
-  --map-label-strong: #1f2024;
+  --map-slice: #f0f0ee;
+  --map-slice-2: #e7e7e4;
 }
 
-/* The map and the test prep panel side by side; stacked on phones. */
+/* The map and the panel side by side; stacked on phones. */
 .map-layout {
   flex: 1;
   min-height: 0;
@@ -1508,110 +1508,74 @@ a {
 
 .map-bar {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px 14px;
-  padding: 10px 14px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--border);
 }
 
-.map-seg {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-}
-
-.map-seg button {
+.map-class {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 12.5px;
-  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.map-class i {
+  position: absolute;
+  left: 12px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.map-class select {
+  appearance: none;
+  -webkit-appearance: none;
+  max-width: 100%;
+  padding: 7px 34px 7px 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 
-.map-seg button:hover {
-  color: var(--text);
+.map-class select:hover {
+  border-color: var(--text-faint);
 }
 
-.map-seg button.on {
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 600;
+.map-class select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
-.map-seg button i {
-  display: block;
+.map-class::after {
+  content: '';
+  position: absolute;
+  right: 13px;
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: translateY(-2px) rotate(45deg);
+  pointer-events: none;
 }
 
-.map-tests {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-}
-
-.map-test {
-  padding: 3px 9px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  line-height: 1.25;
-  cursor: pointer;
-}
-
-.map-test b {
-  display: block;
-  color: var(--text);
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
-.map-test span {
+.map-meta {
   color: var(--text-faint);
-  font-size: 11px;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
-.map-test.past b {
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.map-test:hover {
-  background: var(--bg-hover);
-}
-
-.map-test.on {
-  border-color: var(--text);
-}
-
-.map-none {
-  color: var(--text-faint);
-  font-size: 12px;
-}
-
-.map-bar-end {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
-}
-
-.map-link-btn,
-.map-fit {
+.map-link-btn {
   padding: 4px 9px;
   border: 0;
   border-radius: 6px;
@@ -1620,18 +1584,41 @@ a {
   font-size: 12px;
   white-space: nowrap;
   cursor: pointer;
-}
-
-.map-link-btn {
   text-decoration: underline;
   text-decoration-color: var(--border);
   text-underline-offset: 3px;
 }
 
-.map-link-btn:hover,
-.map-fit:hover {
+.map-link-btn:hover {
   background: var(--bg-hover);
   color: var(--text);
+}
+
+.map-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.map-legend i {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.map-legend i.dot {
+  border-radius: 50%;
 }
 
 .map-canvas {
@@ -1643,215 +1630,168 @@ a {
 }
 
 .map-canvas svg {
+  position: absolute;
+  inset: 0;
   display: block;
-  cursor: grab;
-  touch-action: none;
-  /* Node drags use their own pointer handlers, which (unlike d3-zoom's background drag) don't stop the browser's text selection. */
+  width: 100%;
+  height: 100%;
+  /* Rim labels at three and nine o'clock may reach past the square. */
+  overflow: visible;
+  /* Clicking around the chart never selects page text. */
   user-select: none;
   -webkit-user-select: none;
-}
-
-.map-canvas svg:active {
-  cursor: grabbing;
 }
 
 .map-canvas svg text {
   font-family: inherit;
 }
 
-/* The picked test's unit fades in; that's the map's only animation. */
-.map-unit-fade {
-  animation: map-unit-in 0.5s ease both;
+.map-slice {
+  fill: var(--map-slice);
+  stroke: var(--bg);
+  stroke-width: 2;
 }
 
-@keyframes map-unit-in {
+.map-slice.alt {
+  fill: var(--map-slice-2);
+}
+
+/* The current week's outline, drawn above every slice so neighbours don't cover it. */
+.map-now {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.map-wnum {
+  fill: var(--text-faint);
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.map-wnum.in {
+  fill: var(--text);
+}
+
+.map-wnum.now {
+  fill: var(--accent);
+}
+
+.map-dot {
+  stroke: var(--bg);
+  stroke-width: 1.5;
+  cursor: pointer;
+}
+
+.map-dot:hover,
+.map-dot:focus-visible {
+  stroke: var(--text);
+  outline: none;
+}
+
+.map-dot.done {
+  opacity: 0.45;
+}
+
+.map-dot.late {
+  stroke: var(--danger);
+  stroke-width: 1.6;
+  opacity: 1;
+}
+
+.map-dot.rev {
+  fill: var(--accent);
+  opacity: 1;
+}
+
+.map-more {
+  fill: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.map-flag {
+  cursor: pointer;
+  outline: none;
+}
+
+.map-flag line {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+
+.map-flag rect {
+  fill: transparent;
+}
+
+.map-flag text {
+  fill: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.map-flag.past text {
+  fill: var(--text-faint);
+}
+
+.map-flag:hover text,
+.map-flag.on text {
+  fill: var(--text);
+}
+
+.map-flag.on text {
+  font-weight: 700;
+}
+
+.map-flag.on line {
+  stroke: var(--text);
+}
+
+.map-flag:focus-visible rect {
+  stroke: var(--accent);
+  stroke-width: 2;
+  rx: 4px;
+}
+
+.map-hole {
+  fill: var(--bg);
+}
+
+.map-center-code {
+  fill: var(--text);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.map-center-name {
+  fill: var(--text-muted);
+  font-size: 12px;
+}
+
+.map-center-wk {
+  fill: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Picking a test fades its weeks in; that's the map's only animation. */
+.fadein {
+  animation: map-fade 0.45s ease both;
+}
+
+@keyframes map-fade {
   from {
     opacity: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .map-unit-fade {
+  .fadein {
     animation: none;
   }
-}
-
-.map-unit path {
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
-.map-unit .map-unit-reviewed {
-  fill: var(--accent);
-  stroke: var(--accent);
-}
-
-.map-links line {
-  stroke: var(--map-link);
-  stroke-width: 1;
-}
-
-.map-links .link-spoke {
-  stroke-opacity: 0.5;
-}
-
-.map-links .dim {
-  stroke-opacity: 0.14;
-}
-
-.map-node {
-  transition: opacity 0.2s;
-}
-
-.map-node.kind-assignment,
-.map-node.kind-test {
-  cursor: pointer;
-}
-
-.map-node:focus {
-  outline: none;
-}
-
-.map-node .hit {
-  fill: transparent;
-}
-
-.map-node.dim {
-  opacity: 0.14;
-}
-
-/* Week hubs: a number, or a short date when there's no first day of classes. */
-.map-node.kind-week .shape {
-  fill: var(--bg);
-  stroke: var(--map-link);
-  stroke-width: 1.2;
-}
-
-.map-node.kind-week text {
-  fill: var(--text-faint);
-  font-size: 10.5px;
-  font-weight: 600;
-  pointer-events: none;
-}
-
-.map-node.kind-week.in .shape {
-  stroke: var(--text-muted);
-}
-
-.map-node.kind-week.in text {
-  fill: var(--text);
-}
-
-.map-node.kind-week.now .shape {
-  stroke: var(--accent);
-  stroke-width: 1.6;
-}
-
-.map-node.kind-week.now text {
-  fill: var(--accent);
-}
-
-/* Assignments: dots in the muted course color, with a background ring so lines don't touch them. */
-.map-node.kind-assignment .shape {
-  stroke: var(--bg);
-  stroke-width: 1.5;
-}
-
-.map-node.kind-assignment.status-done .shape {
-  opacity: 0.5;
-}
-
-.map-node.kind-assignment.status-late .shape {
-  stroke: var(--danger);
-  stroke-width: 1.6;
-}
-
-.map-node.kind-assignment.reviewed .shape {
-  fill: var(--accent);
-  opacity: 1;
-}
-
-.map-node.kind-assignment:hover .shape,
-.map-node.kind-assignment:focus-visible .shape {
-  stroke: var(--map-label-strong);
-  stroke-width: 1.5;
-}
-
-/* Tests: labeled tags; the picked one is filled. */
-.map-node.kind-test .shape {
-  fill: var(--bg);
-  stroke: var(--text-muted);
-  stroke-width: 1;
-}
-
-.map-node.kind-test text {
-  fill: var(--text);
-  font-size: 10.5px;
-  font-weight: 700;
-  pointer-events: none;
-}
-
-.map-node.kind-test.dim {
-  opacity: 0.4;
-}
-
-.map-node.kind-test:hover .shape {
-  stroke: var(--text);
-}
-
-.map-node.kind-test.dim:hover,
-.map-node.kind-test.dim:focus-visible {
-  opacity: 1;
-}
-
-.map-node.kind-test:focus-visible .shape {
-  stroke: var(--accent);
-  stroke-width: 2;
-}
-
-.map-node.kind-test.on .shape {
-  fill: var(--text);
-  stroke: var(--text);
-}
-
-.map-node.kind-test.on text {
-  fill: var(--bg);
-}
-
-/* The class: fixed in the middle, a solid mint-tinted pill so links don't show through. */
-.map-course rect {
-  fill: color-mix(in srgb, var(--accent) 12%, var(--bg));
-  stroke: var(--accent);
-  stroke-width: 1.5;
-}
-
-.map-course text {
-  fill: var(--accent);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.map-labels .label {
-  fill: var(--text-muted);
-  font-size: 10.5px;
-  pointer-events: none;
-  paint-order: stroke;
-  stroke: var(--bg);
-  stroke-width: 3px;
-  stroke-linejoin: round;
-}
-
-.map-labels .label.reviewed {
-  fill: var(--accent);
-}
-
-.map-labels .label.late {
-  fill: var(--danger);
-}
-
-.map-labels .label.dim {
-  opacity: 0.4;
 }
 
 .map-empty {
@@ -1861,53 +1801,6 @@ a {
   place-items: center;
   padding: 24px;
   text-align: center;
-  pointer-events: none;
-}
-
-.map-card {
-  position: absolute;
-  top: 12px;
-  left: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-width: min(300px, calc(100% - 28px));
-  padding: 8px 11px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--bg-raised) 88%, transparent);
-  backdrop-filter: blur(6px);
-  font-size: 12px;
-  pointer-events: none;
-}
-
-.map-card strong {
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
-.map-card span {
-  color: var(--text-muted);
-}
-
-.map-card .tag {
-  font-weight: 600;
-}
-
-.map-card .tag.red {
-  color: var(--danger);
-}
-
-.map-card .tag.mint {
-  color: var(--accent);
-}
-
-.map-hint {
-  position: absolute;
-  left: 14px;
-  bottom: 10px;
-  color: var(--text-faint);
-  font-size: 11.5px;
   pointer-events: none;
 }
 
@@ -1929,27 +1822,15 @@ a {
 }
 
 .prep-title {
-  font-size: 30px;
-  line-height: 1.05;
-  letter-spacing: -0.035em;
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   font-weight: 700;
   overflow-wrap: anywhere;
 }
 
-.prep .prep-when {
-  margin-top: 6px;
-  color: var(--text-muted);
-}
 
-.prep-when b {
-  color: var(--text);
-  font-weight: 600;
-}
 
-.prep-when .soon {
-  color: var(--accent);
-  font-weight: 600;
-}
 
 .prep .prep-cover {
   margin-top: 2px;
@@ -2153,13 +2034,6 @@ a {
   font-size: 12px;
 }
 
-.prep-later {
-  padding: 12px;
-  border: 1px dashed var(--border);
-  border-radius: 8px;
-  color: var(--text-faint);
-  font-size: 12.5px;
-}
 
 .prep-empty h2 {
   margin-bottom: 6px;
@@ -2177,6 +2051,29 @@ a {
     overflow-y: auto;
   }
 
+  /* The donut shrinks to the phone's width; its text grows back to a readable size. */
+  .map-wnum,
+  .map-more {
+    font-size: 17px;
+  }
+
+  .map-flag text {
+    font-size: 18px;
+  }
+
+  .map-center-code {
+    font-size: 32px;
+  }
+
+  .map-center-wk {
+    font-size: 17px;
+  }
+
+  /* The full name is in the class picker; the hole is too small for it at this size. */
+  .map-center-name {
+    display: none;
+  }
+
   .map-page {
     height: 62vh;
     min-height: 340px;
@@ -2184,14 +2081,231 @@ a {
     border-bottom: 1px solid var(--border);
   }
 
-  .map-hint {
-    display: none;
-  }
-
   .prep {
     overflow: visible;
     padding: 20px 16px 28px;
   }
+}
+
+/* Tests list: upcoming first, past ones quieter below. */
+.prep .prep-sub {
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.prep-tests {
+  display: flex;
+  flex-direction: column;
+}
+
+.prep-test {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-top-color: var(--border);
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.prep-test:hover {
+  background: var(--bg-hover);
+}
+
+.prep-test:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.prep-test.on {
+  border: 1px solid var(--text);
+  border-radius: 8px;
+}
+
+.prep-test.on + .prep-test {
+  border-top-color: transparent;
+}
+
+.prep-test b {
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.prep-test-when {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.prep-test-when .soon {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.prep-test-cover {
+  grid-column: 1 / -1;
+  color: var(--text-faint);
+  font-size: 12.5px;
+}
+
+.prep-test.past b {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.prep .prep-sec {
+  margin-top: 4px;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.prep-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.prep-spark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prep-spark svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+.prep-spark[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* Study set step: pick the topics the AI will take in. */
+.prep-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.prep-sheet h3 {
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+.prep-sheet p {
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.prep-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prep-topic {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 4px 4px 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 12.5px;
+}
+
+.prep-topic span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prep-topic button {
+  padding: 0 5px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-faint);
+  font-size: 15px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.prep-topic button:hover,
+.prep-topic button:focus-visible {
+  color: var(--text);
+}
+
+.prep-add {
+  display: flex;
+  gap: 6px;
+}
+
+.prep-add input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.prep-add button,
+.prep-ghost {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.prep-add button {
+  padding: 6px 12px;
+}
+
+.prep-ghost {
+  width: 100%;
+  padding: 8px 14px;
+  background: none;
+}
+
+.prep-add button:hover,
+.prep-ghost:hover {
+  border-color: var(--text-faint);
+  color: var(--text);
+}
+
+.prep .prep-premium {
+  color: var(--text-faint);
+  font-size: 12px;
+  text-align: center;
 }
 
 /* ---------- Connect Canvas ---------- */
