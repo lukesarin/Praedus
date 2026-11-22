@@ -106,4 +106,9 @@ describe('conflictMarks', () => {
     expect([...red].sort()).toEqual(['a', 'b', 'q'])
     expect([...amber]).toEqual(['c'])
   })
+
+  it('ignores a deadline kept as history', () => {
+    const cs = findConflicts([occ('work', '16:00', '21:00')], [due('old', '18:00', { keptAsHistory: true })], opts)
+    expect(kinds(cs)).toEqual([])
+  })
 })
