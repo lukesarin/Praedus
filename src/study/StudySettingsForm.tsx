@@ -1,14 +1,23 @@
 import { useState } from 'react'
 import { db } from '../db/db'
-import { setStudySettings, setTermStart } from '../db/settings'
+import { normalizeTermStart, setStudySettings, setTermStart } from '../db/settings'
 import { normalizeStudySettings, type StudySettings } from './types'
 
 /** Remount (via key) when the saved settings change so inputs start in sync. */
 export function StudySettingsForm({ settings, termStart }: { settings: StudySettings; termStart: string | null }) {
   const [draft, setDraft] = useState(settings)
+  const [termDraft, setTermDraft] = useState(termStart ?? '')
   const save = (next: StudySettings) => {
     setDraft(next)
     void setStudySettings(db, normalizeStudySettings(next))
+  }
+  // The date input emits partial years while typing ("0002-..."), so save only on blur or Enter.
+  const saveTerm = (value: string) => {
+    if (value && normalizeTermStart(value) === undefined) {
+      setTermDraft(termStart ?? '') // not a usable date: keep the saved one
+      return
+    }
+    void setTermStart(db, value || undefined)
   }
   const num = (field: keyof StudySettings, factor = 1) => ({
     type: 'number',
@@ -47,9 +56,13 @@ export function StudySettingsForm({ settings, termStart }: { settings: StudySett
         <span><input id="chunk-max" min={15} max={480} step={15} {...num('chunkMaxMinutes')} /> minutes</span>
         <label htmlFor="term-start">First day of classes</label>
         <span>
-          <input id="term-start" type="date" value={termStart ?? ''}
-            onChange={(e) => void setTermStart(db, e.target.value || undefined)} />
-          {termStart && <button type="button" className="link-btn" onClick={() => void setTermStart(db, undefined)}>Clear</button>}
+          <input id="term-start" type="date" value={termDraft} min="2000-01-01" max="2100-12-31"
+            onChange={(e) => setTermDraft(e.target.value)}
+            onBlur={(e) => saveTerm(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') saveTerm(e.currentTarget.value) }} />
+          {(termStart || termDraft) && (
+            <button type="button" className="link-btn" onClick={() => { setTermDraft(''); saveTerm('') }}>Clear</button>
+          )}
         </span>
       </div>
       <p className="muted small">Optional. Numbers the weeks on the study map.</p>

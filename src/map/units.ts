@@ -42,13 +42,15 @@ export function classWeeks(classItems: CalendarItem[], termStart?: string): Week
   const mondays = classItems.map(weekOf).filter((w) => !first || w >= first)
   if (mondays.length === 0) return []
   const sorted = [...mondays].sort()
-  const from = first ?? sorted[0]
   const last = sorted[sorted.length - 1]
+  // Only the most recent MAX_WEEKS can be shown, so never walk further back than that.
+  const earliest = addDays(last, -(MAX_WEEKS - 1) * 7)
+  const from = (first ?? sorted[0]) < earliest ? earliest : (first ?? sorted[0])
   const weeks: Week[] = []
   for (let start = from; start <= last; start = addDays(start, 7)) {
     weeks.push(first ? { start, number: 1 + Math.round((dayNumber(start) - dayNumber(first)) / 7) } : { start })
   }
-  return weeks.slice(-MAX_WEEKS)
+  return weeks
 }
 
 const sig = (i: CalendarItem) => `${i.title.trim().toLowerCase()}|${itemDateKey(i)}`

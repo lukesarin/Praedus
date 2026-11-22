@@ -183,3 +183,15 @@ describe('defaultTestFor with a first day of classes', () => {
     expect(defaultTestFor([early], new Date(2026, 7, 1), TERM)).toBeUndefined()
   })
 })
+
+describe('classWeeks with a far-off term start', () => {
+  it('keeps only the most recent weeks, quickly', () => {
+    const items = [mk('assignment', 'HW', '2026-09-02'), mk('assignment', 'HW 2', '2026-11-18')]
+    const t0 = Date.now()
+    const w = classWeeks(items, '2000-01-03')
+    expect(Date.now() - t0).toBeLessThan(200)
+    expect(w.length).toBeLessThanOrEqual(20)
+    expect(w[w.length - 1].start).toBe('2026-11-16')
+    expect(w[0].number).toBe(1 + Math.round((Date.UTC(2026, 6, 6) - Date.UTC(2000, 0, 3)) / 604_800_000))
+  })
+})

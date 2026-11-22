@@ -24,6 +24,13 @@ describe('normalizeTermStart', () => {
     expect(normalizeTermStart('2026-02-30')).toBeUndefined()
     expect(normalizeTermStart('2027-02-29')).toBeUndefined()
     expect(normalizeTermStart('Aug 24')).toBeUndefined()
+    // Half-typed years from a date input
+    expect(normalizeTermStart('0002-08-24')).toBeUndefined()
+    expect(normalizeTermStart('0020-08-24')).toBeUndefined()
+    expect(normalizeTermStart('0202-08-24')).toBeUndefined()
+    expect(normalizeTermStart('1999-12-31')).toBeUndefined()
+    expect(normalizeTermStart('2101-01-01')).toBeUndefined()
+    expect(normalizeTermStart('2000-01-03')).toBe('2000-01-03')
     expect(normalizeTermStart('2026-8-24')).toBeUndefined()
     expect(normalizeTermStart(42)).toBeUndefined()
     expect(normalizeTermStart(undefined)).toBeUndefined()
