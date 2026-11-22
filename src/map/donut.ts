@@ -55,7 +55,13 @@ export function sliceAngles(index: number, count: number, gap = 0.012): [number,
   return [index * width + g, (index + 1) * width - g]
 }
 
-type Input = { course: Course; items: CalendarItem[]; termStart?: string; testId?: string; now: Date }
+/** Within LANE_CLOSE radians of each other, going either way round the circle. */
+function close(a: number, b: number): boolean {
+  const d = Math.abs(a - b)
+  return Math.min(d, TAU - d) < LANE_CLOSE
+}
+
+type Input ={ course: Course; items: CalendarItem[]; termStart?: string; testId?: string; now: Date }
 
 /** One class as a donut: its weeks as equal slices, each week's work as dots, its tests placed on the rim. */
 export function buildDonut({ course, items, termStart, testId, now }: Input): Donut {
@@ -102,8 +108,16 @@ export function buildDonut({ course, items, termStart, testId, now }: Input): Do
     const fraction = Math.min(1, Math.max(0, (dueInstant(t) - from) / (to - from)))
     const angle = dw.a0 + fraction * (dw.a1 - dw.a0)
     const prev = donutTests[donutTests.length - 1]
-    const lane = prev && Math.abs(angle - prev.angle) < LANE_CLOSE ? 1 : 0
+    // A test close to the one before it takes the other lane, so labels in a cluster alternate.
+    const lane: 0 | 1 = prev && close(angle, prev.angle) ? (prev.lane === 0 ? 1 : 0) : 0
     donutTests.push({ item: t, angle, picked: unit?.test.id === t.id, past: dueInstant(t) < now.getTime(), lane })
+  }
+  // The rim is a circle: the last test can sit right beside the first.
+  const first = donutTests[0]
+  const last = donutTests[donutTests.length - 1]
+  const beforeLast = donutTests[donutTests.length - 2]
+  if (donutTests.length > 2 && !close(last.angle, beforeLast.angle) && close(last.angle, first.angle) && last.lane === first.lane) {
+    last.lane = last.lane === 0 ? 1 : 0
   }
 
   return { weeks: donutWeeks, tests: donutTests, ...(unit ? { unit } : {}) }

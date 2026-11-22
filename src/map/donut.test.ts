@@ -123,6 +123,25 @@ describe('buildDonut', () => {
     expect(d.tests.map((t) => t.lane)).toEqual([0, 0, 0])
   })
 
+  it('alternates lanes through a cluster of close tests', () => {
+    const t = [e('Test A', 6), e('Test B', 6), e('Test C', 6)]
+    expect(build(undefined, { items: [...t, hw3] }).tests.map((x) => x.lane)).toEqual([0, 1, 0])
+  })
+
+  it('treats the rim as a circle when comparing tests', () => {
+    const early = mk('event', 'Test E', day(1, 0), { allDay: false, start: localInstant(day(1, 0), '00:00').toISOString() })
+    const mid = e('Test M', 8)
+    const late = mk('event', 'Test L', day(16, 6), { allDay: false, start: localInstant(day(16, 6), '23:30').toISOString() })
+    const r = build(undefined, { items: [early, mid, late, hw16] })
+    expect(r.tests.map((x) => x.lane)).toEqual([0, 0, 1])
+  })
+
+  it('splits a short semester into a few wide slices', () => {
+    const r = build(undefined, { termStart: undefined, items: [a('HW 1', 9), a('HW 2', 10), a('HW 3', 11)] })
+    expect(r.weeks.map((w) => w.label)).toEqual(['Oct 19', 'Oct 26', 'Nov 2'])
+    for (const w of r.weeks) expect(w.a1 - w.a0).toBeCloseTo(TAU / 3 - 0.024)
+  })
+
   it('marks tests already past', () => {
     expect(d.tests.map((t) => t.past)).toEqual([true, true, false])
   })
