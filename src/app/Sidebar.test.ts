@@ -64,3 +64,11 @@ describe('Sidebar Canvas connection', () => {
     expect(html).not.toContain('Connect Canvas')
   })
 })
+
+describe('Sidebar account', () => {
+  it('shows the signed-in email and a Log out button', () => {
+    const html = renderSidebar({ account: { email: 'sam@school.edu', onLogOut: noop } })
+    expect(html).toContain('sam@school.edu')
+    expect(html).toMatch(/<button[^>]*>Log out<\/button>/)
+  })
+})

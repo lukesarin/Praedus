@@ -38,6 +38,8 @@ type Props = {
   onConnectCanvas: () => void
   /** Assignment and course counts per feed id. */
   feedStats: Map<string, { assignments: number; courses: number }>
+  /** The signed-in account, when accounts are on. */
+  account?: { email: string; onLogOut: () => void }
 }
 
 export function Sidebar(props: Props) {
@@ -193,6 +195,12 @@ export function Sidebar(props: Props) {
           {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
           {theme === 'dark' ? 'Light theme' : 'Dark theme'}
         </button>
+        {props.account && (
+          <div className="account-row">
+            <span className="account-email" title={props.account.email}>{props.account.email}</span>
+            <button className="link-btn" onClick={props.account.onLogOut}>Log out</button>
+          </div>
+        )}
       </footer>
     </aside>
   )

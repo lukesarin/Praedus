@@ -41,7 +41,9 @@ async function saveCommitment(c: Commitment | null, id: string) {
   else await db.commitments.delete(id)
 }
 
-export default function App() {
+export type Account = { email: string; onLogOut: () => void }
+
+export default function App({ account }: { account?: Account } = {}) {
   const [theme, toggleTheme] = useTheme()
   const now = useNow()
   const [view, setView] = useState<View>('calendar')
@@ -212,6 +214,7 @@ export default function App() {
         onSyncFeed={(f) => void syncNow(f)}
         onConnectCanvas={() => { setConnecting(true); setMenuOpen(false) }}
         feedStats={feedStats}
+        account={account}
       />
       {menuOpen && <div className="scrim" onClick={() => setMenuOpen(false)} />}
 

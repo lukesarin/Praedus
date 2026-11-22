@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { friendlyAuthError } from './authErrors'
-import { shouldPlayIntro } from './intro'
+import { shouldPlayIntro } from './introRule'
 
 describe('friendlyAuthError', () => {
   it('explains a wrong email or password', () => {
