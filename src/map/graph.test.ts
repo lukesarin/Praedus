@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { addDays } from '../calendar/dates'
 import { localInstant } from '../commitments/expand'
 import type { CalendarItem, Course } from '../db/db'
-import { buildClassGraph, courseCode } from './graph'
+import { buildClassGraph, courseCode, isLate } from './graph'
 
 const TERM = '2026-08-24'
 let n = 0
@@ -143,5 +143,20 @@ describe('tests the map cannot show', () => {
     const g = build(undefined, { items: [early, ...all] })
     expect(g.tests.map((t) => t.title)).toEqual(['Test 1', 'Test 2', 'Test 3'])
     expect(build(early.id, { items: [early, ...all] }).unit).toBeUndefined()
+  })
+})
+
+describe('isLate', () => {
+  const noon = localInstant('2026-11-20', '12:00')
+  const item = (start: string, allDay: boolean): CalendarItem => mk('assignment', 'x', start, { allDay })
+  it('is not late for all-day work due today', () => {
+    expect(isLate(item('2026-11-20', true), noon)).toBe(false)
+  })
+  it('is late for all-day work once its day has ended', () => {
+    expect(isLate(item('2026-11-19', true), noon)).toBe(true)
+  })
+  it('is late for timed work after its time', () => {
+    expect(isLate(item(localInstant('2026-11-20', '11:00').toISOString(), false), noon)).toBe(true)
+    expect(isLate(item(localInstant('2026-11-20', '13:00').toISOString(), false), noon)).toBe(false)
   })
 })

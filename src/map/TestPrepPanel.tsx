@@ -3,7 +3,7 @@ import type { CalendarItem, Course } from '../db/db'
 import { formatMinutes } from '../study/applyPlan'
 import { dueInstant } from '../study/plan'
 import type { StudyBlock } from '../study/types'
-import { courseCode } from './graph'
+import { courseCode, isLate } from './graph'
 import { countdown, coverLine, plainDescription, weekHeading } from './panelText'
 import { mondayOf, type Unit, type Week } from './units'
 
@@ -150,7 +150,7 @@ export function TestPrepPanel({ course, unit, weeks, blocks, short: missing, now
               <h3>{weekHeading(g.week)}</h3>
               <ul>
                 {g.items.map((i) => {
-                  const late = !i.done && dueInstant(i) < nowMs
+                  const late = !i.done && isLate(i, now)
                   const desc = plainDescription(i.description)
                   return (
                     <li key={i.id} className={`prep-item${i.reviewed ? ' reviewed' : ''}`}>

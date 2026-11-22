@@ -28,6 +28,12 @@ export type MapNode = {
 
 export type MapLink = { source: string; target: string; kind: 'spine' | 'spoke' | 'item' }
 
+/** Past its due time. All-day work stays on time until its due day has ended. */
+export function isLate(item: CalendarItem, now: Date): boolean {
+  if (item.allDay) return itemDateKey(item) < localDateKey(now)
+  return dueInstant(item) < now.getTime()
+}
+
 /** "CS 210 Intro to Programming" → "CS 210". Names without a code are kept, shortened to 16 characters. */
 export function courseCode(name: string): string {
   const m = /^([A-Za-z]{2,6})[\s-]*(\d{2,4}[A-Za-z]?)\b/.exec(name.trim())
@@ -65,7 +71,6 @@ export function buildClassGraph({ course, items, termStart, testId, now }: Input
   const unitWeeks = new Set(unit?.weeks.map((w) => w.start))
   const unitItems = new Set(unit?.items.map((i) => i.id))
   const currentWeek = mondayOf(localDateKey(now))
-  const nowMs = now.getTime()
 
   const courseId = `course:${course.id}`
   const nodes: MapNode[] = [{ id: courseId, kind: 'course', refId: course.id, label: courseCode(course.name), inUnit: false }]
@@ -91,7 +96,7 @@ export function buildClassGraph({ course, items, termStart, testId, now }: Input
     if (!weekStarts.has(week)) continue
     const test = isTest(i)
     if (test && !testIds.has(i.id)) continue
-    const status = i.done ? 'done' : !test && dueInstant(i) < nowMs ? 'late' : undefined
+    const status = i.done ? 'done' : !test && isLate(i, now) ? 'late' : undefined
     const id = `item:${i.id}`
     nodes.push({
       id,
