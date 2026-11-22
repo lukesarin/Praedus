@@ -45,7 +45,14 @@ README.md covers running, setup and how features behave. `docs/superpowers/specs
     and $0.20 per week. While a week is made, a waiting screen shows timed steps and a bar (option B of
     `design-exploration/study-wait.html`; timed estimates, not real progress). `vite.config.ts`
     pre-bundles KaTeX, or the dev server reloads the page the first time a set opens.
-  - **Next (the author's plan):** more changes to study sets, to be described by the author. Then Google sign-in setup and the remaining account tests.
+  - **Next: study sets v3 (approved, not built).** Read
+    `docs/superpowers/specs/2026-11-22-study-sets-skills-design.md` first: sets become **specific
+    skills** (like the author's 66-question midterm in
+    `docs/reference/66_Problem_Transformations_and_Sinusoidal_Test.pdf`: 8 parts, 66 skills), each with **its own short
+    lesson**, practiced to 3 in a row; **Opus** writes the skill map, lessons and one model problem per
+    skill, **Haiku** writes practice copies as needed (Sonnet fallback); about $1.30 per test. Start
+    with the quality gate described there (part "Reflections", all-Opus vs Opus + Haiku, shown
+    unlabeled), then write the build plan. Don't build before the author says so. Then Google sign-in setup and the remaining account tests.
   - **Intro fix (on `auth/accounts`):** the app's main area had no background, so the intro showed
     through it. The logo lingered over the revealed app and the circle reveal was invisible until
     a hard cut. Now `.app-root` has `background: var(--bg)`, guarded by a test in
