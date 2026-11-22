@@ -43,6 +43,9 @@ async function save(set: StoredStudySet) {
 
 // One generation run per test at a time, even if the session screen is closed and reopened.
 const running = new Set<string>()
+// When each week's cards started being made, for the waiting screen's timer (survives leaving the screen).
+const startedAt = new Map<string, number>()
+export const generatingSince = (testId: string, weekId: string) => startedAt.get(`${testId}|${weekId}`)
 const STOPPING: TopicError[] = ['signed-out', 'not-configured', 'limit']
 
 /** Makes every week that hasn't been made yet, first week first, saving after each. */
@@ -54,6 +57,7 @@ async function generateMissing(testId: string, getToken: () => Promise<string | 
       const set = await loadV2(testId)
       const next = set?.weeks.find((w) => !set.generated[w.weekId])
       if (!set || !next) return
+      startedAt.set(`${testId}|${next.weekId}`, Date.now())
       const result = await (async () => {
         try {
           const notes = next.start ? await notesForWeeks(db, set.courseId, [next.start]) : []

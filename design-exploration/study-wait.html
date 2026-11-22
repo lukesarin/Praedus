@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Set: Waiting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --ink: #171717; --ink-2: #737373; --line: #ececec; --mint: #0b7f58; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; color: var(--ink); font: 15px/1.55 "Figtree", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1340px; margin: 0 auto; padding: 0 32px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+.hero { background: #0e0e0e; color: #f2f2f2; }
+.hero .wrap { padding-top: 56px; padding-bottom: 44px; }
+.hero h1 { margin: 0 0 14px; font-size: clamp(32px, 5vw, 52px); line-height: 1; letter-spacing: -0.045em; max-width: 18ch; }
+.hero p { margin: 0 0 10px; color: #a3a3a3; max-width: 74ch; }
+.hero p strong { color: #f2f2f2; font-weight: 600; }
+.hero nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 18px; font-size: 14px; }
+.hero nav a { color: #d4d4d4; text-decoration: none; }
+.hero nav a:hover { color: #5ed3a8; }
+.opt { padding: 56px 0; border-bottom: 1px solid var(--line); }
+.opt-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; margin-bottom: 22px; }
+@media (max-width: 900px) { .opt-head { grid-template-columns: 1fr; gap: 12px; } }
+.opt h2 { margin: 0 0 6px; font-size: 30px; letter-spacing: -0.03em; line-height: 1.1; }
+.opt .lede { margin: 0 0 10px; color: var(--ink-2); }
+.opt ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+.opt li { margin: 4px 0; }
+.opt li b { color: var(--ink); }
+.pick { margin-left: 10px; font-size: 13px; font-weight: 700; color: var(--mint); vertical-align: middle; }
+.frame { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.frame-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fafafa; font-size: 12.5px; color: var(--ink-2); }
+.frame-bar .dots { display: flex; gap: 6px; }
+.frame-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: #e2e2e2; display: block; }
+.frame-bar button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+.frame-bar button:first-of-type { margin-left: auto; }
+.foot { padding: 36px 0 72px; color: var(--ink-2); font-size: 14px; max-width: 74ch; }
+.confirm-demo { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 40px; align-items: start; padding: 56px 0; border-bottom: 1px solid var(--line); }
+@media (max-width: 900px) { .confirm-demo { grid-template-columns: 1fr; } }
+
+/* ---------- app tokens ---------- */
+.app {
+  --bg: #0e0e0e; --surface: #181818; --hover: #1c1c1c; --border: #222; --text: #f2f2f2; --muted: #a3a3a3; --faint: #6e6e6e;
+  --accent: #5ed3a8; --on-accent: #06140f; --accent-soft: rgba(94,211,168,.15);
+  background: var(--bg); color: var(--text); font: 15px/1.55 "Figtree", sans-serif;
+}
+.app.light { --bg: #fff; --surface: #f7f7f5; --hover: #f4f4f2; --border: #ececec; --text: #171717; --muted: #737373; --faint: #a3a3a3; --accent: #0b7f58; --on-accent: #fff; --accent-soft: rgba(11,127,88,.1); }
+.session { height: 620px; display: grid; grid-template-columns: 230px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+.top { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid var(--border); }
+.top h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
+.top p { margin: 1px 0 0; color: var(--muted); font-size: 13px; }
+.top .leave { margin-left: auto; border: 1px solid var(--border); background: none; color: var(--text); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 13px; }
+.rail { border-right: 1px solid var(--border); padding: 16px 12px; }
+.wk h4 { margin: 0 0 4px; padding: 0 8px; font-size: 12.5px; color: var(--faint); font-weight: 600; }
+.wk.cur h4 { color: var(--text); }
+.wk { margin-bottom: 14px; }
+.tp { display: flex; align-items: center; gap: 8px; padding: 5px 8px; font-size: 13.5px; color: var(--faint); font-style: italic; }
+.tp i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px dashed var(--faint); }
+.main { display: grid; place-items: center; padding: 32px; overflow: hidden; }
+.wait { width: 100%; max-width: 520px; }
+.wait h2 { margin: 0 0 6px; font-size: 24px; letter-spacing: -0.03em; }
+.wait p { margin: 0; color: var(--muted); }
+.clock { font-variant-numeric: tabular-nums; color: var(--faint); font-size: 13px; }
+.note { margin-top: 18px !important; font-size: 13px; color: var(--faint) !important; }
+
+/* A: the wave draws itself */
+.a { text-align: center; }
+.a svg { width: 112px; height: 112px; color: var(--accent); margin-bottom: 18px; }
+.a .wave { stroke-dasharray: 60; stroke-dashoffset: 60; animation: draw 2.6s ease-in-out infinite; }
+.a .dot { transform-origin: 40.5px 24px; animation: land 2.6s ease-in-out infinite; }
+@keyframes draw { 0% { stroke-dashoffset: 60; } 55%, 80% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -60; } }
+@keyframes land { 0%, 45% { transform: scale(0); } 58% { transform: scale(1.25); } 66%, 85% { transform: scale(1); } 100% { transform: scale(0); } }
+.a .clock { display: block; margin-top: 14px; }
+
+/* B: honest steps, timed */
+.b ol { list-style: none; margin: 22px 0 0; padding: 0; border-top: 1px solid var(--border); }
+.b li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); color: var(--faint); }
+.b li i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--faint); }
+.b li.now { color: var(--text); }
+.b li.now i { border-color: var(--accent); border-top-color: transparent; animation: spin 0.9s linear infinite; }
+.b li.done { color: var(--muted); }
+.b li.done i { background: var(--accent); border-color: var(--accent); }
+.b li span.t { font-size: 12.5px; color: var(--faint); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.bar { margin-top: 18px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 1s linear; }
+
+/* C: what's coming, while you wait */
+.c .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.c .pulse { display: inline-flex; gap: 4px; margin-right: 8px; vertical-align: middle; }
+.c .pulse i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
+.c .pulse i:nth-child(2) { animation-delay: .2s; } .c .pulse i:nth-child(3) { animation-delay: .4s; }
+@keyframes pulse { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+.c .card { margin-top: 20px; padding: 16px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.c .card b { display: block; font-size: 12.5px; color: var(--faint); font-weight: 600; margin-bottom: 8px; }
+.c .card ul { margin: 0; padding: 0; list-style: none; }
+.c .card li { padding: 6px 0; border-top: 1px solid var(--border); font-size: 14px; display: flex; justify-content: space-between; gap: 12px; }
+.c .card li:first-child { border-top: 0; }
+.c .card li span { color: var(--faint); font-size: 12.5px; }
+.c .tip { margin-top: 14px !important; font-size: 13px; }
+
+@media (prefers-reduced-motion: reduce) { .a .wave, .a .dot, .b li.now i, .c .pulse i { animation: none; } .a .wave { stroke-dashoffset: 0; } .a .dot { transform: none; } .bar i { transition: none; } }
+@media (max-width: 760px) { .session { grid-template-columns: 1fr; height: auto; min-height: 620px; } .rail { display: none; } }
+
+/* confirm step (shared) */
+.sheet { padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 10px; }
+.sheet h3 { margin: 0; font-size: 16px; letter-spacing: -0.02em; }
+.sheet .wks { margin: 0; padding: 0; list-style: none; }
+.sheet .wks li { padding: 8px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.sheet .wks li span { display: block; color: var(--muted); font-size: 12.5px; }
+.sheet .cta { border: 0; border-radius: 8px; padding: 10px 14px; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 700; }
+.sheet .eta { margin: -2px 0 0; color: var(--faint); font-size: 12.5px; text-align: center; }
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <h1>Making cards takes about a minute</h1>
+  <p>The first week of a study set takes Claude <strong>about 60–90 seconds</strong>: it reads your notes, writes a lesson and problems, and checks every math answer. The rest of the weeks are made while you study. These options make that wait clear instead of looking stuck.</p>
+  <p>Every option shows a <strong>live timer</strong> and says “about a minute”. Below the options, the confirm step gets one quiet line so it’s expected before you click.</p>
+  <nav><a href="#a">A. The wave draws itself</a><a href="#b">B. What it’s doing, step by step</a><a href="#c">C. What’s coming, while you wait</a><a href="#confirm">Before you click</a></nav>
+</div></header>
+
+<main class="wrap">
+  <section class="opt" id="a"><div class="opt-head"><div><h2>A. The wave draws itself</h2><p class="lede">The Praedus mark animates in a slow loop: the wave draws, lands on the dot.</p></div>
+    <ul><li><b>Good:</b> calm and on-brand; the same motion as the sign-in intro.</li><li><b>Trade-off:</b> pretty but says little about what’s happening.</li></ul></div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus, Study set<button data-restart>Restart timer</button><button data-theme-for="a">Light / dark</button></div><div class="app" id="app-a"></div></div></section>
+
+  <section class="opt" id="b"><div class="opt-head"><div><h2>B. What it’s doing, step by step</h2><p class="lede">Four steps tick off on a schedule, with a thin bar that fills over about a minute.</p></div>
+    <ul><li><b>Good:</b> feels like progress, so the wait seems shorter.</li><li><b>Trade-off:</b> the steps are timed estimates, not real progress (the app can’t see inside Claude’s work); if it runs long, the last step just keeps spinning.</li></ul></div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus, Study set<button data-restart>Restart timer</button><button data-theme-for="b">Light / dark</button></div><div class="app" id="app-b"></div></div></section>
+
+  <section class="opt" id="c"><div class="opt-head"><div><h2>C. What’s coming, while you wait <span class="pick">Recommended</span></h2><p class="lede">Shows what Week 9 covers and which of your notes it’s reading, with the timer up top.</p></div>
+    <ul><li><b>Good:</b> honest and useful: you see exactly what the cards will be about, and can leave and come back.</li><li><b>Good:</b> nothing pretends to be progress it isn’t.</li><li><b>Trade-off:</b> quieter than A or B.</li></ul></div>
+    <div class="frame"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span>praedus, Study set<button data-restart>Restart timer</button><button data-theme-for="c">Light / dark</button></div><div class="app" id="app-c"></div></div></section>
+
+  <section class="confirm-demo" id="confirm">
+    <div><h2 style="margin:0 0 6px;font-size:30px;letter-spacing:-0.03em">Before you click</h2>
+      <p style="color:var(--ink-2);max-width:56ch">In every option, the confirm step gets one line under <b>Create study set</b>, so the wait is expected: “The first week takes about a minute. The rest are made while you study.”</p></div>
+    <div class="app" style="padding:16px;border-radius:10px"><div class="sheet"><h3>Study set for Test 3</h3>
+      <ul class="wks"><li><b>Week 9</b><span>Problem Set 7</span></li><li><b>Week 10</b><span>Problem Set 8, Quiz 3</span></li><li><b>Week 11</b><span>Problem Set 9</span></li></ul>
+      <button class="cta">Create study set</button><p class="eta">The first week takes about a minute. The rest are made while you study.</p></div></div>
+  </section>
+
+  <p class="foot">After about two minutes, all three switch the note to “Taking longer than usual. You can leave and come back; it keeps going.” If it fails, the existing “Couldn’t make cards” screen with Try again takes over.</p>
+</main>
+
+<script>
+const RAIL = `<nav class="rail"><div class="wk cur"><h4>Week 9</h4><div class="tp"><i></i>Making cards…</div></div><div class="wk"><h4>Week 10</h4><div class="tp"><i></i>Making cards…</div></div><div class="wk"><h4>Week 11</h4><div class="tp"><i></i>Making cards…</div></div></nav>`
+const TOP = `<header class="top"><div><h3>Study set for Test 3</h3><p>MATH 120 Calculus I</p></div><button class="leave">Leave</button></header>`
+const LOGO = `<svg viewBox="0 0 48 48" aria-hidden="true"><path class="wave" d="M6.5 24C6.5 13 19.5 13 19.5 24S32.5 35 32.5 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle class="dot" cx="40.5" cy="24" r="3.4" fill="currentColor"/></svg>`
+const STEPS = [['Reading your notes', 8], ['Writing the lessons', 25], ['Writing the problems', 50], ['Checking every answer', 90]]
+let start = Date.now()
+const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+const late = (s) => s > 120 ? 'Taking longer than usual. You can leave and come back; it keeps going.' : 'You can leave and come back; it keeps going.'
+function draw() {
+  const s = 0
+  document.getElementById('app-a').innerHTML = `<div class="session">${TOP}${RAIL}<section class="main"><div class="wait a">${LOGO}<h2>Making your cards for Week 9</h2><p>This takes about a minute.</p><span class="clock">${fmt(s)}</span><p class="note">${late(s)}</p></div></section></div>`
+  const idx = STEPS.findIndex(([, t]) => s < t)
+  const cur = idx === -1 ? STEPS.length - 1 : idx
+  document.getElementById('app-b').innerHTML = `<div class="session">${TOP}${RAIL}<section class="main"><div class="wait b"><h2>Making your cards for Week 9</h2><p>About a minute. <span class="clock">${fmt(s)}</span></p>
+    <ol>${STEPS.map(([label], i) => `<li class="${i < cur ? 'done' : i === cur ? 'now' : ''}"><i></i><span>${label}</span><span class="t">${i < cur ? 'Done' : ''}</span></li>`).join('')}</ol>
+    <div class="bar"><i style="width:${Math.min(92, (s / 75) * 92)}%"></i></div><p class="note">${late(s)}</p></div></section></div>`
+  document.getElementById('app-c').innerHTML = `<div class="session">${TOP}${RAIL}<section class="main"><div class="wait c"><div class="head"><h2><span class="pulse"><i></i><i></i><i></i></span>Making your cards for Week 9</h2><span class="clock">${fmt(s)}</span></div>
+    <p>About a minute: Claude is writing a lesson and problems for each topic, and checking every answer.</p>
+    <div class="card"><b>Week 9 covers</b><ul><li>Problem Set 7<span>Sections 2.4 Implicit differentiation</span></li></ul></div>
+    <div class="card"><b>Reading your notes</b><ul><li>Lecture 2.4 slides.pdf<span>PDF</span></li><li>Whiteboard photo.jpg<span>Photo</span></li></ul></div>
+    <p class="note">${late(s)}</p></div></section></div>`
+}
+/** Each second: only the timer, the note and B's steps change, so the animations keep running smoothly. */
+function tick() {
+  const s = Math.floor((Date.now() - start) / 1000)
+  document.querySelectorAll('.clock').forEach((c) => (c.textContent = fmt(s)))
+  document.querySelectorAll('.note').forEach((n) => (n.textContent = late(s)))
+  const idx = STEPS.findIndex(([, t]) => s < t)
+  const cur = idx === -1 ? STEPS.length - 1 : idx
+  document.querySelectorAll('#app-b .b li').forEach((li, i) => {
+    li.className = i < cur ? 'done' : i === cur ? 'now' : ''
+    li.querySelector('.t').textContent = i < cur ? 'Done' : ''
+  })
+  const bar = document.querySelector('#app-b .bar i')
+  if (bar) bar.style.width = `${Math.min(92, (s / 75) * 92)}%`
+}
+draw()
+tick()
+setInterval(tick, 1000)
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-restart]')) { start = Date.now(); tick() }
+  const t = e.target.closest('[data-theme-for]')
+  if (t) document.getElementById('app-' + t.dataset.themeFor).classList.toggle('light')
+})
+</script>
+</body>
+</html>

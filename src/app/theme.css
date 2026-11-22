@@ -2568,6 +2568,13 @@ a {
   color: var(--text);
 }
 
+.prep .prep-eta {
+  margin-top: -4px;
+  color: var(--text-faint);
+  font-size: 12px;
+  text-align: center;
+}
+
 .prep .prep-premium {
   color: var(--text-faint);
   font-size: 12px;
@@ -3069,6 +3076,113 @@ a {
 
 .study-stuck:hover {
   color: var(--text);
+}
+
+/* Waiting for a week's cards: timed steps and a bar that never quite fills. */
+.study-wait {
+  margin-top: 32px;
+}
+
+.study-wait h3 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+
+.study-wait > p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.study-clock {
+  color: var(--text-faint);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.study-wait ol {
+  margin: 22px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+  list-style: none;
+}
+
+.study-wait li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-faint);
+}
+
+.study-wait li i {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--text-faint);
+  border-radius: 50%;
+}
+
+.study-wait li.now {
+  color: var(--text);
+}
+
+.study-wait li.now i {
+  border-color: var(--accent);
+  border-top-color: transparent;
+  animation: study-spin 0.9s linear infinite;
+}
+
+.study-wait li.done {
+  color: var(--text-muted);
+}
+
+.study-wait li.done i {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.study-wait-done {
+  color: var(--text-faint);
+  font-size: 12.5px;
+}
+
+@keyframes study-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.study-wait-bar {
+  height: 3px;
+  margin-top: 18px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.study-wait-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 1s linear;
+}
+
+.study-wait .study-wait-note {
+  margin: 18px 0 0;
+  color: var(--text-faint);
+  font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study-wait li.now i {
+    animation: none;
+  }
+
+  .study-wait-bar i {
+    transition: none;
+  }
 }
 
 .study-actions.center {

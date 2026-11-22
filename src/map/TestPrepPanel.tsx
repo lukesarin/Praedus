@@ -158,6 +158,7 @@ function StudySetStep({ test, unit, weeks, notes, onFiles, onCreate, onBack }: S
       <button className="primary-btn prep-cta prep-spark" disabled={plan.length === 0} onClick={() => onCreate(plan)}>
         <SparkIcon />Create study set
       </button>
+      <p className="prep-eta">The first week takes about a minute. The rest are made while you study.</p>
       <button className="prep-ghost" onClick={onBack}>Back</button>
     </section>
   )

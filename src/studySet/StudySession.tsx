@@ -4,7 +4,8 @@ import { errorText } from './client'
 import type { ClassKind } from './classType'
 import { MathText } from './MathText'
 import type { Problem, Step, Topic } from './shape'
-import { isError, useStudySet, type StoredStudySet } from './store'
+import { generatingSince, isError, useStudySet, type StoredStudySet } from './store'
+import { WAIT_STEPS, waitProgress } from './waiting'
 import { STREAK_TO_LEARN, type TopicState } from './weekSession'
 
 type Props = {
@@ -109,7 +110,7 @@ export function StudySession({ testId, getToken, onClose, onPlan }: Props) {
           {session.done ? (
             <EndScreen set={set} onPlan={onPlan} onRemake={() => void study.remake()} onRetry={() => void study.retry()} onClose={onClose} />
           ) : !cur || !planWeek ? null : cur.topic < 0 ? (
-            <p className="study-note">Making cards for {planWeek.label}…</p>
+            <Waiting key={planWeek.weekId} label={planWeek.label} since={generatingSince(set.testId, planWeek.weekId)} />
           ) : !topic || !state ? null : state.phase === 'lesson' ? (
             <Lesson key={`${planWeek.weekId}-${cur.topic}-${state.again}`} where={where} topic={topic} again={state.again}
               onStart={() => void study.act('startProblems')} />
@@ -153,6 +154,38 @@ function Rail({ set, onJump }: { set: StoredStudySet; onJump: (week: number, top
         )
       })}
     </nav>
+  )
+}
+
+/** While a week's cards are made: timed steps and a bar, so it doesn't look stuck. */
+function Waiting({ label, since }: { label: string; since?: number }) {
+  const [opened] = useState(() => Date.now())
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  const seconds = Math.max(0, Math.floor((now - (since ?? opened)) / 1000))
+  const { step, bar, late } = waitProgress(seconds)
+  const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+  return (
+    <section className="study-wait" aria-label={`Making cards for ${label}`}>
+      <h3>Making your cards for {label}</h3>
+      <p>About a minute. <span className="study-clock" aria-hidden="true">{clock}</span></p>
+      <ol>
+        {WAIT_STEPS.map((text, i) => (
+          <li key={text} className={i < step ? 'done' : i === step ? 'now' : ''}>
+            <i aria-hidden="true" />
+            <span>{text}</span>
+            <span className="study-wait-done">{i < step ? 'Done' : ''}</span>
+          </li>
+        ))}
+      </ol>
+      <div className="study-wait-bar" aria-hidden="true"><i style={{ width: `${bar}%` }} /></div>
+      <p className="study-wait-note" role="status">
+        {late ? 'Taking longer than usual. ' : ''}You can leave this screen; it keeps going.
+      </p>
+    </section>
   )
 }
 
