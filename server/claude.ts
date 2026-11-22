@@ -42,7 +42,7 @@ ${req.notes.length ? 'Use the notes above as the main source.' : 'The student ad
 }
 
 /** Calls Claude for one topic and returns its parsed JSON (validated by the caller). */
-export function makeGenerate(apiKey: string) {
+export function makeGenerate(apiKey: string, onUsage?: (usage: Anthropic.Usage) => void) {
   const client = new Anthropic({ apiKey })
   return async (req: TopicRequest): Promise<unknown> => {
     const messages: Anthropic.MessageParam[] = [{ role: 'user', content: content(req) }]
@@ -59,6 +59,7 @@ export function makeGenerate(apiKey: string) {
           output_config: { effort: 'medium', format: { type: 'json_schema', schema: TOPIC_SCHEMA } },
         })
         .finalMessage()
+      onUsage?.(msg.usage)
       if (msg.stop_reason === 'pause_turn') {
         messages.push({ role: 'assistant', content: msg.content })
         continue
