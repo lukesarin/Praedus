@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { db } from '../db/db'
-import { setStudySettings } from '../db/settings'
+import { setStudySettings, setTermStart } from '../db/settings'
 import { normalizeStudySettings, type StudySettings } from './types'
 
 /** Remount (via key) when the saved settings change so inputs start in sync. */
-export function StudySettingsForm({ settings }: { settings: StudySettings }) {
+export function StudySettingsForm({ settings, termStart }: { settings: StudySettings; termStart: string | null }) {
   const [draft, setDraft] = useState(settings)
   const save = (next: StudySettings) => {
     setDraft(next)
@@ -45,7 +45,14 @@ export function StudySettingsForm({ settings }: { settings: StudySettings }) {
         <span><input id="chunk-min" min={15} max={240} step={15} {...num('chunkMinMinutes')} /> minutes</span>
         <label htmlFor="chunk-max">Longest block</label>
         <span><input id="chunk-max" min={15} max={480} step={15} {...num('chunkMaxMinutes')} /> minutes</span>
+        <label htmlFor="term-start">First day of classes</label>
+        <span>
+          <input id="term-start" type="date" value={termStart ?? ''}
+            onChange={(e) => void setTermStart(db, e.target.value || undefined)} />
+          {termStart && <button type="button" className="link-btn" onClick={() => void setTermStart(db, undefined)}>Clear</button>}
+        </span>
       </div>
+      <p className="muted small">Optional. Numbers the weeks on the study map.</p>
       <p className="muted small">Changes apply the next time you press “Plan my study time”.</p>
     </form>
   )

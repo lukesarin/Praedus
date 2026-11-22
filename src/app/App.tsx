@@ -12,7 +12,7 @@ import { ScopePrompt } from '../commitments/ScopePrompt'
 import { buildTestShift } from '../commitments/testShift'
 import type { Commitment } from '../commitments/types'
 import { db } from '../db/db'
-import { getMinGap, getStudySettings } from '../db/settings'
+import { getMinGap, getStudySettings, getTermStart } from '../db/settings'
 import { planMyStudyTime, summarize } from '../study/applyPlan'
 import { coverage } from '../study/coverage'
 import { buildGraph, type MapNode } from '../map/graph'
@@ -64,6 +64,8 @@ export default function App() {
   const minGap = useLiveQuery(() => getMinGap(db), [])
   const studyBlocks = useLiveQuery(() => db.studyBlocks.toArray(), [])
   const studySettings = useLiveQuery(() => getStudySettings(db), [])
+  // null means "not set", so the loading gate below doesn't wait on it.
+  const termStart = useLiveQuery(() => getTermStart(db).then((v) => v ?? null), [])
   const { syncing, syncNow } = useAutoSync(feeds)
 
   useEffect(() => {
@@ -271,6 +273,7 @@ export default function App() {
             minGap={minGap}
             short={short}
             studySettings={studySettings}
+            termStart={termStart ?? null}
             planning={planning}
             onPlan={() => void plan()}
             onSelectItem={setSelected}
