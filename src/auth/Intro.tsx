@@ -45,6 +45,7 @@ export function Intro({ appRef, onDone }: Props) {
       }
       const len = wave!.getTotalLength()
       wave!.style.strokeDasharray = `${len}`
+      wave!.style.strokeDashoffset = `${len}` // hidden during the opening delay, before the draw starts
       await run(wave!, [{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 950, delay: 250, easing: 'cubic-bezier(.65,0,.35,1)' })
       await run(dot!, [{ transform: 'scale(0)' }, { transform: 'scale(1.35)', offset: 0.6 }, { transform: 'scale(1)' }],
         { duration: 380, delay: 380, easing: 'cubic-bezier(.3,1.4,.5,1)' })

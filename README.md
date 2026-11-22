@@ -29,6 +29,31 @@ To bring in your real Canvas: click **Connect Canvas**, then in Canvas open
 approval needed. Praedus re-syncs on its own while it's open: on launch, every 30 minutes, and
 when you return to the tab. You can also upload any `.ics` file with the **+** next to Calendars.
 
+## Set up accounts
+
+Praedus needs a (free) Supabase project for log in and sign up. Until it's set up, the app shows
+an "Almost there" screen instead of the welcome page.
+
+1. **Create the project.** At supabase.com, create a project. In **Project Settings → API**, copy the
+   **Project URL** and the **publishable key** (starts with `sb_publishable_`). Copy `.env.example`
+   to `.env.local` and paste them in. `.env.local` is git-ignored, so it never reaches GitHub. The
+   publishable key is designed to be public, but never put a *secret* key in the app.
+2. **Allow the app's address.** In **Authentication → URL Configuration**, set **Site URL** to
+   `http://localhost:5173` and add `http://localhost:5173/**` to **Redirect URLs**.
+3. **Turn on Google sign-in.** In Google Cloud, create an OAuth client ID (type "Web application")
+   with authorized JavaScript origin `http://localhost:5173`, and add as an authorized redirect URI
+   the callback URL shown on Supabase's **Authentication → Providers → Google** page. Paste the
+   Google client ID and secret into that Supabase page and enable it.
+
+Restart `npm run dev` after changing `.env.local`.
+
+**Email limits:** Supabase's built-in email only sends to members of your Supabase team, about 2
+emails an hour. That's enough to test with your own address. Real students need a custom email
+(SMTP) provider, which is part of going live.
+
+Each account gets its own data in the browser (`praedus-<account id>`). Data saved before accounts
+existed is copied into the first account that signs in on that browser.
+
 ## How it works
 
 - **Local-first.** Everything a student imports is stored in their own browser
