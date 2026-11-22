@@ -83,7 +83,8 @@ export function unitFor(given: CalendarItem, classItems: CalendarItem[], weeks: 
   let earliestKnown: string | undefined
   if (earliest && startsOpen) {
     if (!termStart) earliestKnown = earliest
-    else if (earliest > (unitWeeks[0]?.start ?? mondayOf(termStart))) earliestKnown = earliest
+    // By week: an item anywhere in the unit's first week means that week is on record.
+    else if (mondayOf(earliest) > (unitWeeks[0]?.start ?? mondayOf(termStart))) earliestKnown = earliest
   }
   return { test, previous, weeks: unitWeeks, items, cumulative, ...(earliestKnown ? { earliestKnown } : {}) }
 }

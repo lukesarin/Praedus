@@ -91,6 +91,12 @@ describe('unitFor', () => {
     const u = unitFor(items[1], items, classWeeks(items, TERM), TERM)
     expect(u.earliestKnown).toBe(day(2))
   })
+  it('with a term start, no earliestKnown when the earliest item is later in the first week', () => {
+    const items = [a('Lab 1', 1, 2), a('Midterm exam', 8), a('Final exam', 16)]
+    const weeks = classWeeks(items, TERM)
+    expect(unitFor(items[1], items, weeks, TERM).earliestKnown).toBeUndefined()
+    expect(unitFor(items[2], items, weeks, TERM).earliestKnown).toBeUndefined()
+  })
   it('a final is cumulative from the first week', () => {
     const items = [a('HW', 1), a('Test 1', 4), a('Test 2', 9), a('Final exam', 16)]
     const u = unitFor(items[3], items, classWeeks(items, TERM), TERM)
